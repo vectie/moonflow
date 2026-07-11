@@ -2,6 +2,9 @@
 pub fn empty_projection(run_id : String) -> RunProjection {
   {
     run_id,
+    book_id: "",
+    declaration_revision: "",
+    source_digest: "",
     last_sequence: -1,
     items: [],
     applied_event_ids: [],
@@ -11,7 +14,10 @@ pub fn empty_projection(run_id : String) -> RunProjection {
 }
 
 ///|
-fn RunProjection::find_item(self : RunProjection, item_id : String) -> RuntimeItem? {
+pub fn RunProjection::find_item(
+  self : RunProjection,
+  item_id : String,
+) -> RuntimeItem? {
   for item in self.items {
     if item.work_item_id == item_id {
       return Some(item)
@@ -79,7 +85,7 @@ fn RunProjection::apply_new_event(
   event : RuntimeEvent,
 ) -> Unit raise FlowError {
   match event.kind {
-    RunCreated =>
+    RunCreated => {
       if event.work_item_id != "" {
         raise InvalidTransition(
           item_id=event.work_item_id,
@@ -87,6 +93,19 @@ fn RunProjection::apply_new_event(
           event=event.kind.id(),
         )
       }
+      if event.book_id.trim().is_empty() {
+        raise MissingRunSource("book_id")
+      }
+      if event.declaration_revision.trim().is_empty() {
+        raise MissingRunSource("declaration_revision")
+      }
+      if event.source_digest.trim().is_empty() {
+        raise MissingRunSource("source_digest")
+      }
+      self.book_id = event.book_id
+      self.declaration_revision = event.declaration_revision
+      self.source_digest = event.source_digest
+    }
     ItemRegistered => {
       if event.work_item_id.trim().is_empty() {
         raise MissingWorkItem(event.work_item_id)
@@ -94,9 +113,27 @@ fn RunProjection::apply_new_event(
       if self.find_item(event.work_item_id) is Some(_) {
         raise DuplicateWorkItem(event.work_item_id)
       }
+      if event.declaration_id.trim().is_empty() {
+        raise MissingDeclarationId(event.work_item_id)
+      }
+      if event.acceptance_criteria.is_empty() {
+        raise MissingAcceptanceCriteria(event.work_item_id)
+      }
+      if ![
+          "observe", "cognitive-maintenance", "sandbox-execution", "workspace-mutation",
+          "external-effect", "physical-effect",
+        ].contains(event.requested_authority) {
+        raise InvalidAuthority(
+          item_id=event.work_item_id,
+          authority=event.requested_authority,
+        )
+      }
       self.items.push({
         work_item_id: event.work_item_id,
+        declaration_id: event.declaration_id,
         product_id: event.product_id,
+        requested_authority: event.requested_authority,
+        acceptance_criteria: event.acceptance_criteria.copy(),
         depends_on: event.depends_on.copy(),
         status: Proposed,
         attempt_count: 0,
@@ -116,7 +153,7 @@ fn RunProjection::apply_new_event(
             Some(dependency_id) =>
               raise DependencyNotAccepted(
                 item_id=item.work_item_id,
-                dependency_id=dependency_id,
+                dependency_id~,
               )
             None => {
               item.status = Ready
@@ -135,7 +172,13 @@ fn RunProjection::apply_new_event(
           item.blocker = event.detail
         }
         ItemBlocked => {
-          require_transition(item, event, [Proposed, Ready, Active, Waiting, Review])
+          require_transition(item, event, [
+            Proposed,
+            Ready,
+            Active,
+            Waiting,
+            Review,
+          ])
           item.status = Blocked
           item.blocker = event.detail
         }
@@ -149,25 +192,37 @@ fn RunProjection::apply_new_event(
           item.blocker = ""
         }
         ItemFailed => {
-          require_transition(item, event, [Ready, Active, Waiting, Blocked, Review])
+          require_transition(item, event, [
+            Ready,
+            Active,
+            Waiting,
+            Blocked,
+            Review,
+          ])
           item.status = Failed
           item.blocker = event.detail
         }
         ItemCancelled => {
-          require_transition(
-            item,
-            event,
-            [Proposed, Ready, Active, Waiting, Blocked, Review],
-          )
+          require_transition(item, event, [
+            Proposed,
+            Ready,
+            Active,
+            Waiting,
+            Blocked,
+            Review,
+          ])
           item.status = Cancelled
           item.blocker = event.detail
         }
         ItemSuperseded => {
-          require_transition(
-            item,
-            event,
-            [Proposed, Ready, Active, Waiting, Blocked, Review],
-          )
+          require_transition(item, event, [
+            Proposed,
+            Ready,
+            Active,
+            Waiting,
+            Blocked,
+            Review,
+          ])
           item.status = Superseded
           item.blocker = event.detail
         }
@@ -207,6 +262,29 @@ pub fn RunProjection::apply(
   if event.run_id != self.run_id {
     raise RunIdMismatch(expected=self.run_id, actual=event.run_id)
   }
+  if event.kind != RunCreated {
+    if event.book_id != self.book_id {
+      raise SourceContextMismatch(
+        field="book_id",
+        expected=self.book_id,
+        actual=event.book_id,
+      )
+    }
+    if event.declaration_revision != self.declaration_revision {
+      raise SourceContextMismatch(
+        field="declaration_revision",
+        expected=self.declaration_revision,
+        actual=event.declaration_revision,
+      )
+    }
+    if event.source_digest != self.source_digest {
+      raise SourceContextMismatch(
+        field="source_digest",
+        expected=self.source_digest,
+        actual=event.source_digest,
+      )
+    }
+  }
   for previous in self.applied_events {
     if previous.event_id == event.event_id {
       if previous == event {
@@ -240,7 +318,11 @@ pub fn replay(
 
 ///|
 pub fn RunProjection::runnable_item_ids(self : RunProjection) -> Array[String] {
-  self.items.filter_map(item =>
-    if item.status == Ready { Some(item.work_item_id) } else { None },
-  )
+  self.items.filter_map(item => {
+    if item.status == Ready {
+      Some(item.work_item_id)
+    } else {
+      None
+    }
+  })
 }

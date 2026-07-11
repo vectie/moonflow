@@ -19,7 +19,7 @@ repository = "https://github.com/vectie/moonflow"
 
 license = "Apache-2.0"
 
-keywords = []
+keywords = [ ]
 
 preferred_target = "native"
 

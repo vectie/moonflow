@@ -9,7 +9,16 @@ fn event(
   detail? : String = "",
   artifact_id? : String = "",
   authority_id? : String = "",
+  declaration_id? : String = "",
+  requested_authority? : String = "observe",
+  acceptance_criteria? : Array[String] = ["declared criteria pass"],
 ) -> RuntimeEvent {
+  let source_declaration = if kind == ItemRegistered &&
+    declaration_id.is_empty() {
+    "declaration-\{work_item_id}"
+  } else {
+    declaration_id
+  }
   {
     sequence,
     event_id,
@@ -17,6 +26,12 @@ fn event(
     work_item_id,
     kind,
     product_id,
+    declaration_id: source_declaration,
+    book_id: "selene",
+    declaration_revision: "r1",
+    source_digest: "sha256:selene-r1",
+    requested_authority,
+    acceptance_criteria,
     depends_on,
     detail,
     artifact_id,

@@ -129,6 +129,9 @@ async fn append_transition(
   ignore(safe_id(work_item_id, "work_item_id"))
   let events = load_events(workspace, run_id)
   let projection = @moonflow.replay(run_id, events)
+  guard projection.find_item(work_item_id) is Some(item) else {
+    fail("MoonFlow work item does not exist: \{work_item_id}")
+  }
   let kind = transition_kind(action)
   let mut artifact_id = ""
   let mut authority_id = ""
@@ -144,7 +147,13 @@ async fn append_transition(
     run_id,
     work_item_id,
     kind,
-    product_id: "",
+    product_id: item.product_id,
+    declaration_id: item.declaration_id,
+    book_id: projection.book_id,
+    declaration_revision: projection.declaration_revision,
+    source_digest: projection.source_digest,
+    requested_authority: item.requested_authority,
+    acceptance_criteria: item.acceptance_criteria.copy(),
     depends_on: [],
     detail,
     artifact_id,

@@ -80,6 +80,12 @@ pub(all) struct RuntimeEvent {
   work_item_id : String
   kind : EventKind
   product_id : String
+  declaration_id : String
+  book_id : String
+  declaration_revision : String
+  source_digest : String
+  requested_authority : String
+  acceptance_criteria : Array[String]
   depends_on : Array[String]
   detail : String
   artifact_id : String
@@ -90,7 +96,10 @@ pub(all) struct RuntimeEvent {
 ///|
 pub(all) struct RuntimeItem {
   work_item_id : String
+  declaration_id : String
   product_id : String
+  requested_authority : String
+  acceptance_criteria : Array[String]
   depends_on : Array[String]
   mut status : RuntimeStatus
   mut attempt_count : Int
@@ -102,6 +111,9 @@ pub(all) struct RuntimeItem {
 ///|
 pub(all) struct RunProjection {
   run_id : String
+  mut book_id : String
+  mut declaration_revision : String
+  mut source_digest : String
   mut last_sequence : Int
   items : Array[RuntimeItem]
   applied_event_ids : Array[String]
@@ -122,4 +134,9 @@ pub(all) suberror FlowError {
   DependencyNotAccepted(item_id~ : String, dependency_id~ : String)
   MissingArtifactId(String)
   MissingAuthorityId(String)
+  MissingRunSource(String)
+  MissingDeclarationId(String)
+  MissingAcceptanceCriteria(String)
+  InvalidAuthority(item_id~ : String, authority~ : String)
+  SourceContextMismatch(field~ : String, expected~ : String, actual~ : String)
 } derive(Debug, Eq, ToJson)
