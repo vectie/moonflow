@@ -135,6 +135,26 @@ test "production capability requires reconciliation" {
 }
 
 ///|
+test "MoonGate capability validates without granting external effects" {
+  let capability = @moonflow.validate_adapter_capability({
+    "adapter_id": "moongate-v1",
+    "product_id": "moongate",
+    "protocol": "moonflow.adapter.v1",
+    "operations": [
+      "capability-probe", "route-ai-request", "record-ai-session", "reconcile-usage",
+    ],
+    "authority_classes": [
+      "observe", "cognitive-maintenance", "sandbox-execution", "workspace-mutation",
+    ],
+    "supports_cancel": false,
+    "supports_reconcile": true,
+  })
+  assert_eq(capability.product_id, "moongate")
+  assert_true(capability.supports_reconcile)
+  assert_false(capability.authority_classes.contains("external-effect"))
+}
+
+///|
 test "adapter attempt survives replay and reconciles exactly once" {
   let events = adapter_projection_events()
   let before = @moonflow.replay("flow-r1", events)

@@ -16,6 +16,8 @@ pub fn artifact_ref_is_workspace_relative(String) -> Bool
 
 pub fn authority_class_is_canonical(String) -> Bool
 
+pub fn decode_adapter_capability(Json) -> AdapterCapability raise
+
 pub fn decode_adapter_request(Json) -> AdapterRequest raise
 
 pub fn decode_adapter_result(Json) -> AdapterResult raise
@@ -51,6 +53,8 @@ pub fn replay(String, Array[RuntimeEvent]) -> RunProjection raise FlowError
 pub fn runtime_event_json(RuntimeEvent) -> Json
 
 pub fn runtime_protocol_id() -> String
+
+pub fn validate_adapter_capability(Json) -> AdapterCapability raise AdapterContractError
 
 // Errors
 pub(all) suberror AdapterContractError {

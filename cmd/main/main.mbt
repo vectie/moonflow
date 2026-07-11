@@ -229,6 +229,14 @@ async fn reconcile_attempt(
 }
 
 ///|
+async fn validate_capability(capability_path : String) -> Unit {
+  let capability = @moonflow.validate_adapter_capability(
+    read_json(capability_path),
+  )
+  println(capability.to_json().stringify(indent=2))
+}
+
+///|
 fn usage() -> Unit {
   println(
     "MoonFlow usage:\n" +
@@ -237,7 +245,8 @@ fn usage() -> Unit {
     "  moonflow transition <workspace> <run-id> <work-item-id> <action> <recorded-at> [detail]\n" +
     "  moonflow advance <workspace> <run-id> <recorded-at>\n" +
     "  moonflow submit-attempt <workspace> <run-id> <request.json>\n" +
-    "  moonflow reconcile-attempt <workspace> <run-id> <result.json>",
+    "  moonflow reconcile-attempt <workspace> <run-id> <result.json>\n" +
+    "  moonflow validate-capability <capability.json>",
   )
 }
 
@@ -262,6 +271,8 @@ async fn main {
       submit_attempt(workspace, run_id, request_path)
     ["reconcile-attempt", workspace, run_id, result_path] =>
       reconcile_attempt(workspace, run_id, result_path)
+    ["validate-capability", capability_path] =>
+      validate_capability(capability_path)
     ["version"] => println("MoonFlow \{@moonflow.runtime_protocol_id()}")
     _ => usage()
   }

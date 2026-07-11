@@ -99,6 +99,34 @@ pub fn AdapterCapability::quality_issues(
 }
 
 ///|
+pub fn decode_adapter_capability(value : Json) -> AdapterCapability raise {
+  let fields = wire_object(value, "MoonFlow adapter capability")
+  {
+    adapter_id: wire_string(fields, "adapter_id"),
+    product_id: wire_string(fields, "product_id"),
+    protocol: wire_string(fields, "protocol"),
+    operations: wire_strings(fields, "operations"),
+    authority_classes: wire_strings(fields, "authority_classes"),
+    supports_cancel: wire_bool(fields, "supports_cancel"),
+    supports_reconcile: wire_bool(fields, "supports_reconcile"),
+  }
+}
+
+///|
+pub fn validate_adapter_capability(
+  value : Json,
+) -> AdapterCapability raise AdapterContractError {
+  let capability = decode_adapter_capability(value) catch {
+    error => raise InvalidAdapterRequest(["invalid capability: \{error}"])
+  }
+  let issues = capability.quality_issues()
+  if !issues.is_empty() {
+    raise InvalidAdapterRequest(issues)
+  }
+  capability
+}
+
+///|
 pub(all) struct AdapterRequest {
   request_id : String
   run_id : String
