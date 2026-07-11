@@ -1,6 +1,8 @@
 ///|
 fn safe_id(id : String, label : String) -> String raise {
-  if id.trim().is_empty() || id.contains("/") || id.contains("\\") ||
+  if id.trim().is_empty() ||
+    id.contains("/") ||
+    id.contains("\\") ||
     id.contains("..") {
     fail("\{label} must be a safe identifier")
   }
@@ -46,7 +48,10 @@ async fn persist_run(
   }
   let projection = @moonflow.replay(run_id, events)
   write_json("\{directory}/events.json", @moonflow.event_array_json(events))
-  write_json("\{directory}/projection.json", @moonflow.projection_json(projection))
+  write_json(
+    "\{directory}/projection.json",
+    @moonflow.projection_json(projection),
+  )
   projection
 }
 
@@ -57,6 +62,25 @@ async fn load_events(
 ) -> Array[@moonflow.RuntimeEvent] {
   let path = "\{run_dir(workspace, run_id)}/events.json"
   @moonflow.decode_event_array(read_json(path))
+}
+
+///|
+async fn validate_artifact_ref(
+  workspace : String,
+  artifact_ref : String,
+) -> Unit {
+  if !@moonflow.artifact_ref_is_workspace_relative(artifact_ref) {
+    fail("MoonFlow artifact must be a workspace-relative path")
+  }
+  let root = @fs.realpath(@moonflow.normalize_workspace_path(workspace))
+  let artifact_path = root + "/" + artifact_ref
+  if !@fs.exists(artifact_path) {
+    fail("MoonFlow artifact does not exist: \{artifact_ref}")
+  }
+  let canonical_artifact = @fs.realpath(artifact_path)
+  if !@moonflow.path_is_within_workspace(root, canonical_artifact) {
+    fail("MoonFlow artifact resolves outside workspace: \{artifact_ref}")
+  }
 }
 
 ///|
@@ -109,6 +133,7 @@ async fn append_transition(
   let mut artifact_id = ""
   let mut authority_id = ""
   if kind == ArtifactAttached {
+    validate_artifact_ref(workspace, detail)
     artifact_id = detail
   } else if kind == ApprovalGranted {
     authority_id = detail
@@ -131,7 +156,11 @@ async fn append_transition(
 }
 
 ///|
-async fn advance(workspace : String, run_id : String, recorded_at : String) -> Unit {
+async fn advance(
+  workspace : String,
+  run_id : String,
+  recorded_at : String,
+) -> Unit {
   let events = load_events(workspace, run_id)
   let projection = @moonflow.replay(run_id, events)
   for ready in @moonflow.ready_events(projection, recorded_at) {
@@ -156,33 +185,16 @@ fn usage() -> Unit {
 async fn main {
   let args = @env.args()
   match args[1:] {
-    ["import-graph", workspace, graph_path] => import_graph(workspace, graph_path)
+    ["import-graph", workspace, graph_path] =>
+      import_graph(workspace, graph_path)
     ["status", workspace, run_id] => show_status(workspace, run_id)
-    [
-      "transition",
-      workspace,
-      run_id,
-      work_item_id,
-      action,
-      recorded_at,
-      detail,
-    ] =>
+    ["transition", workspace, run_id, work_item_id, action, recorded_at, detail] =>
       append_transition(
-        workspace,
-        run_id,
-        work_item_id,
-        action,
-        detail,
-        recorded_at,
+        workspace, run_id, work_item_id, action, detail, recorded_at,
       )
     ["transition", workspace, run_id, work_item_id, action, recorded_at] =>
       append_transition(
-        workspace,
-        run_id,
-        work_item_id,
-        action,
-        "",
-        recorded_at,
+        workspace, run_id, work_item_id, action, "", recorded_at,
       )
     ["advance", workspace, run_id, recorded_at] =>
       advance(workspace, run_id, recorded_at)

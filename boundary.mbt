@@ -12,11 +12,23 @@ pub fn normalize_workspace_path(path : String) -> String {
 }
 
 ///|
-pub fn path_is_within_workspace(workspace_root : String, candidate : String) -> Bool {
+pub fn path_is_within_workspace(
+  workspace_root : String,
+  candidate : String,
+) -> Bool {
   if !workspace_root.has_prefix("/") || !candidate.has_prefix("/") {
     return false
   }
   let root = normalize_workspace_path(workspace_root)
   let path = normalize_workspace_path(candidate)
   path == root || path.has_prefix(root + "/")
+}
+
+///|
+pub fn artifact_ref_is_workspace_relative(artifact_ref : String) -> Bool {
+  let value = artifact_ref.trim().replace(old="\\", new="/")
+  if value.is_empty() || value.has_prefix("/") {
+    return false
+  }
+  !value.split("/").any(segment => segment == ".." || segment == "")
 }

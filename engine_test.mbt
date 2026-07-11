@@ -38,7 +38,12 @@ test "event replay preserves dependencies and accepted completion" {
     ),
     event(2, "event-ready-research", ItemReady, work_item_id="research"),
     event(3, "event-start-research", ItemStarted, work_item_id="research"),
-    event(4, "event-review-research", ItemReviewRequested, work_item_id="research"),
+    event(
+      4,
+      "event-review-research",
+      ItemReviewRequested,
+      work_item_id="research",
+    ),
     event(5, "event-accept-research", ItemAccepted, work_item_id="research"),
     event(
       6,
@@ -73,9 +78,11 @@ test "duplicate delivery is idempotent" {
 test "conflicting duplicate event fails closed" {
   let projection = @moonflow.empty_projection("flow-selene-r1")
   projection.apply(event(0, "event-run", RunCreated))
-  try projection.apply(
-    event(0, "event-run", RunCreated, detail="conflicting payload"),
-  ) catch {
+  try
+    projection.apply(
+      event(0, "event-run", RunCreated, detail="conflicting payload"),
+    )
+  catch {
     ConflictingDuplicateEvent(event_id) => assert_eq(event_id, "event-run")
     _ => fail("unexpected error")
   } noraise {
@@ -97,9 +104,11 @@ test "dependency gate fails closed" {
       depends_on=["research"],
     ),
   )
-  try projection.apply(
-    event(2, "event-ready-sim", ItemReady, work_item_id="simulate"),
-  ) catch {
+  try
+    projection.apply(
+      event(2, "event-ready-sim", ItemReady, work_item_id="simulate"),
+    )
+  catch {
     DependencyNotAccepted(item_id~, dependency_id~) => {
       assert_eq(item_id, "simulate")
       assert_eq(dependency_id, "research")
@@ -142,20 +151,30 @@ test "restart replay produces the same projection" {
 test "workspace boundary rejects path escape" {
   assert_true(
     @moonflow.path_is_within_workspace(
-      "/Users/kq/moonsuite",
-      "/Users/kq/moonsuite/books/selene",
+      "/Users/kq/moonsuite", "/Users/kq/moonsuite/books/selene",
     ),
   )
   assert_false(
     @moonflow.path_is_within_workspace(
-      "/Users/kq/moonsuite",
-      "/Users/kq/moonsuite/../Workspace/moonbook",
+      "/Users/kq/moonsuite", "/Users/kq/moonsuite/../Workspace/moonbook",
     ),
   )
   assert_false(
     @moonflow.path_is_within_workspace(
-      "/Users/kq/moonsuite",
-      "/Users/kq/moonsuite-old",
+      "/Users/kq/moonsuite", "/Users/kq/moonsuite-old",
+    ),
+  )
+  assert_true(
+    @moonflow.artifact_ref_is_workspace_relative(
+      "books/selene/outputs/evidence.json",
+    ),
+  )
+  assert_false(
+    @moonflow.artifact_ref_is_workspace_relative("../Workspace/evidence.json"),
+  )
+  assert_false(
+    @moonflow.artifact_ref_is_workspace_relative(
+      "/Users/kq/moonsuite/evidence.json",
     ),
   )
 }
