@@ -47,7 +47,22 @@ moonflow import-graph <workspace> <graph.json>
 moonflow status <workspace> <run-id>
 moonflow transition <workspace> <run-id> <work-item-id> <action> <recorded-at> [detail]
 moonflow advance <workspace> <run-id> <recorded-at>
+moonflow submit-attempt <workspace> <run-id> <request.json>
+moonflow reconcile-attempt <workspace> <run-id> <result.json>
+moonflow review-outcome <workspace> <run-id> <workspace-relative-review-receipt>
+moonflow validate-capability <capability.json>
 ```
+
+Adapter success moves Work to review; it never implies acceptance. The only
+CLI acceptance path is `review-outcome`, whose typed receipt must match the
+persisted run, declaration, result, attempt, and output digest, review every
+original criterion in order, and cite evidence already attached to the Work
+item.
+
+If execution reveals that a criterion belongs to the wrong product, compile a
+new MoonBook declaration revision and start a new run. Preserve the old event
+history and explicitly replay any still-valid accepted evidence; do not mutate
+or reinterpret the original criterion in place.
 
 All runtime state is stored under
 `<workspace>/.moonsuite/products/moonflow/runs/<run-id>`. Artifact transitions
