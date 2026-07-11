@@ -6,9 +6,19 @@ import {
 }
 
 // Values
+pub fn adapter_attempt_status_from_id(String) -> AdapterAttemptStatus raise
+
+pub fn adapter_reconciliation_event(RunProjection, AdapterResult) -> RuntimeEvent raise AdapterContractError
+
+pub fn adapter_submission_event(RunProjection, AdapterRequest) -> RuntimeEvent raise AdapterContractError
+
 pub fn artifact_ref_is_workspace_relative(String) -> Bool
 
 pub fn authority_class_is_canonical(String) -> Bool
+
+pub fn decode_adapter_request(Json) -> AdapterRequest raise
+
+pub fn decode_adapter_result(Json) -> AdapterResult raise
 
 pub fn decode_event_array(Json) -> Array[RuntimeEvent] raise
 
@@ -47,6 +57,10 @@ pub(all) suberror AdapterContractError {
   InvalidAdapterRequest(Array[String])
   InvalidAdapterResult(Array[String])
   AdapterIdentityMismatch(field~ : String, expected~ : String, actual~ : String)
+  AdapterRuntimeItemUnavailable(String)
+  AdapterRuntimeItemNotReady(item_id~ : String, status~ : String)
+  AdapterAttemptUnavailable(String)
+  AdapterReceiptConflict(String)
 } derive(Eq, ToJson, @debug.Debug)
 
 pub(all) suberror FlowError {
@@ -66,6 +80,10 @@ pub(all) suberror FlowError {
   MissingAcceptanceCriteria(String)
   InvalidAuthority(item_id~ : String, authority~ : String)
   SourceContextMismatch(field~ : String, expected~ : String, actual~ : String)
+  MissingAttemptField(item_id~ : String, field~ : String)
+  AttemptIdentityMismatch(item_id~ : String, expected~ : String, actual~ : String)
+  UnsupportedAttemptStatus(item_id~ : String, status~ : String)
+  MissingAcceptanceReview(String)
 } derive(Eq, ToJson, @debug.Debug)
 
 // Types and methods
@@ -109,6 +127,7 @@ pub(all) struct AdapterRequest {
 pub fn AdapterRequest::quality_issues(Self) -> Array[String]
 
 pub(all) struct AdapterResult {
+  result_id : String
   request_id : String
   attempt_id : String
   idempotency_key : String
@@ -137,6 +156,8 @@ pub(all) enum EventKind {
   ItemSuperseded
   ArtifactAttached
   ApprovalGranted
+  AttemptSubmitted
+  AttemptReconciled
 } derive(Compare, Eq, Hash, ToJson, @debug.Debug)
 pub fn EventKind::id(Self) -> String
 
@@ -176,6 +197,17 @@ pub(all) struct RuntimeEvent {
   source_digest : String
   requested_authority : String
   acceptance_criteria : Array[String]
+  request_id : String
+  result_id : String
+  attempt_id : String
+  idempotency_key : String
+  external_job_id : String
+  attempt_status : String
+  input_digest : String
+  output_digest : String
+  output_artifacts : Array[String]
+  error_kind : String
+  compensable : Bool
   depends_on : Array[String]
   detail : String
   artifact_id : String
@@ -192,6 +224,16 @@ pub(all) struct RuntimeItem {
   depends_on : Array[String]
   mut status : RuntimeStatus
   mut attempt_count : Int
+  mut request_id : String
+  mut result_id : String
+  mut active_attempt_id : String
+  mut idempotency_key : String
+  mut external_job_id : String
+  mut attempt_status : String
+  mut input_digest : String
+  mut output_digest : String
+  mut error_kind : String
+  mut compensable : Bool
   mut blocker : String
   artifacts : Array[String]
   approvals : Array[String]

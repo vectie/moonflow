@@ -154,6 +154,17 @@ async fn append_transition(
     source_digest: projection.source_digest,
     requested_authority: item.requested_authority,
     acceptance_criteria: item.acceptance_criteria.copy(),
+    request_id: "",
+    result_id: "",
+    attempt_id: "",
+    idempotency_key: "",
+    external_job_id: "",
+    attempt_status: "",
+    input_digest: "",
+    output_digest: "",
+    output_artifacts: [],
+    error_kind: "",
+    compensable: false,
     depends_on: [],
     detail,
     artifact_id,
@@ -180,13 +191,53 @@ async fn advance(
 }
 
 ///|
+async fn submit_attempt(
+  workspace : String,
+  run_id : String,
+  request_path : String,
+) -> Unit {
+  let events = load_events(workspace, run_id)
+  let projection = @moonflow.replay(run_id, events)
+  let request = @moonflow.decode_adapter_request(read_json(request_path))
+  let event = @moonflow.adapter_submission_event(projection, request)
+  if projection.applied_event_ids.contains(event.event_id) {
+    println(@moonflow.projection_json(projection).stringify(indent=2))
+    return
+  }
+  events.push(event)
+  let updated = persist_run(workspace, run_id, events)
+  println(@moonflow.projection_json(updated).stringify(indent=2))
+}
+
+///|
+async fn reconcile_attempt(
+  workspace : String,
+  run_id : String,
+  result_path : String,
+) -> Unit {
+  let events = load_events(workspace, run_id)
+  let projection = @moonflow.replay(run_id, events)
+  let result = @moonflow.decode_adapter_result(read_json(result_path))
+  let event = @moonflow.adapter_reconciliation_event(projection, result)
+  if projection.applied_event_ids.contains(event.event_id) {
+    println(@moonflow.projection_json(projection).stringify(indent=2))
+    return
+  }
+  events.push(event)
+  let updated = persist_run(workspace, run_id, events)
+  println(@moonflow.projection_json(updated).stringify(indent=2))
+}
+
+///|
 fn usage() -> Unit {
   println(
     "MoonFlow usage:\n" +
     "  moonflow import-graph <workspace> <graph.json>\n" +
     "  moonflow status <workspace> <run-id>\n" +
     "  moonflow transition <workspace> <run-id> <work-item-id> <action> <recorded-at> [detail]\n" +
-    "  moonflow advance <workspace> <run-id> <recorded-at>",
+    "  moonflow advance <workspace> <run-id> <recorded-at>\n" +
+    "  moonflow submit-attempt <workspace> <run-id> <request.json>\n" +
+    "  moonflow reconcile-attempt <workspace> <run-id> <result.json>",
   )
 }
 
@@ -207,6 +258,10 @@ async fn main {
       )
     ["advance", workspace, run_id, recorded_at] =>
       advance(workspace, run_id, recorded_at)
+    ["submit-attempt", workspace, run_id, request_path] =>
+      submit_attempt(workspace, run_id, request_path)
+    ["reconcile-attempt", workspace, run_id, result_path] =>
+      reconcile_attempt(workspace, run_id, result_path)
     ["version"] => println("MoonFlow \{@moonflow.runtime_protocol_id()}")
     _ => usage()
   }

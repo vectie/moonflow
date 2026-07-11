@@ -32,6 +32,17 @@ fn event(
     source_digest: "sha256:selene-r1",
     requested_authority,
     acceptance_criteria,
+    request_id: "",
+    result_id: "",
+    attempt_id: "",
+    idempotency_key: "",
+    external_job_id: "",
+    attempt_status: "",
+    input_digest: "",
+    output_digest: "",
+    output_artifacts: [],
+    error_kind: "",
+    compensable: false,
     depends_on,
     detail,
     artifact_id,
@@ -59,7 +70,13 @@ test "event replay preserves dependencies and accepted completion" {
       ItemReviewRequested,
       work_item_id="research",
     ),
-    event(5, "event-accept-research", ItemAccepted, work_item_id="research"),
+    event(
+      5,
+      "event-accept-research",
+      ItemAccepted,
+      work_item_id="research",
+      detail="review://research-acceptance",
+    ),
     event(
       6,
       "event-register-sim",
@@ -71,7 +88,13 @@ test "event replay preserves dependencies and accepted completion" {
     event(7, "event-ready-sim", ItemReady, work_item_id="simulate"),
     event(8, "event-start-sim", ItemStarted, work_item_id="simulate"),
     event(9, "event-review-sim", ItemReviewRequested, work_item_id="simulate"),
-    event(10, "event-accept-sim", ItemAccepted, work_item_id="simulate"),
+    event(
+      10,
+      "event-accept-sim",
+      ItemAccepted,
+      work_item_id="simulate",
+      detail="review://simulation-acceptance",
+    ),
   ]
   let projection = @moonflow.replay("flow-selene-r1", events)
   assert_eq(projection.outcome, "accepted")
@@ -160,6 +183,34 @@ test "restart replay produces the same projection" {
   assert_true(first == restored)
   assert_eq(restored.outcome, "blocked")
   assert_eq(restored.items[0].blocker, "source evidence is incomplete")
+}
+
+///|
+test "acceptance requires an explicit review receipt" {
+  let events = [
+    event(0, "event-run", RunCreated),
+    event(
+      1,
+      "event-register",
+      ItemRegistered,
+      work_item_id="research",
+      product_id="moonwiki",
+    ),
+    event(2, "event-ready", ItemReady, work_item_id="research"),
+    event(3, "event-start", ItemStarted, work_item_id="research"),
+    event(4, "event-review", ItemReviewRequested, work_item_id="research"),
+  ]
+  let projection = @moonflow.replay("flow-selene-r1", events)
+  try
+    projection.apply(
+      event(5, "event-accept", ItemAccepted, work_item_id="research"),
+    )
+  catch {
+    MissingAcceptanceReview(item_id) => assert_eq(item_id, "research")
+    _ => fail("unexpected error")
+  } noraise {
+    _ => fail("expected missing acceptance review to fail")
+  }
 }
 
 ///|

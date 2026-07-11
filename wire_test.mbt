@@ -178,7 +178,13 @@ test "ready event generation advances only accepted dependencies" {
     ),
     event(3, "ready-a", ItemReady, work_item_id="a"),
     event(4, "start-a", ItemStarted, work_item_id="a"),
-    event(5, "accept-a", ItemAccepted, work_item_id="a"),
+    event(
+      5,
+      "accept-a",
+      ItemAccepted,
+      work_item_id="a",
+      detail="review://a-acceptance",
+    ),
   ]
   let projection = @moonflow.replay("flow-selene-r1", events)
   let ready = @moonflow.ready_events(projection, "2026-07-11T00:01:00Z")

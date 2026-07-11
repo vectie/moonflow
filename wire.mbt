@@ -27,6 +27,20 @@ fn wire_int(fields : Map[String, Json], key : String) -> Int raise {
 }
 
 ///|
+fn wire_bool(
+  fields : Map[String, Json],
+  key : String,
+  default? : Bool = false,
+) -> Bool raise {
+  match fields.get(key) {
+    Some(True) => true
+    Some(False) => false
+    None => default
+    _ => fail("missing or invalid boolean field: \{key}")
+  }
+}
+
+///|
 fn wire_strings(
   fields : Map[String, Json],
   key : String,
@@ -83,6 +97,8 @@ pub fn event_kind_from_id(id : String) -> EventKind raise {
     "item-superseded" => ItemSuperseded
     "artifact-attached" => ArtifactAttached
     "approval-granted" => ApprovalGranted
+    "attempt-submitted" => AttemptSubmitted
+    "attempt-reconciled" => AttemptReconciled
     _ => fail("unsupported MoonFlow event kind: \{id}")
   }
 }
@@ -111,6 +127,17 @@ pub fn decode_runtime_event(value : Json) -> RuntimeEvent raise {
       "acceptance_criteria",
       required=false,
     ),
+    request_id: wire_string(fields, "request_id", allow_empty=true),
+    result_id: wire_string(fields, "result_id", allow_empty=true),
+    attempt_id: wire_string(fields, "attempt_id", allow_empty=true),
+    idempotency_key: wire_string(fields, "idempotency_key", allow_empty=true),
+    external_job_id: wire_string(fields, "external_job_id", allow_empty=true),
+    attempt_status: wire_string(fields, "attempt_status", allow_empty=true),
+    input_digest: wire_string(fields, "input_digest", allow_empty=true),
+    output_digest: wire_string(fields, "output_digest", allow_empty=true),
+    output_artifacts: wire_strings(fields, "output_artifacts", required=false),
+    error_kind: wire_string(fields, "error_kind", allow_empty=true),
+    compensable: wire_bool(fields, "compensable"),
     depends_on: wire_strings(fields, "depends_on", required=false),
     detail: wire_string(fields, "detail", allow_empty=true),
     artifact_id: wire_string(fields, "artifact_id", allow_empty=true),
@@ -134,6 +161,17 @@ pub fn runtime_event_json(event : RuntimeEvent) -> Json {
     "source_digest": event.source_digest,
     "requested_authority": event.requested_authority,
     "acceptance_criteria": event.acceptance_criteria.to_json(),
+    "request_id": event.request_id,
+    "result_id": event.result_id,
+    "attempt_id": event.attempt_id,
+    "idempotency_key": event.idempotency_key,
+    "external_job_id": event.external_job_id,
+    "attempt_status": event.attempt_status,
+    "input_digest": event.input_digest,
+    "output_digest": event.output_digest,
+    "output_artifacts": event.output_artifacts.to_json(),
+    "error_kind": event.error_kind,
+    "compensable": event.compensable,
     "depends_on": event.depends_on.to_json(),
     "detail": event.detail,
     "artifact_id": event.artifact_id,
@@ -168,6 +206,16 @@ pub fn projection_json(projection : RunProjection) -> Json {
         "depends_on": item.depends_on.to_json(),
         "status": item.status.id(),
         "attempt_count": item.attempt_count,
+        "request_id": item.request_id,
+        "result_id": item.result_id,
+        "active_attempt_id": item.active_attempt_id,
+        "idempotency_key": item.idempotency_key,
+        "external_job_id": item.external_job_id,
+        "attempt_status": item.attempt_status,
+        "input_digest": item.input_digest,
+        "output_digest": item.output_digest,
+        "error_kind": item.error_kind,
+        "compensable": item.compensable,
         "blocker": item.blocker,
         "artifacts": item.artifacts.to_json(),
         "approvals": item.approvals.to_json(),
@@ -252,6 +300,17 @@ pub fn events_from_work_graph(value : Json) -> Array[RuntimeEvent] raise {
       source_digest,
       requested_authority: "",
       acceptance_criteria: [],
+      request_id: "",
+      result_id: "",
+      attempt_id: "",
+      idempotency_key: "",
+      external_job_id: "",
+      attempt_status: "",
+      input_digest: "",
+      output_digest: "",
+      output_artifacts: [],
+      error_kind: "",
+      compensable: false,
       depends_on: [],
       detail: "",
       artifact_id: "",
@@ -275,6 +334,17 @@ pub fn events_from_work_graph(value : Json) -> Array[RuntimeEvent] raise {
       source_digest,
       requested_authority: wire_string(item, "requested_authority"),
       acceptance_criteria: wire_strings(item, "acceptance_criteria"),
+      request_id: "",
+      result_id: "",
+      attempt_id: "",
+      idempotency_key: "",
+      external_job_id: "",
+      attempt_status: "",
+      input_digest: "",
+      output_digest: "",
+      output_artifacts: [],
+      error_kind: "",
+      compensable: false,
       depends_on: wire_strings(item, "depends_on", required=false),
       detail: "",
       artifact_id: "",
@@ -298,6 +368,17 @@ pub fn events_from_work_graph(value : Json) -> Array[RuntimeEvent] raise {
         source_digest,
         requested_authority: item.requested_authority,
         acceptance_criteria: item.acceptance_criteria.copy(),
+        request_id: "",
+        result_id: "",
+        attempt_id: "",
+        idempotency_key: "",
+        external_job_id: "",
+        attempt_status: "",
+        input_digest: "",
+        output_digest: "",
+        output_artifacts: [],
+        error_kind: "",
+        compensable: false,
         depends_on: [],
         detail: "",
         artifact_id: "",
@@ -348,6 +429,17 @@ pub fn ready_events(
           source_digest: projection.source_digest,
           requested_authority: item.requested_authority,
           acceptance_criteria: item.acceptance_criteria.copy(),
+          request_id: "",
+          result_id: "",
+          attempt_id: "",
+          idempotency_key: "",
+          external_job_id: "",
+          attempt_status: "",
+          input_digest: "",
+          output_digest: "",
+          output_artifacts: [],
+          error_kind: "",
+          compensable: false,
           depends_on: [],
           detail: "",
           artifact_id: "",

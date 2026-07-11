@@ -51,6 +51,8 @@ pub(all) enum EventKind {
   ItemSuperseded
   ArtifactAttached
   ApprovalGranted
+  AttemptSubmitted
+  AttemptReconciled
 } derive(Debug, Eq, Compare, Hash, ToJson)
 
 ///|
@@ -69,6 +71,8 @@ pub fn EventKind::id(self : EventKind) -> String {
     ItemSuperseded => "item-superseded"
     ArtifactAttached => "artifact-attached"
     ApprovalGranted => "approval-granted"
+    AttemptSubmitted => "attempt-submitted"
+    AttemptReconciled => "attempt-reconciled"
   }
 }
 
@@ -86,6 +90,17 @@ pub(all) struct RuntimeEvent {
   source_digest : String
   requested_authority : String
   acceptance_criteria : Array[String]
+  request_id : String
+  result_id : String
+  attempt_id : String
+  idempotency_key : String
+  external_job_id : String
+  attempt_status : String
+  input_digest : String
+  output_digest : String
+  output_artifacts : Array[String]
+  error_kind : String
+  compensable : Bool
   depends_on : Array[String]
   detail : String
   artifact_id : String
@@ -103,6 +118,16 @@ pub(all) struct RuntimeItem {
   depends_on : Array[String]
   mut status : RuntimeStatus
   mut attempt_count : Int
+  mut request_id : String
+  mut result_id : String
+  mut active_attempt_id : String
+  mut idempotency_key : String
+  mut external_job_id : String
+  mut attempt_status : String
+  mut input_digest : String
+  mut output_digest : String
+  mut error_kind : String
+  mut compensable : Bool
   mut blocker : String
   artifacts : Array[String]
   approvals : Array[String]
@@ -139,4 +164,12 @@ pub(all) suberror FlowError {
   MissingAcceptanceCriteria(String)
   InvalidAuthority(item_id~ : String, authority~ : String)
   SourceContextMismatch(field~ : String, expected~ : String, actual~ : String)
+  MissingAttemptField(item_id~ : String, field~ : String)
+  AttemptIdentityMismatch(
+    item_id~ : String,
+    expected~ : String,
+    actual~ : String
+  )
+  UnsupportedAttemptStatus(item_id~ : String, status~ : String)
+  MissingAcceptanceReview(String)
 } derive(Debug, Eq, ToJson)

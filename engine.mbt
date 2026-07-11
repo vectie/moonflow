@@ -137,6 +137,16 @@ fn RunProjection::apply_new_event(
         depends_on: event.depends_on.copy(),
         status: Proposed,
         attempt_count: 0,
+        request_id: "",
+        result_id: "",
+        active_attempt_id: "",
+        idempotency_key: "",
+        external_job_id: "",
+        attempt_status: "",
+        input_digest: "",
+        output_digest: "",
+        error_kind: "",
+        compensable: false,
         blocker: "",
         artifacts: [],
         approvals: [],
@@ -145,6 +155,29 @@ fn RunProjection::apply_new_event(
     _ => {
       guard self.find_item(event.work_item_id) is Some(item) else {
         raise MissingWorkItem(event.work_item_id)
+      }
+      if !event.product_id.is_empty() && event.product_id != item.product_id {
+        raise SourceContextMismatch(
+          field="product_id",
+          expected=item.product_id,
+          actual=event.product_id,
+        )
+      }
+      if !event.declaration_id.is_empty() &&
+        event.declaration_id != item.declaration_id {
+        raise SourceContextMismatch(
+          field="declaration_id",
+          expected=item.declaration_id,
+          actual=event.declaration_id,
+        )
+      }
+      if !event.requested_authority.is_empty() &&
+        event.requested_authority != item.requested_authority {
+        raise SourceContextMismatch(
+          field="requested_authority",
+          expected=item.requested_authority,
+          actual=event.requested_authority,
+        )
       }
       match event.kind {
         ItemReady => {
@@ -188,6 +221,9 @@ fn RunProjection::apply_new_event(
         }
         ItemAccepted => {
           require_transition(item, event, [Active, Review])
+          if event.detail.trim().is_empty() {
+            raise MissingAcceptanceReview(item.work_item_id)
+          }
           item.status = Accepted
           item.blocker = ""
         }
@@ -240,6 +276,115 @@ fn RunProjection::apply_new_event(
           }
           if !item.approvals.contains(event.authority_id) {
             item.approvals.push(event.authority_id)
+          }
+        }
+        AttemptSubmitted => {
+          require_transition(item, event, [Ready])
+          for
+            pair in [
+              ("request_id", event.request_id),
+              ("attempt_id", event.attempt_id),
+              ("idempotency_key", event.idempotency_key),
+              ("input_digest", event.input_digest),
+            ] {
+            let (field, value) = pair
+            if value.trim().is_empty() {
+              raise MissingAttemptField(item_id=item.work_item_id, field~)
+            }
+          }
+          if event.attempt_status != "submitted" {
+            raise UnsupportedAttemptStatus(
+              item_id=item.work_item_id,
+              status=event.attempt_status,
+            )
+          }
+          item.status = Active
+          item.attempt_count += 1
+          item.request_id = event.request_id
+          item.result_id = ""
+          item.active_attempt_id = event.attempt_id
+          item.idempotency_key = event.idempotency_key
+          item.external_job_id = ""
+          item.attempt_status = event.attempt_status
+          item.input_digest = event.input_digest
+          item.output_digest = ""
+          item.error_kind = ""
+          item.compensable = false
+          item.blocker = ""
+        }
+        AttemptReconciled => {
+          require_transition(item, event, [Active, Waiting, Blocked])
+          for
+            pair in [
+              ("result_id", event.result_id),
+              ("request_id", event.request_id),
+              ("attempt_id", event.attempt_id),
+              ("idempotency_key", event.idempotency_key),
+              ("attempt_status", event.attempt_status),
+            ] {
+            let (field, value) = pair
+            if value.trim().is_empty() {
+              raise MissingAttemptField(item_id=item.work_item_id, field~)
+            }
+          }
+          for
+            identity in [
+              (item.request_id, event.request_id),
+              (item.active_attempt_id, event.attempt_id),
+              (item.idempotency_key, event.idempotency_key),
+            ] {
+            let (expected, actual) = identity
+            if expected != actual {
+              raise AttemptIdentityMismatch(
+                item_id=item.work_item_id,
+                expected~,
+                actual~,
+              )
+            }
+          }
+          item.result_id = event.result_id
+          item.external_job_id = event.external_job_id
+          item.attempt_status = event.attempt_status
+          item.compensable = event.compensable
+          item.error_kind = event.error_kind
+          for artifact in event.output_artifacts {
+            if !item.artifacts.contains(artifact) {
+              item.artifacts.push(artifact)
+            }
+          }
+          match event.attempt_status {
+            "submitted" | "running" => item.status = Active
+            "succeeded" => {
+              if event.output_digest.trim().is_empty() {
+                raise MissingAttemptField(
+                  item_id=item.work_item_id,
+                  field="output_digest",
+                )
+              }
+              item.output_digest = event.output_digest
+              item.status = Review
+              item.blocker = ""
+            }
+            "failed" => {
+              if event.error_kind.trim().is_empty() {
+                raise MissingAttemptField(
+                  item_id=item.work_item_id,
+                  field="error_kind",
+                )
+              }
+              item.status = Failed
+              item.blocker = event.error_kind
+            }
+            "cancelled" => {
+              item.status = Cancelled
+              item.blocker = "adapter attempt cancelled"
+            }
+            "unknown" => {
+              item.status = Blocked
+              item.blocker = "adapter outcome unknown; reconciliation required"
+            }
+            status =>
+              raise UnsupportedAttemptStatus(item_id=item.work_item_id, status~)
           }
         }
         RunCreated | ItemRegistered => ()
