@@ -143,11 +143,15 @@ fn RunProjection::apply_new_event(
         idempotency_key: "",
         external_job_id: "",
         attempt_status: "",
+        operation: "",
         input_digest: "",
         output_digest: "",
         error_kind: "",
         compensable: false,
         blocker: "",
+        acceptance_review_id: "",
+        acceptance_review_artifact: "",
+        acceptance_reviewer_id: "",
         artifacts: [],
         approvals: [],
       })
@@ -214,18 +218,69 @@ fn RunProjection::apply_new_event(
           ])
           item.status = Blocked
           item.blocker = event.detail
+          if event.error_kind == "acceptance-rejected" {
+            item.acceptance_review_id = event.result_id
+            item.acceptance_review_artifact = event.artifact_id
+            item.acceptance_reviewer_id = event.authority_id
+            if !event.artifact_id.is_empty() &&
+              !item.artifacts.contains(event.artifact_id) {
+              item.artifacts.push(event.artifact_id)
+            }
+          }
         }
         ItemReviewRequested => {
           require_transition(item, event, [Active])
           item.status = Review
         }
         ItemAccepted => {
-          require_transition(item, event, [Active, Review])
-          if event.detail.trim().is_empty() {
-            raise MissingAcceptanceReview(item.work_item_id)
+          require_transition(item, event, [Review])
+          for
+            pair in [
+              ("review_id", event.detail),
+              ("receipt_artifact", event.artifact_id),
+              ("reviewer_id", event.authority_id),
+              ("result_id", event.result_id),
+              ("attempt_id", event.attempt_id),
+              ("output_digest", event.output_digest),
+            ] {
+            let (field, value) = pair
+            if value.trim().is_empty() {
+              raise MissingAcceptanceReviewField(
+                item_id=item.work_item_id,
+                field~,
+              )
+            }
+          }
+          for
+            identity in [
+              ("acceptance_result_id", item.result_id, event.result_id),
+              (
+                "acceptance_attempt_id",
+                item.active_attempt_id,
+                event.attempt_id,
+              ),
+              (
+                "acceptance_output_digest",
+                item.output_digest,
+                event.output_digest,
+              ),
+            ] {
+            let (field, expected, actual) = identity
+            if expected != actual {
+              raise SourceContextMismatch(field~, expected~, actual~)
+            }
           }
           item.status = Accepted
           item.blocker = ""
+          item.acceptance_review_id = event.detail
+          item.acceptance_review_artifact = event.artifact_id
+          item.acceptance_reviewer_id = event.authority_id
+          if !item.artifacts.contains(event.artifact_id) {
+            item.artifacts.push(event.artifact_id)
+          }
+          if !item.approvals.contains(event.authority_id) {
+            item.approvals.push(event.authority_id)
+          }
         }
         ItemFailed => {
           require_transition(item, event, [
@@ -306,6 +361,7 @@ fn RunProjection::apply_new_event(
           item.idempotency_key = event.idempotency_key
           item.external_job_id = ""
           item.attempt_status = event.attempt_status
+          item.operation = event.detail
           item.input_digest = event.input_digest
           item.output_digest = ""
           item.error_kind = ""

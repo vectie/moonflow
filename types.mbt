@@ -124,11 +124,15 @@ pub(all) struct RuntimeItem {
   mut idempotency_key : String
   mut external_job_id : String
   mut attempt_status : String
+  mut operation : String
   mut input_digest : String
   mut output_digest : String
   mut error_kind : String
   mut compensable : Bool
   mut blocker : String
+  mut acceptance_review_id : String
+  mut acceptance_review_artifact : String
+  mut acceptance_reviewer_id : String
   artifacts : Array[String]
   approvals : Array[String]
 } derive(Debug, Eq, ToJson)
@@ -172,4 +176,5 @@ pub(all) suberror FlowError {
   )
   UnsupportedAttemptStatus(item_id~ : String, status~ : String)
   MissingAcceptanceReview(String)
+  MissingAcceptanceReviewField(item_id~ : String, field~ : String)
 } derive(Debug, Eq, ToJson)

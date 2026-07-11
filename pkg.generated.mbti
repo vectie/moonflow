@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn acceptance_review_event(RunProjection, AcceptanceReviewReceipt) -> RuntimeEvent raise AcceptanceReviewError
+
 pub fn adapter_attempt_status_from_id(String) -> AdapterAttemptStatus raise
 
 pub fn adapter_reconciliation_event(RunProjection, AdapterResult) -> RuntimeEvent raise AdapterContractError
@@ -15,6 +17,8 @@ pub fn adapter_submission_event(RunProjection, AdapterRequest) -> RuntimeEvent r
 pub fn artifact_ref_is_workspace_relative(String) -> Bool
 
 pub fn authority_class_is_canonical(String) -> Bool
+
+pub fn decode_acceptance_review_receipt(Json) -> AcceptanceReviewReceipt raise
 
 pub fn decode_adapter_capability(Json) -> AdapterCapability raise
 
@@ -57,6 +61,13 @@ pub fn runtime_protocol_id() -> String
 pub fn validate_adapter_capability(Json) -> AdapterCapability raise AdapterContractError
 
 // Errors
+pub(all) suberror AcceptanceReviewError {
+  InvalidAcceptanceReview(Array[String])
+  AcceptanceReviewItemUnavailable(String)
+  AcceptanceReviewIdentityMismatch(field~ : String, expected~ : String, actual~ : String)
+  AcceptanceReviewConflict(String)
+} derive(Eq, ToJson, @debug.Debug)
+
 pub(all) suberror AdapterContractError {
   InvalidAdapterRequest(Array[String])
   InvalidAdapterResult(Array[String])
@@ -88,9 +99,35 @@ pub(all) suberror FlowError {
   AttemptIdentityMismatch(item_id~ : String, expected~ : String, actual~ : String)
   UnsupportedAttemptStatus(item_id~ : String, status~ : String)
   MissingAcceptanceReview(String)
+  MissingAcceptanceReviewField(item_id~ : String, field~ : String)
 } derive(Eq, ToJson, @debug.Debug)
 
 // Types and methods
+pub(all) struct AcceptanceCriterionReview {
+  criterion : String
+  satisfied : Bool
+  evidence_refs : Array[String]
+  note : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct AcceptanceReviewReceipt {
+  contract_id : String
+  review_id : String
+  run_id : String
+  work_item_id : String
+  declaration_id : String
+  result_id : String
+  attempt_id : String
+  output_digest : String
+  decision : String
+  criteria : Array[AcceptanceCriterionReview]
+  reviewer_id : String
+  review_authority_id : String
+  receipt_artifact : String
+  recorded_at : String
+} derive(Eq, ToJson, @debug.Debug)
+pub fn AcceptanceReviewReceipt::quality_issues(Self) -> Array[String]
+
 pub(all) enum AdapterAttemptStatus {
   Submitted
   Running
@@ -234,11 +271,15 @@ pub(all) struct RuntimeItem {
   mut idempotency_key : String
   mut external_job_id : String
   mut attempt_status : String
+  mut operation : String
   mut input_digest : String
   mut output_digest : String
   mut error_kind : String
   mut compensable : Bool
   mut blocker : String
+  mut acceptance_review_id : String
+  mut acceptance_review_artifact : String
+  mut acceptance_reviewer_id : String
   artifacts : Array[String]
   approvals : Array[String]
 } derive(Eq, ToJson, @debug.Debug)

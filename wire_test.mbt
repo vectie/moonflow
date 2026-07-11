@@ -177,16 +177,63 @@ test "ready event generation advances only accepted dependencies" {
       depends_on=["a"],
     ),
     event(3, "ready-a", ItemReady, work_item_id="a"),
-    event(4, "start-a", ItemStarted, work_item_id="a"),
-    event(
-      5,
-      "accept-a",
-      ItemAccepted,
-      work_item_id="a",
-      detail="review://a-acceptance",
-    ),
   ]
   let projection = @moonflow.replay("flow-selene-r1", events)
+  let request : @moonflow.AdapterRequest = {
+    request_id: "request-a",
+    run_id: projection.run_id,
+    work_item_id: "a",
+    declaration_id: "declaration-a",
+    attempt_id: "attempt-a",
+    idempotency_key: "idem-a",
+    product_id: "moonwiki",
+    operation: "query-evidence",
+    requested_authority: "observe",
+    input_digest: "sha256:input-a",
+    input_artifacts: [],
+    timeout_ms: 1000,
+    created_at: "2026-07-11T00:00:01Z",
+  }
+  projection.apply(@moonflow.adapter_submission_event(projection, request))
+  let result : @moonflow.AdapterResult = {
+    result_id: "result-a",
+    request_id: "request-a",
+    attempt_id: "attempt-a",
+    idempotency_key: "idem-a",
+    product_id: "moonwiki",
+    external_job_id: "job-a",
+    status: Succeeded,
+    output_digest: "sha256:output-a",
+    output_artifacts: ["books/selene/outputs/a.json"],
+    error_kind: "",
+    compensable: false,
+    recorded_at: "2026-07-11T00:00:02Z",
+  }
+  projection.apply(@moonflow.adapter_reconciliation_event(projection, result))
+  let receipt : @moonflow.AcceptanceReviewReceipt = {
+    contract_id: "moonflow.acceptance-review.v1",
+    review_id: "review-a",
+    run_id: projection.run_id,
+    work_item_id: "a",
+    declaration_id: "declaration-a",
+    result_id: "result-a",
+    attempt_id: "attempt-a",
+    output_digest: "sha256:output-a",
+    decision: "accepted",
+    criteria: [
+      {
+        criterion: "declared criteria pass",
+        satisfied: true,
+        evidence_refs: ["books/selene/outputs/a.json"],
+        note: "The attached evidence satisfies the declaration.",
+      },
+    ],
+    reviewer_id: "reviewer-a",
+    review_authority_id: "book-owner-review",
+    receipt_artifact: "books/selene/reviews/a.json",
+    recorded_at: "2026-07-11T00:00:03Z",
+  }
+  projection.apply(@moonflow.acceptance_review_event(projection, receipt))
   let ready = @moonflow.ready_events(projection, "2026-07-11T00:01:00Z")
   assert_eq(ready.length(), 1)
   assert_eq(ready[0].work_item_id, "b")

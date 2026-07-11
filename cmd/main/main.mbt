@@ -91,7 +91,6 @@ fn transition_kind(action : String) -> @moonflow.EventKind raise {
     "waiting" => ItemWaiting
     "block" => ItemBlocked
     "review" => ItemReviewRequested
-    "accept" => ItemAccepted
     "fail" => ItemFailed
     "cancel" => ItemCancelled
     "supersede" => ItemSuperseded
@@ -229,6 +228,34 @@ async fn reconcile_attempt(
 }
 
 ///|
+async fn review_outcome(
+  workspace : String,
+  run_id : String,
+  receipt_artifact : String,
+) -> Unit {
+  validate_artifact_ref(workspace, receipt_artifact)
+  let events = load_events(workspace, run_id)
+  let projection = @moonflow.replay(run_id, events)
+  let root = @moonflow.normalize_workspace_path(workspace)
+  let receipt = @moonflow.decode_acceptance_review_receipt(
+    read_json("\{root}/\{receipt_artifact}"),
+  )
+  if receipt.receipt_artifact != receipt_artifact {
+    fail(
+      "acceptance receipt artifact identity does not match its workspace path",
+    )
+  }
+  let event = @moonflow.acceptance_review_event(projection, receipt)
+  if projection.applied_event_ids.contains(event.event_id) {
+    println(@moonflow.projection_json(projection).stringify(indent=2))
+    return
+  }
+  events.push(event)
+  let updated = persist_run(workspace, run_id, events)
+  println(@moonflow.projection_json(updated).stringify(indent=2))
+}
+
+///|
 async fn validate_capability(capability_path : String) -> Unit {
   let capability = @moonflow.validate_adapter_capability(
     read_json(capability_path),
@@ -246,6 +273,7 @@ fn usage() -> Unit {
     "  moonflow advance <workspace> <run-id> <recorded-at>\n" +
     "  moonflow submit-attempt <workspace> <run-id> <request.json>\n" +
     "  moonflow reconcile-attempt <workspace> <run-id> <result.json>\n" +
+    "  moonflow review-outcome <workspace> <run-id> <receipt-artifact>\n" +
     "  moonflow validate-capability <capability.json>",
   )
 }
@@ -271,6 +299,8 @@ async fn main {
       submit_attempt(workspace, run_id, request_path)
     ["reconcile-attempt", workspace, run_id, result_path] =>
       reconcile_attempt(workspace, run_id, result_path)
+    ["review-outcome", workspace, run_id, receipt_artifact] =>
+      review_outcome(workspace, run_id, receipt_artifact)
     ["validate-capability", capability_path] =>
       validate_capability(capability_path)
     ["version"] => println("MoonFlow \{@moonflow.runtime_protocol_id()}")
