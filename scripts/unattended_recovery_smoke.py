@@ -482,6 +482,97 @@ def run_revision_harness(binary: Path, moonbook: Path, product_restart: bool = F
     )
 
 
+def run_helper_harness(moonclaw: Path) -> None:
+    root = Path(tempfile.gettempdir()) / "moonclaw-native-helper-soak"
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True)
+    write(
+        root / "runtime/request.json",
+        {
+            "request_id": "soak-helper-request",
+            "product_id": "moonclaw",
+            "operation": "implement-helper-tools",
+            "output_contracts": ["moonclaw.software-result.v1"],
+        },
+    )
+    write(
+        root / "runtime/result.json",
+        {
+            "result_id": "soak-helper-result",
+            "product_id": "moonclaw",
+            "output_digest": "sha256:soak-draft",
+            "output_artifacts": ["drafts/reserve.json"],
+        },
+    )
+    write(
+        root / "drafts/reserve.json",
+        {
+            "contract_id": "moonclaw.software-result.v1",
+            "product_id": "moonclaw",
+            "change_summary": "Provide a bounded reserve margin helper.",
+            "implementation": {
+                "language": "moonsuite-helper-dsl.v1",
+                "functions": [
+                    {
+                        "name": "reserve_margin",
+                        "operation": "subtract",
+                        "inputs": ["available", "required"],
+                    }
+                ],
+            },
+            "test_vectors": [
+                {
+                    "case_id": "nominal",
+                    "function": "reserve_margin",
+                    "inputs": {"available": 100, "required": 30},
+                    "expected": 70,
+                }
+            ],
+            "negative_cases": [
+                {
+                    "case_id": "deficit",
+                    "function": "reserve_margin",
+                    "inputs": {"available": 20, "required": 30},
+                    "expected": -10,
+                }
+            ],
+            "criteria_preserved": True,
+            "physical_readiness": False,
+        },
+    )
+    command = [
+        str(moonclaw.resolve()),
+        "flow-adapter",
+        "attest",
+        "--workspace",
+        str(root),
+        "--request",
+        "runtime/request.json",
+        "--result",
+        "runtime/result.json",
+        "--attestation",
+        "runtime/attestation.json",
+        "--attestor-id",
+        "moonclaw-native-helper-soak-v1",
+        "--draft",
+        "drafts/reserve.json",
+        "--final",
+        "outputs/reserve.json",
+    ]
+    completed = subprocess.run(command, capture_output=True, text=True)
+    if completed.returncode != 0:
+        raise SystemExit(completed.stdout + completed.stderr)
+    output = read(root / "outputs/reserve.json")
+    attestation = read(root / "runtime/attestation.json")
+    if not attestation["accepted"] or not output["criteria_preserved"]:
+        raise SystemExit("MoonClaw native helper attestation was not accepted")
+    if len(output["test_results"]) != 2 or output["physical_readiness"]:
+        raise SystemExit("MoonClaw helper evidence was incomplete or overclaimed")
+    if any(not result["passed"] for result in output["test_results"]):
+        raise SystemExit("MoonClaw native helper vector failed")
+    print(json.dumps({"attestation": attestation, "output": output}, indent=2))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -490,6 +581,7 @@ def main() -> None:
             "harness",
             "revision-harness",
             "product-restart-harness",
+            "helper-harness",
             "gate",
             "adapter",
             "flaky-adapter",
@@ -517,6 +609,10 @@ def main() -> None:
             Path(args.rest[1]),
             product_restart=True,
         )
+    elif args.mode == "helper-harness":
+        if len(args.rest) != 1:
+            raise SystemExit("helper-harness requires the MoonClaw binary path")
+        run_helper_harness(Path(args.rest[0]))
     elif args.mode == "adapter":
         fake_adapter(args.rest)
     elif args.mode == "flaky-adapter":

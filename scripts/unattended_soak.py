@@ -23,6 +23,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("moonflow_binary", type=Path)
     parser.add_argument("--moonbook-binary", type=Path)
+    parser.add_argument("--moonclaw-binary", type=Path)
     parser.add_argument("--duration-hours", type=float, default=72.0)
     parser.add_argument("--interval-seconds", type=float, default=900.0)
     parser.add_argument("--cycles", type=int)
@@ -39,6 +40,7 @@ def main() -> None:
 
     binary = args.moonflow_binary.resolve()
     moonbook = args.moonbook_binary.resolve() if args.moonbook_binary else None
+    moonclaw = args.moonclaw_binary.resolve() if args.moonclaw_binary else None
     recovery = Path(__file__).with_name("unattended_recovery_smoke.py").resolve()
     started_wall = time.time()
     deadline = started_wall + args.duration_hours * 3600
@@ -71,6 +73,18 @@ def main() -> None:
                         "revision-harness",
                         str(binary),
                         str(moonbook),
+                    ],
+                )
+            )
+        if moonclaw is not None:
+            commands.append(
+                (
+                    "native-helper",
+                    [
+                        sys.executable,
+                        str(recovery),
+                        "helper-harness",
+                        str(moonclaw),
                     ],
                 )
             )
@@ -124,6 +138,7 @@ def main() -> None:
             "status": "running" if cycle_status == 0 else "failed",
             "moonflow_binary": str(binary),
             "moonbook_binary": str(moonbook) if moonbook else "",
+            "moonclaw_binary": str(moonclaw) if moonclaw else "",
             "started_at_epoch": started_wall,
             "last_cycle_at_epoch": time.time(),
             "target_duration_hours": args.duration_hours,
