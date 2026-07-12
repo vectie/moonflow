@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import signal
 import subprocess
 import sys
 import time
@@ -43,9 +44,17 @@ def main() -> None:
     state_path = args.output / "state.json"
     log_path = args.output / "cycles.jsonl"
     args.output.mkdir(parents=True, exist_ok=True)
+    stop_requested = [False]
 
-    while (args.cycles is None and time.time() < deadline) or (
-        args.cycles is not None and cycle < args.cycles
+    def request_stop(_signum: int, _frame: object) -> None:
+        stop_requested[0] = True
+
+    signal.signal(signal.SIGINT, request_stop)
+    signal.signal(signal.SIGTERM, request_stop)
+
+    while not stop_requested[0] and (
+        (args.cycles is None and time.time() < deadline)
+        or (args.cycles is not None and cycle < args.cycles)
     ):
         cycle += 1
         cycle_started = time.time()
@@ -89,11 +98,13 @@ def main() -> None:
         time.sleep(min(args.interval_seconds, max(remaining, 0)))
 
     final = json.loads(state_path.read_text())
-    final["status"] = "passed"
+    final["status"] = "interrupted" if stop_requested[0] else "passed"
     final["completed_at_epoch"] = time.time()
     final["elapsed_hours"] = (final["completed_at_epoch"] - started_wall) / 3600
     write_json(state_path, final)
     print(json.dumps(final, indent=2))
+    if stop_requested[0]:
+        raise SystemExit(130)
 
 
 if __name__ == "__main__":
