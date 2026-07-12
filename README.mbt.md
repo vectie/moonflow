@@ -85,8 +85,29 @@ moonflow select-adapter <workspace> <capabilities-artifact> <requirement-artifac
 moonflow prepare-next <workspace> <run-id> <capabilities-artifact> <recorded-at>
 moonflow complete-artifacts <workspace> <run-id> <work-item-id> <recorded-at> <artifact>...
 moonflow bundle-evidence <workspace> <bundle-spec-artifact> <recorded-at>
+moonflow run-unattended <workspace> <graph-artifact> <capabilities-artifact> <manifest-artifact> <envelope-artifact> <usage-artifact> <recorded-at>
 moonflow validate-capability <capability.json>
 ```
+
+`run-unattended` requires a v2 manifest. Every attempt is authorized by
+MoonGate before execution, its declared artifacts are digest-verified, a
+distinct product attestor must accept their owned contracts, and an independent
+reviewer must decide the immutable criteria. Durable request, result,
+attestation, and review receipts are recovery checkpoints: restarting after any
+one of them does not repeat completed work or create a second attempt.
+
+The restart invariant is fault-injected at all three post-action boundaries:
+
+```text
+python3 scripts/unattended_recovery_smoke.py harness \
+  _build/native/debug/build/cmd/main/main.exe
+```
+
+The first three launches are deliberately killed after result, product
+attestation, and review persistence. The fourth resumes to accepted state and
+the fifth proves terminal duplicate delivery is a no-op. The smoke test also
+requires an unattended-qualified intervention scorecard and exactly one
+attempt identity.
 
 Adapter success moves Work to review; it never implies acceptance. The only
 CLI acceptance path is `review-outcome`, whose typed receipt must match the
