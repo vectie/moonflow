@@ -22,6 +22,7 @@ def write_json(path: Path, value: object) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("moonflow_binary", type=Path)
+    parser.add_argument("--moonbook-binary", type=Path)
     parser.add_argument("--duration-hours", type=float, default=72.0)
     parser.add_argument("--interval-seconds", type=float, default=900.0)
     parser.add_argument("--cycles", type=int)
@@ -37,6 +38,7 @@ def main() -> None:
         raise SystemExit("cycles must be positive")
 
     binary = args.moonflow_binary.resolve()
+    moonbook = args.moonbook_binary.resolve() if args.moonbook_binary else None
     recovery = Path(__file__).with_name("unattended_recovery_smoke.py").resolve()
     started_wall = time.time()
     deadline = started_wall + args.duration_hours * 3600
@@ -58,37 +60,67 @@ def main() -> None:
     ):
         cycle += 1
         cycle_started = time.time()
-        completed = subprocess.run(
-            [sys.executable, str(recovery), "harness", str(binary)],
-            capture_output=True,
-            text=True,
-            timeout=180,
+        commands = [("crash-recovery", [sys.executable, str(recovery), "harness", str(binary)])]
+        if moonbook is not None:
+            commands.append(
+                (
+                    "automatic-revision",
+                    [
+                        sys.executable,
+                        str(recovery),
+                        "revision-harness",
+                        str(binary),
+                        str(moonbook),
+                    ],
+                )
+            )
+        checks = []
+        for name, command in commands:
+            completed = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                timeout=180,
+            )
+            checks.append(
+                {
+                    "name": name,
+                    "status": completed.returncode,
+                    "stdout_tail": completed.stdout[-2000:],
+                    "stderr_tail": completed.stderr[-2000:],
+                }
+            )
+            if completed.returncode != 0:
+                break
+        cycle_status = next(
+            (check["status"] for check in checks if check["status"] != 0),
+            0,
         )
         record = {
             "contract_id": "moonflow.unattended-soak-cycle.v1",
             "cycle": cycle,
             "started_at_epoch": cycle_started,
             "duration_seconds": time.time() - cycle_started,
-            "status": completed.returncode,
-            "recovery_sequence_verified": completed.returncode == 0,
-            "stdout_tail": completed.stdout[-2000:],
-            "stderr_tail": completed.stderr[-2000:],
+            "status": cycle_status,
+            "recovery_sequence_verified": cycle_status == 0,
+            "checks": checks,
         }
         with log_path.open("a") as stream:
             stream.write(json.dumps(record, separators=(",", ":")) + "\n")
         state = {
             "contract_id": "moonflow.unattended-soak.v1",
-            "status": "running" if completed.returncode == 0 else "failed",
+            "status": "running" if cycle_status == 0 else "failed",
             "moonflow_binary": str(binary),
+            "moonbook_binary": str(moonbook) if moonbook else "",
             "started_at_epoch": started_wall,
             "last_cycle_at_epoch": time.time(),
             "target_duration_hours": args.duration_hours,
             "completed_cycles": cycle,
-            "failed_cycles": 0 if completed.returncode == 0 else 1,
+            "failed_cycles": 0 if cycle_status == 0 else 1,
             "cycle_log": str(log_path),
         }
         write_json(state_path, state)
-        if completed.returncode != 0:
+        if cycle_status != 0:
             raise SystemExit(f"soak cycle {cycle} failed")
         if args.cycles is not None and cycle >= args.cycles:
             break
