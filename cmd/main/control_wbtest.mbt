@@ -68,3 +68,29 @@ async test "run control pauses, resumes, cancels, and only narrows authority" {
   let cancelled = read_json(directory + "/control.json").stringify()
   assert_true(cancelled.contains("\"state\":\"cancelled\""))
 }
+
+///|
+async test "adapter circuit opens after three failures and a probe resets it" {
+  let workspace = "/tmp/moonflow-adapter-circuit-test"
+  let adapter_id = "test-adapter"
+  record_adapter_health(workspace, adapter_id, true, "2026-07-12T01:00:00Z")
+  let health_path = adapter_health_path(workspace, adapter_id)
+  assert_eq(json_int_or(read_json(health_path), "consecutive_failures", -1), 0)
+  for index in 1..<=3 {
+    record_adapter_health(
+      workspace,
+      adapter_id,
+      false,
+      "2026-07-12T01:0\{index}:00Z",
+    )
+  }
+  assert_eq(json_int_or(read_json(health_path), "consecutive_failures", -1), 3)
+  assert_true(
+    acquire_adapter_probe(workspace, adapter_id, "2026-07-12T01:04:00Z"),
+  )
+  assert_false(
+    acquire_adapter_probe(workspace, adapter_id, "2026-07-12T01:05:00Z"),
+  )
+  record_adapter_health(workspace, adapter_id, true, "2026-07-12T01:10:00Z")
+  assert_eq(json_int_or(read_json(health_path), "consecutive_failures", -1), 0)
+}

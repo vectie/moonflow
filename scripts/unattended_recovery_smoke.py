@@ -335,6 +335,14 @@ def run_harness(binary: Path) -> None:
         raise SystemExit("recovered run did not finish as unattended-qualified")
     if projection["items"][0]["attempt_count"] != 1:
         raise SystemExit("recovery created a duplicate attempt")
+    attempt_id = projection["items"][0]["active_attempt_id"]
+    lease = read(
+        root
+        / ".moonsuite/products/moonflow/runs/recovery-smoke-r1/dispatch"
+        / f"lease-{attempt_id}.json"
+    )
+    if lease["stage"] != "reviewed":
+        raise SystemExit("recovery did not close the durable adapter lease")
     print(json.dumps({"return_codes": return_codes, "projection": projection, "scorecard": scorecard}, indent=2))
 
 

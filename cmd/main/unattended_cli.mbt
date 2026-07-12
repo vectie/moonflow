@@ -199,6 +199,128 @@ async fn write_unattended_log(
 }
 
 ///|
+async fn write_attempt_lease(
+  workspace : String,
+  dispatch_ref : String,
+  item : @moonflow.RuntimeItem,
+  driver : @moonflow.UnattendedDriver,
+  stage : String,
+  recorded_at : String,
+) -> Unit {
+  write_json(
+    workspace +
+    "/" +
+    dispatch_ref +
+    "/lease-" +
+    item.active_attempt_id +
+    ".json",
+    {
+      "contract_id": "moonflow.adapter-lease.v1",
+      "attempt_id": item.active_attempt_id,
+      "work_item_id": item.work_item_id,
+      "adapter_id": driver.adapter_id,
+      "stage": stage,
+      "timeout_ms": item.timeout_ms,
+      "heartbeat_at": recorded_at,
+      "orphan_policy": "reconcile-durable-checkpoints-before-retry",
+      "idempotency_key": item.idempotency_key,
+    },
+  )
+}
+
+///|
+fn json_int_or(value : Json, key : String, fallback : Int) -> Int {
+  match value {
+    Object(fields) =>
+      match fields.get(key) {
+        Some(Number(number, ..)) => number.to_int()
+        _ => fallback
+      }
+    _ => fallback
+  }
+}
+
+///|
+async fn adapter_health_path(workspace : String, adapter_id : String) -> String {
+  let safe_adapter = safe_id(adapter_id, "adapter_id")
+  let root = workspace + "/.moonsuite/products/moonflow/supervisor/adapters"
+  if !@fs.exists(root) {
+    @fs.mkdir(root, permission=0o755, recursive=true)
+  }
+  root + "/" + safe_adapter + ".json"
+}
+
+///|
+async fn acquire_adapter_probe(
+  workspace : String,
+  adapter_id : String,
+  recorded_at : String,
+) -> Bool {
+  let path = adapter_health_path(workspace, adapter_id)
+  if !@fs.exists(path) {
+    return true
+  }
+  let health = read_json(path)
+  if json_int_or(health, "consecutive_failures", 0) < 3 {
+    return true
+  }
+  let state = match health {
+    Object(fields) =>
+      match fields.get("state") {
+        Some(String(value)) => value
+        _ => "circuit-open"
+      }
+    _ => "circuit-open"
+  }
+  if state == "half-open" {
+    return false
+  }
+  write_json(path, {
+    "contract_id": "moonflow.adapter-health.v1",
+    "adapter_id": adapter_id,
+    "state": "half-open",
+    "consecutive_failures": json_int_or(health, "consecutive_failures", 3),
+    "last_observed_at": recorded_at,
+    "recovery_policy": "one governed probe; success resets and failure reopens",
+  })
+  true
+}
+
+///|
+async fn record_adapter_health(
+  workspace : String,
+  adapter_id : String,
+  success : Bool,
+  recorded_at : String,
+) -> Unit {
+  let path = adapter_health_path(workspace, adapter_id)
+  let previous = if @fs.exists(path) {
+    read_json(path)
+  } else {
+    Json::object({})
+  }
+  let failures = if success {
+    0
+  } else {
+    json_int_or(previous, "consecutive_failures", 0) + 1
+  }
+  write_json(path, {
+    "contract_id": "moonflow.adapter-health.v1",
+    "adapter_id": adapter_id,
+    "state": if failures >= 3 {
+      "circuit-open"
+    } else if failures > 0 {
+      "degraded"
+    } else {
+      "healthy"
+    },
+    "consecutive_failures": failures,
+    "last_observed_at": recorded_at,
+    "recovery_policy": "successful governed probe resets the circuit",
+  })
+}
+
+///|
 async fn gate_unattended_attempt(
   root : String,
   run_id : String,
@@ -367,6 +489,18 @@ async fn run_unattended_item(
     )
     return usage
   }
+  if !acquire_adapter_probe(root, driver.adapter_id, recorded_at) {
+    ignore(
+      unattended_block(
+        root, run_id, events, item_id, "adapter circuit is open after repeated failures",
+        recorded_at,
+      ),
+    )
+    return usage
+  }
+  write_attempt_lease(
+    root, dispatch_ref, active_item, driver, "authorized", recorded_at,
+  )
   let result_ref = dispatch_ref +
     "/result-" +
     active_item.active_attempt_id +
@@ -403,6 +537,7 @@ async fn run_unattended_item(
       adapter_run,
     )
     if adapter_run.status != 0 || !@fs.exists(root + "/" + result_ref) {
+      record_adapter_health(root, driver.adapter_id, false, recorded_at)
       ignore(
         unattended_block(
           root, run_id, events, item_id, "adapter process failed or omitted its result receipt",
@@ -414,6 +549,10 @@ async fn run_unattended_item(
   }
   let result = @moonflow.decode_adapter_result(
     read_json(root + "/" + result_ref),
+  )
+  record_adapter_health(root, driver.adapter_id, true, recorded_at)
+  write_attempt_lease(
+    root, dispatch_ref, active_item, driver, "result-observed", recorded_at,
   )
   if result.output_artifacts != driver.draft_output_artifacts {
     ignore(
@@ -482,6 +621,9 @@ async fn run_unattended_item(
     )
     return unattended_usage_add(usage, driver.budget_request)
   }
+  write_attempt_lease(
+    root, dispatch_ref, active_item, driver, "product-attested", recorded_at,
+  )
   for artifact in driver.expected_output_artifacts {
     if !@fs.exists(root + "/" + artifact) {
       ignore(
@@ -577,6 +719,9 @@ async fn run_unattended_item(
   let review_projection = @moonflow.replay(run_id, events)
   events.push(@moonflow.acceptance_review_event(review_projection, receipt))
   ignore(persist_run(root, run_id, events))
+  write_attempt_lease(
+    root, dispatch_ref, active_item, driver, "reviewed", recorded_at,
+  )
   unattended_usage_add(usage, driver.budget_request)
 }
 
