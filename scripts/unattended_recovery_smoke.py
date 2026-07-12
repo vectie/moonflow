@@ -82,6 +82,9 @@ def fake_attestor(argv: list[str]) -> None:
     root = Path(option(argv, "--workspace"))
     request = read(root / option(argv, "--request"))
     result = read(root / option(argv, "--result"))
+    draft_ref = option(argv, "--draft")
+    final_ref = option(argv, "--final")
+    write(root / final_ref, read(root / draft_ref))
     write(
         root / option(argv, "--attestation"),
         {
@@ -138,6 +141,7 @@ def fixture_files(root: Path, script: Path) -> tuple[str, ...]:
     manifest_ref = "runtime/manifest.json"
     envelope_ref = "runtime/envelope.json"
     usage_ref = "runtime/usage.json"
+    draft_ref = "books/recovery/drafts/output.json"
     artifact_ref = "books/recovery/output.json"
     (root / goal_ref).parent.mkdir(parents=True, exist_ok=True)
     (root / goal_ref).write_text("Prove restart recovery without domain work.\n")
@@ -196,7 +200,7 @@ def fixture_files(root: Path, script: Path) -> tuple[str, ...]:
     write(
         root / manifest_ref,
         {
-            "contract_id": "moonflow.unattended-manifest.v2",
+            "contract_id": "moonflow.unattended-manifest.v3",
             "gate_executable": python,
             "gate_arguments": common + ["gate"],
             "max_cycles": 10,
@@ -214,8 +218,9 @@ def fixture_files(root: Path, script: Path) -> tuple[str, ...]:
                         "--result",
                         "{result}",
                         "--artifact",
-                        artifact_ref,
+                        draft_ref,
                     ],
+                    "draft_output_artifacts": [draft_ref],
                     "expected_output_artifacts": [artifact_ref],
                     "attestor_id": "moonwiki-recovery-attestor-v1",
                     "attestor_executable": python,
@@ -232,6 +237,10 @@ def fixture_files(root: Path, script: Path) -> tuple[str, ...]:
                         "{attestation}",
                         "--attestor-id",
                         "moonwiki-recovery-attestor-v1",
+                        "--draft",
+                        "{draft}",
+                        "--final",
+                        "{final}",
                     ],
                     "reviewer_id": "independent-recovery-reviewer",
                     "reviewer_executable": python,

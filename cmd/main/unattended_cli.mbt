@@ -159,7 +159,8 @@ async fn gate_unattended_attempt(
         item.requested_authority,
       ),
       claim: @pipeline.claim_class_from_id(item.required_claim),
-      artifact_paths: driver.expected_output_artifacts.copy(),
+      artifact_paths: driver.draft_output_artifacts +
+      driver.expected_output_artifacts,
       external_destination: "",
       budget_request: driver.budget_request,
       recorded_at,
@@ -325,10 +326,10 @@ async fn run_unattended_item(
   let result = @moonflow.decode_adapter_result(
     read_json(root + "/" + result_ref),
   )
-  if result.output_artifacts != driver.expected_output_artifacts {
+  if result.output_artifacts != driver.draft_output_artifacts {
     ignore(
       unattended_block(
-        root, run_id, events, item_id, "adapter outputs differ from pre-authorized artifacts",
+        root, run_id, events, item_id, "adapter drafts differ from pre-authorized artifacts",
         recorded_at,
       ),
     )
@@ -353,6 +354,8 @@ async fn run_unattended_item(
         request_ref,
         result_ref,
         attestation_ref,
+        driver.draft_output_artifacts[0],
+        driver.expected_output_artifacts[0],
       ),
       root,
     )
@@ -390,8 +393,34 @@ async fn run_unattended_item(
     )
     return unattended_usage_add(usage, driver.budget_request)
   }
+  for artifact in driver.expected_output_artifacts {
+    if !@fs.exists(root + "/" + artifact) {
+      ignore(
+        unattended_block(
+          root, run_id, events, item_id, "product attestor accepted without materializing its declared final artifact",
+          recorded_at,
+        ),
+      )
+      return unattended_usage_add(usage, driver.budget_request)
+    }
+  }
+  let final_digest = declared_input_digest(
+    root,
+    driver.expected_output_artifacts,
+  )
+  let final_result = @moonflow.director_success_result_for_item(
+    active_item,
+    final_digest,
+    driver.expected_output_artifacts.copy(),
+    recorded_at,
+  )
+  let final_result_ref = dispatch_ref +
+    "/final-result-" +
+    active_item.active_attempt_id +
+    ".json"
+  write_json(root + "/" + final_result_ref, final_result.to_json())
   if active_item.status != @moonflow.Review {
-    events.push(@moonflow.adapter_reconciliation_event(active, result))
+    events.push(@moonflow.adapter_reconciliation_event(active, final_result))
     ignore(persist_run(root, run_id, events))
   }
   write_json(
@@ -402,11 +431,11 @@ async fn run_unattended_item(
         "run_id": run_id,
         "work_item_id": active_item.work_item_id,
         "declaration_id": active_item.declaration_id,
-        "result_id": result.result_id,
-        "attempt_id": result.attempt_id,
-        "output_digest": result.output_digest,
+        "result_id": final_result.result_id,
+        "attempt_id": final_result.attempt_id,
+        "output_digest": final_result.output_digest,
         "acceptance_criteria": active_item.acceptance_criteria.to_json(),
-        "evidence_refs": result.output_artifacts.to_json(),
+        "evidence_refs": final_result.output_artifacts.to_json(),
         "product_attestation_ref": attestation_ref,
         "reviewer_id": driver.reviewer_id,
         "review_authority_id": driver.review_authority_id,
@@ -419,7 +448,7 @@ async fn run_unattended_item(
       driver.reviewer_arguments,
       root,
       request_ref,
-      result_ref,
+      final_result_ref,
       receipt_ref,
       review_packet_ref,
     )

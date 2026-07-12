@@ -89,10 +89,11 @@ moonflow run-unattended <workspace> <graph-artifact> <capabilities-artifact> <ma
 moonflow validate-capability <capability.json>
 ```
 
-`run-unattended` requires a v2 manifest. Every attempt is authorized by
+`run-unattended` requires a v3 manifest. Every attempt is authorized by
 MoonGate before execution, its declared artifacts are digest-verified, a
-distinct product attestor must accept their owned contracts, and an independent
-reviewer must decide the immutable criteria. Durable request, result,
+distinct product attestor must turn the isolated agent draft into a separately
+declared final artifact, and an independent reviewer must decide the immutable
+criteria against that product-owned final path. Durable request, draft result,
 attestation, and review receipts are recovery checkpoints: restarting after any
 one of them does not repeat completed work or create a second attempt.
 

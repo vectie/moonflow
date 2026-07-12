@@ -3,6 +3,7 @@ pub(all) struct UnattendedDriver {
   adapter_id : String
   executable : String
   arguments : Array[String]
+  draft_output_artifacts : Array[String]
   expected_output_artifacts : Array[String]
   attestor_id : String
   attestor_executable : String
@@ -35,6 +36,7 @@ fn decode_unattended_driver(value : Json) -> UnattendedDriver raise {
     adapter_id: wire_string(fields, "adapter_id"),
     executable: wire_string(fields, "executable"),
     arguments: wire_strings(fields, "arguments", required=false),
+    draft_output_artifacts: wire_strings(fields, "draft_output_artifacts"),
     expected_output_artifacts: wire_strings(fields, "expected_output_artifacts"),
     attestor_id: wire_string(fields, "attestor_id"),
     attestor_executable: wire_string(fields, "attestor_executable"),
@@ -90,7 +92,7 @@ pub fn UnattendedManifest::quality_issues(
   self : UnattendedManifest,
 ) -> Array[String] {
   let issues : Array[String] = []
-  if self.contract_id != "moonflow.unattended-manifest.v2" {
+  if self.contract_id != "moonflow.unattended-manifest.v3" {
     issues.push("unsupported unattended manifest contract")
   }
   if self.gate_executable.trim().is_empty() {
@@ -143,6 +145,25 @@ pub fn UnattendedManifest::quality_issues(
       issues.push(
         "expected output artifacts are required: \{driver.adapter_id}",
       )
+    }
+    if driver.draft_output_artifacts.is_empty() {
+      issues.push("draft output artifacts are required: \{driver.adapter_id}")
+    }
+    if driver.draft_output_artifacts.length() != 1 ||
+      driver.expected_output_artifacts.length() != 1 {
+      issues.push(
+        "v3 drivers require exactly one draft and one product-owned final artifact: \{driver.adapter_id}",
+      )
+    }
+    for artifact in driver.draft_output_artifacts {
+      if !artifact_ref_is_workspace_relative(artifact) {
+        issues.push("invalid draft output artifact: \{artifact}")
+      }
+      if driver.expected_output_artifacts.contains(artifact) {
+        issues.push(
+          "draft and product-owned final artifact must differ: \{artifact}",
+        )
+      }
     }
     for artifact in driver.expected_output_artifacts {
       if !artifact_ref_is_workspace_relative(artifact) {
@@ -214,6 +235,8 @@ pub fn render_unattended_attestor_arguments(
   request_artifact : String,
   result_artifact : String,
   attestation_artifact : String,
+  draft_artifact : String,
+  final_artifact : String,
 ) -> Array[String] {
   arguments.map(argument => {
     argument
@@ -221,6 +244,8 @@ pub fn render_unattended_attestor_arguments(
     .replace(old="{request}", new=request_artifact)
     .replace(old="{result}", new=result_artifact)
     .replace(old="{attestation}", new=attestation_artifact)
+    .replace(old="{draft}", new=draft_artifact)
+    .replace(old="{final}", new=final_artifact)
   })
 }
 
