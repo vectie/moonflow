@@ -9,6 +9,7 @@ from pathlib import Path
 import signal
 import subprocess
 import sys
+import threading
 import time
 
 
@@ -48,15 +49,15 @@ def main() -> None:
     state_path = args.output / "state.json"
     log_path = args.output / "cycles.jsonl"
     args.output.mkdir(parents=True, exist_ok=True)
-    stop_requested = [False]
+    stop_requested = threading.Event()
 
     def request_stop(_signum: int, _frame: object) -> None:
-        stop_requested[0] = True
+        stop_requested.set()
 
     signal.signal(signal.SIGINT, request_stop)
     signal.signal(signal.SIGTERM, request_stop)
 
-    while not stop_requested[0] and (
+    while not stop_requested.is_set() and (
         (args.cycles is None and time.time() < deadline)
         or (args.cycles is not None and cycle < args.cycles)
     ):
@@ -167,15 +168,15 @@ def main() -> None:
         remaining = deadline - time.time()
         if args.cycles is None and remaining <= 0:
             break
-        time.sleep(min(args.interval_seconds, max(remaining, 0)))
+        stop_requested.wait(min(args.interval_seconds, max(remaining, 0)))
 
     final = json.loads(state_path.read_text())
-    final["status"] = "interrupted" if stop_requested[0] else "passed"
+    final["status"] = "interrupted" if stop_requested.is_set() else "passed"
     final["completed_at_epoch"] = time.time()
     final["elapsed_hours"] = (final["completed_at_epoch"] - started_wall) / 3600
     write_json(state_path, final)
     print(json.dumps(final, indent=2))
-    if stop_requested[0]:
+    if stop_requested.is_set():
         raise SystemExit(130)
 
 
