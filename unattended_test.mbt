@@ -1,7 +1,7 @@
 ///|
 test "unattended manifest requires independent reviewer and scoped outputs" {
   let invalid : UnattendedManifest = {
-    contract_id: "moonflow.unattended-manifest.v1",
+    contract_id: "moonflow.unattended-manifest.v2",
     gate_executable: "moongate",
     gate_arguments: ["suite", "autonomy-check"],
     max_cycles: 10,
@@ -13,6 +13,9 @@ test "unattended manifest requires independent reviewer and scoped outputs" {
         executable: "moonrobo",
         arguments: [],
         expected_output_artifacts: ["../escape"],
+        attestor_id: "builder",
+        attestor_executable: "moonrobo",
+        attestor_arguments: [],
         reviewer_id: "builder",
         reviewer_executable: "moonrobo",
         reviewer_arguments: [],
@@ -29,6 +32,9 @@ test "unattended manifest requires independent reviewer and scoped outputs" {
   }
   let issues = invalid.quality_issues()
   assert_true(issues.contains("reviewer identity must be independent: builder"))
+  assert_true(
+    issues.contains("product attestor identity must be distinct: builder"),
+  )
   assert_true(issues.contains("invalid expected output artifact: ../escape"))
 }
 

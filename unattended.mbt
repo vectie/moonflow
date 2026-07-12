@@ -4,6 +4,9 @@ pub(all) struct UnattendedDriver {
   executable : String
   arguments : Array[String]
   expected_output_artifacts : Array[String]
+  attestor_id : String
+  attestor_executable : String
+  attestor_arguments : Array[String]
   reviewer_id : String
   reviewer_executable : String
   reviewer_arguments : Array[String]
@@ -33,6 +36,13 @@ fn decode_unattended_driver(value : Json) -> UnattendedDriver raise {
     executable: wire_string(fields, "executable"),
     arguments: wire_strings(fields, "arguments", required=false),
     expected_output_artifacts: wire_strings(fields, "expected_output_artifacts"),
+    attestor_id: wire_string(fields, "attestor_id"),
+    attestor_executable: wire_string(fields, "attestor_executable"),
+    attestor_arguments: wire_strings(
+      fields,
+      "attestor_arguments",
+      required=false,
+    ),
     reviewer_id: wire_string(fields, "reviewer_id"),
     reviewer_executable: wire_string(fields, "reviewer_executable"),
     reviewer_arguments: wire_strings(
@@ -80,7 +90,7 @@ pub fn UnattendedManifest::quality_issues(
   self : UnattendedManifest,
 ) -> Array[String] {
   let issues : Array[String] = []
-  if self.contract_id != "moonflow.unattended-manifest.v1" {
+  if self.contract_id != "moonflow.unattended-manifest.v2" {
     issues.push("unsupported unattended manifest contract")
   }
   if self.gate_executable.trim().is_empty() {
@@ -105,6 +115,20 @@ pub fn UnattendedManifest::quality_issues(
     }
     if driver.executable.trim().is_empty() {
       issues.push("driver executable is required: \{driver.adapter_id}")
+    }
+    if driver.attestor_id.trim().is_empty() {
+      issues.push("product attestor identity is required: \{driver.adapter_id}")
+    }
+    if driver.attestor_id == driver.adapter_id ||
+      driver.attestor_id == driver.reviewer_id {
+      issues.push(
+        "product attestor identity must be distinct: \{driver.adapter_id}",
+      )
+    }
+    if driver.attestor_executable.trim().is_empty() {
+      issues.push(
+        "product attestor executable is required: \{driver.adapter_id}",
+      )
     }
     if driver.reviewer_id == driver.adapter_id {
       issues.push("reviewer identity must be independent: \{driver.adapter_id}")
@@ -181,4 +205,59 @@ pub fn render_unattended_arguments(
     .replace(old="{receipt}", new=receipt_artifact)
     .replace(old="{review}", new=review_artifact)
   })
+}
+
+///|
+pub fn render_unattended_attestor_arguments(
+  arguments : Array[String],
+  workspace : String,
+  request_artifact : String,
+  result_artifact : String,
+  attestation_artifact : String,
+) -> Array[String] {
+  arguments.map(argument => {
+    argument
+    .replace(old="{workspace}", new=workspace)
+    .replace(old="{request}", new=request_artifact)
+    .replace(old="{result}", new=result_artifact)
+    .replace(old="{attestation}", new=attestation_artifact)
+  })
+}
+
+///|
+pub fn product_attestation_issues(
+  value : Json,
+  driver : UnattendedDriver,
+  request : AdapterRequest,
+  result : AdapterResult,
+) -> Array[String] {
+  let issues : Array[String] = []
+  let fields = wire_object(value, "MoonFlow product attestation") catch {
+    _ => {
+      issues.push("product attestation must be an object")
+      return issues
+    }
+  }
+  fn check(
+    fields : Map[String, Json],
+    name : String,
+    expected : String,
+    issues : Array[String],
+  ) {
+    match fields.get(name) {
+      Some(String(actual)) if actual == expected => ()
+      _ => issues.push("product attestation \{name} mismatch")
+    }
+  }
+  check(fields, "contract_id", "moonflow.product-attestation.v1", issues)
+  check(fields, "attestor_id", driver.attestor_id, issues)
+  check(fields, "product_id", request.product_id, issues)
+  check(fields, "request_id", request.request_id, issues)
+  check(fields, "result_id", result.result_id, issues)
+  check(fields, "output_digest", result.output_digest, issues)
+  match fields.get("accepted") {
+    Some(True) => ()
+    _ => issues.push("product attestation did not accept the artifact")
+  }
+  issues
 }
