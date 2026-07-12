@@ -3,6 +3,7 @@ fn adapter_request() -> AdapterRequest {
   {
     request_id: "request-flow-r1-research-a1",
     run_id: "flow-r1",
+    book_id: "adapter-book",
     work_item_id: "work-research",
     declaration_id: "research",
     attempt_id: "attempt-work-research-1",

@@ -224,6 +224,7 @@ test "ready event generation advances only accepted dependencies" {
   let request : @moonflow.AdapterRequest = {
     request_id: "request-a",
     run_id: projection.run_id,
+    book_id: projection.book_id,
     work_item_id: "a",
     declaration_id: "declaration-a",
     attempt_id: "attempt-a",

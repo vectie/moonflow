@@ -183,6 +183,7 @@ pub fn director_request_for_item(
   {
     request_id: "request-\{projection.run_id}-\{item.work_item_id}-a\{attempt_number}",
     run_id: projection.run_id,
+    book_id: projection.book_id,
     work_item_id: item.work_item_id,
     declaration_id: item.declaration_id,
     attempt_id,

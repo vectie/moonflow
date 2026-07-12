@@ -147,6 +147,7 @@ pub fn validate_adapter_capability(
 pub(all) struct AdapterRequest {
   request_id : String
   run_id : String
+  book_id : String
   work_item_id : String
   declaration_id : String
   attempt_id : String
@@ -169,6 +170,7 @@ pub fn AdapterRequest::quality_issues(self : AdapterRequest) -> Array[String] {
   let issues : Array[String] = []
   add_required_issue(issues, self.request_id, "request_id")
   add_required_issue(issues, self.run_id, "run_id")
+  add_required_issue(issues, self.book_id, "book_id")
   add_required_issue(issues, self.work_item_id, "work_item_id")
   add_required_issue(issues, self.declaration_id, "declaration_id")
   add_required_issue(issues, self.attempt_id, "attempt_id")
@@ -193,6 +195,7 @@ pub fn decode_adapter_request(value : Json) -> AdapterRequest raise {
   {
     request_id: wire_string(fields, "request_id"),
     run_id: wire_string(fields, "run_id"),
+    book_id: wire_string(fields, "book_id"),
     work_item_id: wire_string(fields, "work_item_id"),
     declaration_id: wire_string(fields, "declaration_id"),
     attempt_id: wire_string(fields, "attempt_id"),
