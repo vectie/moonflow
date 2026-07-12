@@ -211,13 +211,29 @@ async fn write_unattended_log(
 }
 
 ///|
-fn validate_unattended_source_binding(
-  envelope_source_digest : String,
-  graph_source_digest : String,
-) -> Unit raise {
-  if envelope_source_digest != graph_source_digest {
-    fail("autonomy envelope source_digest differs from the compiled work graph")
+async fn reject_unattended_binding(
+  workspace : String,
+  run_id : String,
+  field : String,
+  expected : String,
+  actual : String,
+  recorded_at : String,
+) -> Unit {
+  let reason = "autonomy envelope \{field} differs from the compiled run"
+  let directory = run_dir(workspace, run_id)
+  if !@fs.exists(directory) {
+    @fs.mkdir(directory, permission=0o755, recursive=true)
   }
+  write_json(directory + "/autonomy-binding-rejection.json", {
+    "contract_id": "moonflow.autonomy-binding-rejection.v1",
+    "run_id": run_id,
+    "field": field,
+    "expected": expected,
+    "actual": actual,
+    "reason": reason,
+    "recorded_at": recorded_at,
+  })
+  fail(reason)
 }
 
 ///|
@@ -793,15 +809,26 @@ async fn run_unattended(
     read_json(root + "/" + envelope_ref),
   )
   if envelope.workspace_root != root {
-    fail(
-      "autonomy envelope workspace_root differs from the canonical workspace",
+    reject_unattended_binding(
+      root,
+      run_id,
+      "workspace_root",
+      root,
+      envelope.workspace_root,
+      recorded_at,
     )
   }
   let initial_projection = @moonflow.replay(run_id, events)
-  validate_unattended_source_binding(
-    envelope.source_digest,
-    initial_projection.source_digest,
-  )
+  if envelope.source_digest != initial_projection.source_digest {
+    reject_unattended_binding(
+      root,
+      run_id,
+      "source_digest",
+      initial_projection.source_digest,
+      envelope.source_digest,
+      recorded_at,
+    )
+  }
   let mut usage = @pipeline.decode_autonomy_budget_usage(
     read_json(root + "/" + usage_ref),
   )

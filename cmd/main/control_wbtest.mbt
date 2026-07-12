@@ -96,7 +96,7 @@ async test "adapter circuit opens after three failures and a probe resets it" {
 }
 
 ///|
-test "unattended source identity is bound and mutations fail closed" {
+async test "unattended source mutations fail closed with a durable receipt" {
   let events = @moonflow.events_from_work_graph({
     "contract_id": "moonsuite.work-model.v1",
     "graph_id": "source-bound-run",
@@ -122,18 +122,24 @@ test "unattended source identity is bound and mutations fail closed" {
     "recorded_at": "2026-07-12T00:00:00Z",
   })
   let projection = @moonflow.replay("source-bound-run", events)
-  validate_unattended_source_binding(
-    "sha256:source-bound",
-    projection.source_digest,
-  )
   let mismatch = try
-    validate_unattended_source_binding(
-      "sha256:authorized",
+    reject_unattended_binding(
+      "/tmp/moonflow-source-binding-test",
+      projection.run_id,
+      "source_digest",
       projection.source_digest,
+      "sha256:mutated",
+      "2026-07-12T00:01:00Z",
     )
     |> Ok
   catch {
     error => Err(error)
   }
   assert_true(mismatch is Err(_))
+  let receipt = read_json(
+    run_dir("/tmp/moonflow-source-binding-test", projection.run_id) +
+    "/autonomy-binding-rejection.json",
+  ).stringify()
+  assert_true(receipt.contains("\"field\":\"source_digest\""))
+  assert_true(receipt.contains("sha256:mutated"))
 }
