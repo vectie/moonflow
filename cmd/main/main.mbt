@@ -536,6 +536,10 @@ async fn write_run_control(
   if !@fs.exists(directory + "/events.json") {
     fail("MoonFlow control requires an imported run")
   }
+  let projection = @moonflow.replay(run_id, load_events(workspace, run_id))
+  if ["accepted", "blocked", "failed"].contains(projection.outcome) {
+    fail("MoonFlow cannot control a terminal run")
+  }
   let control_path = directory + "/control.json"
   let existing = if @fs.exists(control_path) {
     read_json(control_path)
