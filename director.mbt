@@ -178,6 +178,29 @@ pub fn director_request_for_item(
 }
 
 ///|
+pub fn director_success_result_for_item(
+  item : RuntimeItem,
+  output_digest : String,
+  output_artifacts : Array[String],
+  recorded_at : String,
+) -> AdapterResult {
+  {
+    result_id: "result-\{item.active_attempt_id}-succeeded",
+    request_id: item.request_id,
+    attempt_id: item.active_attempt_id,
+    idempotency_key: item.idempotency_key,
+    product_id: item.product_id,
+    external_job_id: "local-\{item.active_attempt_id}",
+    status: Succeeded,
+    output_digest,
+    output_artifacts,
+    error_kind: "",
+    compensable: false,
+    recorded_at,
+  }
+}
+
+///|
 pub(all) enum DirectorFailureClass {
   TransientFailure
   QualityRejection

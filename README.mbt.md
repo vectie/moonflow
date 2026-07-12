@@ -51,6 +51,9 @@ item's requirement from its MoonBook execution binding, selects a healthy
 compatible adapter, verifies and hashes the declared input artifacts, writes a
 durable decision/request pair, and submits the attempt event. A rejected
 selection is retained as a decision receipt and does not start work.
+`complete-artifacts` performs the symmetric return path for local adapters: it
+verifies workspace-relative output artifacts, derives their aggregate digest,
+materializes the typed result receipt, and reconciles it into review state.
 
 ## Native revision and evidence lineage
 
@@ -80,6 +83,7 @@ moonflow review-outcome <workspace> <run-id> <workspace-relative-review-receipt>
 moonflow revise-run <workspace> <parent-run-id> <child-graph-artifact> <proposal-artifact> <migration-id> <recorded-at>
 moonflow select-adapter <workspace> <capabilities-artifact> <requirement-artifact>
 moonflow prepare-next <workspace> <run-id> <capabilities-artifact> <recorded-at>
+moonflow complete-artifacts <workspace> <run-id> <work-item-id> <recorded-at> <artifact>...
 moonflow bundle-evidence <workspace> <bundle-spec-artifact> <recorded-at>
 moonflow validate-capability <capability.json>
 ```

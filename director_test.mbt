@@ -123,4 +123,20 @@ test "director derives a stable request from declared execution binding" {
   assert_eq(request.attempt_id, "attempt-work-research-1")
   assert_eq(request.input_artifacts, ["books/robot/inputs/question.json"])
   assert_true(request.idempotency_key.contains("sha256:input"))
+  let submitted = @moonflow.adapter_submission_event(projection, request)
+  let active = @moonflow.replay(
+    "flow-r1",
+    projection.applied_events + [submitted],
+  )
+  guard active.find_item("work-research") is Some(active_item) else {
+    fail("expected active item")
+  }
+  let result = director_success_result_for_item(
+    active_item,
+    "sha256:output",
+    ["evidence/output.json"],
+    "2026-07-12T00:02:00Z",
+  )
+  assert_eq(result.request_id, request.request_id)
+  assert_eq(result.output_digest, "sha256:output")
 }
