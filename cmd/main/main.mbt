@@ -524,6 +524,81 @@ async fn append_transition(
 }
 
 ///|
+async fn write_run_control(
+  workspace : String,
+  run_id : String,
+  action : String,
+  recorded_at : String,
+  detail : String,
+) -> Unit {
+  ignore(safe_id(run_id, "run_id"))
+  let directory = run_dir(workspace, run_id)
+  if !@fs.exists(directory + "/events.json") {
+    fail("MoonFlow control requires an imported run")
+  }
+  let control_path = directory + "/control.json"
+  let existing = if @fs.exists(control_path) {
+    read_json(control_path)
+  } else {
+    (
+      {
+        "contract_id": "moonflow.run-control.v1",
+        "run_id": run_id,
+        "state": "running",
+        "authority_ceiling": "",
+        "reason": "",
+        "recorded_at": recorded_at,
+      } : Json)
+  }
+  let fields = match existing {
+    Object(values) => values
+    _ => fail("MoonFlow run control is not an object")
+  }
+  let mut state = match fields.get("state") {
+    Some(String(value)) => value
+    _ => "running"
+  }
+  let mut ceiling = match fields.get("authority_ceiling") {
+    Some(String(value)) => value
+    _ => ""
+  }
+  match action {
+    "pause" => state = "paused"
+    "resume" => {
+      if state == "cancelled" {
+        fail("MoonFlow cannot resume a cancelled run")
+      }
+      state = "running"
+    }
+    "cancel" => state = "cancelled"
+    "narrow-authority" => {
+      let proposed = @pipeline.authority_class_from_id(detail)
+      if !ceiling.is_empty() {
+        let current = @pipeline.authority_class_from_id(ceiling)
+        if !current.allows(proposed) {
+          fail("MoonFlow control may narrow but never widen authority")
+        }
+      }
+      ceiling = proposed.id()
+    }
+    _ => fail("unsupported MoonFlow control action: \{action}")
+  }
+  write_json(control_path, {
+    "contract_id": "moonflow.run-control.v1",
+    "run_id": run_id,
+    "state": state,
+    "authority_ceiling": ceiling,
+    "reason": if action == "narrow-authority" {
+      ""
+    } else {
+      detail
+    },
+    "recorded_at": recorded_at,
+  })
+  println(read_json(control_path).stringify(indent=2))
+}
+
+///|
 async fn advance(
   workspace : String,
   run_id : String,
@@ -618,6 +693,7 @@ fn usage() -> Unit {
     "MoonFlow usage:\n" +
     "  moonflow import-graph <workspace> <graph.json>\n" +
     "  moonflow status <workspace> <run-id>\n" +
+    "  moonflow control <workspace> <run-id> <pause|resume|cancel|narrow-authority> <recorded-at> [reason-or-authority]\n" +
     "  moonflow transition <workspace> <run-id> <work-item-id> <action> <recorded-at> [detail]\n" +
     "  moonflow advance <workspace> <run-id> <recorded-at>\n" +
     "  moonflow submit-attempt <workspace> <run-id> <request.json>\n" +
@@ -640,6 +716,10 @@ async fn main {
     ["import-graph", workspace, graph_path] =>
       import_graph(workspace, graph_path)
     ["status", workspace, run_id] => show_status(workspace, run_id)
+    ["control", workspace, run_id, action, recorded_at, detail] =>
+      write_run_control(workspace, run_id, action, recorded_at, detail)
+    ["control", workspace, run_id, action, recorded_at] =>
+      write_run_control(workspace, run_id, action, recorded_at, "")
     ["transition", workspace, run_id, work_item_id, action, recorded_at, detail] =>
       append_transition(
         workspace, run_id, work_item_id, action, detail, recorded_at,

@@ -100,6 +100,75 @@ fn unattended_block_event(
 }
 
 ///|
+async fn unattended_control(
+  workspace : String,
+  run_id : String,
+) -> (String, String) {
+  let path = run_dir(workspace, run_id) + "/control.json"
+  if !@fs.exists(path) {
+    return ("running", "")
+  }
+  match read_json(path) {
+    Object(fields) => {
+      let state = match fields.get("state") {
+        Some(String(value)) => value
+        _ => "running"
+      }
+      let ceiling = match fields.get("authority_ceiling") {
+        Some(String(value)) => value
+        _ => ""
+      }
+      (state, ceiling)
+    }
+    _ => fail("MoonFlow run control is not an object")
+  }
+}
+
+///|
+fn unattended_cancel_event(
+  projection : @moonflow.RunProjection,
+  item : @moonflow.RuntimeItem,
+  recorded_at : String,
+) -> @moonflow.RuntimeEvent {
+  {
+    sequence: projection.last_sequence + 1,
+    event_id: "event-\{projection.run_id}-operator-cancel-\{item.work_item_id}-\{projection.last_sequence + 1}",
+    run_id: projection.run_id,
+    work_item_id: item.work_item_id,
+    kind: ItemCancelled,
+    product_id: item.product_id,
+    declaration_id: item.declaration_id,
+    book_id: projection.book_id,
+    declaration_revision: projection.declaration_revision,
+    source_digest: projection.source_digest,
+    requested_authority: item.requested_authority,
+    acceptance_criteria: item.acceptance_criteria.copy(),
+    operation: item.operation,
+    input_contracts: item.input_contracts.copy(),
+    output_contracts: item.output_contracts.copy(),
+    required_claim: item.required_claim,
+    input_artifacts: item.input_artifacts.copy(),
+    timeout_ms: item.timeout_ms,
+    request_id: item.request_id,
+    result_id: item.result_id,
+    attempt_id: item.active_attempt_id,
+    idempotency_key: item.idempotency_key,
+    external_job_id: item.external_job_id,
+    attempt_status: "cancelled",
+    input_digest: item.input_digest,
+    output_digest: item.output_digest,
+    output_artifacts: item.artifacts.copy(),
+    error_kind: "operator-cancelled",
+    compensable: item.compensable,
+    depends_on: [],
+    detail: "cancelled through bounded MoonFlow run control",
+    artifact_id: "",
+    authority_id: "operator-control",
+    recorded_at,
+  }
+}
+
+///|
 async fn unattended_block(
   workspace : String,
   run_id : String,
@@ -265,6 +334,26 @@ async fn run_unattended_item(
   )
   let active = @moonflow.replay(run_id, events)
   guard active.find_item(item_id) is Some(active_item) else { return usage }
+  let control = unattended_control(root, run_id)
+  if !control.1.is_empty() {
+    let ceiling = @pipeline.authority_class_from_id(control.1)
+    let requested = @pipeline.authority_class_from_id(
+      active_item.requested_authority,
+    )
+    if !ceiling.allows(requested) {
+      ignore(
+        unattended_block(
+          root,
+          run_id,
+          events,
+          item_id,
+          "operator authority ceiling refused \{active_item.requested_authority}",
+          recorded_at,
+        ),
+      )
+      return usage
+    }
+  }
   if active_item.status != @moonflow.Review &&
     !gate_unattended_attempt(
       root, run_id, active_item, driver, manifest, envelope_ref, usage_ref, dispatch_ref,
@@ -549,6 +638,21 @@ async fn run_unattended(
     cycles += 1
     if cycles > manifest.max_cycles {
       fail("MoonFlow unattended supervisor exhausted max_cycles")
+    }
+    let control = unattended_control(root, run_id)
+    if control.0 == "paused" {
+      return
+    }
+    if control.0 == "cancelled" {
+      let mut cancellation = @moonflow.replay(run_id, events)
+      for item in cancellation.items {
+        if !item.status.is_terminal() {
+          events.push(unattended_cancel_event(cancellation, item, recorded_at))
+          cancellation = @moonflow.replay(run_id, events)
+        }
+      }
+      ignore(persist_run(root, run_id, events))
+      return
     }
     let before = @moonflow.replay(run_id, events)
     if before.outcome == "accepted" ||
