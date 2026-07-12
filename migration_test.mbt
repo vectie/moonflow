@@ -143,6 +143,9 @@ test "native revision reuses exact checkpoints and invalidates changed work" {
   }
   assert_true(research.status is Accepted)
   assert_eq(research.attempt_status, "checkpoint-reused")
+  assert_eq(research.request_id, "request-research-r1")
+  assert_eq(research.input_digest, "sha256:input-research-r1")
+  assert_eq(research.idempotency_key, "idempotency-research-r1")
   guard child.find_item("design-r2") is Some(design) else {
     fail("expected changed design")
   }

@@ -137,20 +137,26 @@ async fn revise_run_command(
   let child_directory = run_dir(workspace, result.receipt.child_run_id)
   let event_path = child_directory + "/events.json"
   let migration_path = child_directory + "/migration.json"
-  if @fs.exists(event_path) &&
-    read_json(event_path).stringify() !=
-    @moonflow.event_array_json(result.events).stringify() {
-    fail("child run identity already exists with different migrated events")
+  let mut events_to_persist = result.events
+  if @fs.exists(event_path) {
+    let existing_events = @moonflow.decode_event_array(read_json(event_path))
+    if result.events.any(expected => {
+        !existing_events.any(persisted => persisted == expected)
+      }) {
+      fail("child run identity already exists with different migrated events")
+    }
+    events_to_persist = existing_events
   }
-  if @fs.exists(migration_path) &&
-    read_json(migration_path).stringify() !=
-    result.receipt.to_json().stringify() {
-    fail("migration identity already exists with different content")
+  if @fs.exists(migration_path) {
+    if read_json(migration_path).stringify() !=
+      result.receipt.to_json().stringify() {
+      fail("migration identity already exists with different content")
+    }
   }
   let projection = persist_run(
     workspace,
     result.receipt.child_run_id,
-    result.events,
+    events_to_persist,
   )
   if !@fs.exists(migration_path) {
     write_json(migration_path, result.receipt.to_json())
@@ -281,10 +287,36 @@ async fn complete_artifacts(
   guard projection.find_item(work_item_id) is Some(item) else {
     fail("MoonFlow work item does not exist: \{work_item_id}")
   }
+  let output_digest = declared_input_digest(workspace, output_artifacts)
   if item.status.id() != "active" || item.request_id.trim().is_empty() {
+    if item.attempt_status == "succeeded" &&
+      item.output_digest == output_digest &&
+      output_artifacts.all(artifact => item.artifacts.contains(artifact)) &&
+      !item.result_id.trim().is_empty() {
+      let result_ref = ".moonsuite/products/moonflow/runs/" +
+        run_id +
+        "/dispatch/" +
+        item.result_id +
+        ".result.json"
+      let result = read_json(
+        @fs.realpath(@moonflow.normalize_workspace_path(workspace)) +
+        "/" +
+        result_ref,
+      )
+      println(
+        (
+          {
+            "contract_id": "moonflow.artifact-completion.v1",
+            "idempotent_replay": true,
+            "result_artifact": result_ref,
+            "result": result,
+            "projection": @moonflow.projection_json(projection),
+          } : Json).stringify(indent=2),
+      )
+      return
+    }
     fail("MoonFlow work item has no active governed attempt")
   }
-  let output_digest = declared_input_digest(workspace, output_artifacts)
   let result = @moonflow.director_success_result_for_item(
     item, output_digest, output_artifacts, recorded_at,
   )

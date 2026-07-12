@@ -500,8 +500,12 @@ fn RunProjection::apply_new_event(
             )
           }
           item.status = Accepted
+          item.request_id = event.request_id
           item.result_id = event.result_id
           item.active_attempt_id = event.attempt_id
+          item.idempotency_key = event.idempotency_key
+          item.external_job_id = event.external_job_id
+          item.input_digest = event.input_digest
           item.output_digest = event.output_digest
           item.attempt_status = "checkpoint-reused"
           item.acceptance_review_id = event.detail
