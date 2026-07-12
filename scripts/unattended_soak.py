@@ -88,6 +88,19 @@ def main() -> None:
                     ],
                 )
             )
+        if moonbook is not None:
+            commands.append(
+                (
+                    "combined-lineage",
+                    [
+                        sys.executable,
+                        str(recovery),
+                        "combined-lineage-harness",
+                        str(binary),
+                        str(moonbook),
+                    ],
+                )
+            )
             commands.append(
                 (
                     "product-restart",

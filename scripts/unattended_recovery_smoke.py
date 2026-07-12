@@ -13,6 +13,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 
 
 def read(path: Path) -> dict:
@@ -86,6 +87,18 @@ def fake_flaky_adapter(argv: list[str]) -> None:
         marker.parent.mkdir(parents=True, exist_ok=True)
         marker.write_text("seeded product process crash\n")
         raise SystemExit(17)
+    fake_adapter(argv)
+
+
+def fake_lineage_adapter(argv: list[str]) -> None:
+    root = Path(option(argv, "--workspace"))
+    request = read(root / option(argv, "--request"))
+    if "auto-recovery" in request["run_id"]:
+        marker = root / ".faults" / "delayed-child-result"
+        if not marker.exists():
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            marker.write_text("child adapter deliberately delayed before result\n")
+            time.sleep(0.25)
     fake_adapter(argv)
 
 
@@ -181,6 +194,12 @@ def fake_revision_reviewer(argv: list[str]) -> None:
             "recorded_at": packet["recorded_at"],
         },
     )
+
+
+def fake_combined_reviewer(argv: list[str]) -> None:
+    fake_revision_reviewer(argv)
+    root = Path(option(argv, "--workspace"))
+    kill_parent_once(root, "after-review")
 
 
 def fixture_files(root: Path, script: Path) -> tuple[str, ...]:
@@ -573,6 +592,89 @@ def run_helper_harness(moonclaw: Path) -> None:
     print(json.dumps({"attestation": attestation, "output": output}, indent=2))
 
 
+def run_combined_lineage_harness(binary: Path, moonbook: Path) -> None:
+    root = Path(tempfile.gettempdir()) / "moonflow-unattended-combined-lineage"
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True)
+    root = root.resolve()
+    refs = fixture_files(root, Path(__file__).resolve())
+    manifest = read(root / refs[2])
+    manifest["drivers"][0]["arguments"] = [
+        str(Path(__file__).resolve()),
+        "lineage-adapter",
+        "--workspace",
+        "{workspace}",
+        "--request",
+        "{request}",
+        "--result",
+        "{result}",
+        "--artifact",
+        "books/recovery/drafts/output.json",
+    ]
+    manifest["drivers"][0]["reviewer_arguments"] = [
+        str(Path(__file__).resolve()),
+        "combined-reviewer",
+        "--workspace",
+        "{workspace}",
+        "--review-packet",
+        "{review}",
+    ]
+    manifest["observer_executable"] = str(moonbook.resolve())
+    manifest["observer_arguments"] = [
+        "bookkeeper",
+        "reconcile-run",
+        "{workspace}/books/{book_id}",
+        "{projection}",
+        "{recorded_at}",
+    ]
+    write(root / refs[2], manifest)
+    command = [
+        str(binary.resolve()),
+        "run-unattended",
+        str(root),
+        *refs,
+        "2026-07-12T10:02:00Z",
+    ]
+    return_codes = [subprocess.run(command).returncode for _ in range(5)]
+    if return_codes[:3] != [-signal.SIGKILL] * 3 or return_codes[3:] != [0, 0]:
+        raise SystemExit(f"unexpected combined-lineage sequence: {return_codes}")
+    parent_dir = root / ".moonsuite/products/moonflow/runs/recovery-smoke-r1"
+    continuation = read(parent_dir / "continuation.json")
+    child_dir = root / ".moonsuite/products/moonflow/runs" / continuation["child_run_id"]
+    parent = read(parent_dir / "projection.json")
+    child = read(child_dir / "projection.json")
+    migration = read(child_dir / "migration.json")
+    usage = read(root / refs[4])
+    delayed_marker = root / ".faults" / "delayed-child-result"
+    if parent["outcome"] != "blocked" or child["outcome"] != "accepted":
+        raise SystemExit("combined lineage did not revise rejected parent to accepted child")
+    if migration["invalidated_count"] != 1 or usage["attempts"] != 2:
+        raise SystemExit("combined lineage duplicated or incorrectly reused an attempt")
+    if not delayed_marker.exists():
+        raise SystemExit("combined lineage did not exercise delayed child result")
+    parent_evidence = parent["items"][0]["artifacts"][0]
+    child_evidence = child["items"][0]["artifacts"][0]
+    if parent_evidence == child_evidence:
+        raise SystemExit("combined lineage overwrote rejected evidence identity")
+    if not (root / parent_evidence).exists() or not (root / child_evidence).exists():
+        raise SystemExit("combined lineage lost immutable evidence")
+    print(
+        json.dumps(
+            {
+                "return_codes": return_codes,
+                "delayed_result": True,
+                "duplicate_terminal_delivery": True,
+                "parent": parent,
+                "continuation": continuation,
+                "child": child,
+                "migration": migration,
+                "usage": usage,
+            },
+            indent=2,
+        )
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -582,12 +684,15 @@ def main() -> None:
             "revision-harness",
             "product-restart-harness",
             "helper-harness",
+            "combined-lineage-harness",
             "gate",
             "adapter",
             "flaky-adapter",
+            "lineage-adapter",
             "attestor",
             "reviewer",
             "revision-reviewer",
+            "combined-reviewer",
             "observer",
         ],
     )
@@ -613,16 +718,26 @@ def main() -> None:
         if len(args.rest) != 1:
             raise SystemExit("helper-harness requires the MoonClaw binary path")
         run_helper_harness(Path(args.rest[0]))
+    elif args.mode == "combined-lineage-harness":
+        if len(args.rest) != 2:
+            raise SystemExit(
+                "combined-lineage-harness requires MoonFlow and MoonBook binaries"
+            )
+        run_combined_lineage_harness(Path(args.rest[0]), Path(args.rest[1]))
     elif args.mode == "adapter":
         fake_adapter(args.rest)
     elif args.mode == "flaky-adapter":
         fake_flaky_adapter(args.rest)
+    elif args.mode == "lineage-adapter":
+        fake_lineage_adapter(args.rest)
     elif args.mode == "attestor":
         fake_attestor(args.rest)
     elif args.mode == "reviewer":
         fake_reviewer(args.rest)
     elif args.mode == "revision-reviewer":
         fake_revision_reviewer(args.rest)
+    elif args.mode == "combined-reviewer":
+        fake_combined_reviewer(args.rest)
     elif args.mode in {"gate", "observer"}:
         return
 
