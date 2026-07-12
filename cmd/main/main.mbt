@@ -241,7 +241,10 @@ async fn prepare_next(
       })
       continue
     }
-    let input_digest = declared_input_digest(root, item.input_artifacts)
+    let input_digest = declared_input_digest(
+      root,
+      @moonflow.director_input_artifacts(projection, item),
+    )
     let request = @moonflow.director_request_for_item(
       projection, item, input_digest, recorded_at,
     )

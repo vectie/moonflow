@@ -41,6 +41,8 @@ pub fn decode_runtime_event(Json) -> RuntimeEvent raise
 
 pub fn decode_unattended_manifest(Json) -> UnattendedManifest raise
 
+pub fn director_input_artifacts(RunProjection, RuntimeItem) -> Array[String]
+
 pub fn director_request_for_item(RunProjection, RuntimeItem, String, String) -> AdapterRequest
 
 pub fn director_requirement_for_item(RuntimeItem) -> DirectorRequirement

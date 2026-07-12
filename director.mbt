@@ -152,6 +152,26 @@ pub fn director_requirement_for_item(item : RuntimeItem) -> DirectorRequirement 
 }
 
 ///|
+pub fn director_input_artifacts(
+  projection : RunProjection,
+  item : RuntimeItem,
+) -> Array[String] {
+  let artifacts = item.input_artifacts.copy()
+  for dependency_id in item.depends_on {
+    match projection.find_item(dependency_id) {
+      Some(dependency) if dependency.status == Accepted =>
+        for artifact in dependency.artifacts {
+          if !artifacts.contains(artifact) {
+            artifacts.push(artifact)
+          }
+        }
+      _ => ()
+    }
+  }
+  artifacts
+}
+
+///|
 pub fn director_request_for_item(
   projection : RunProjection,
   item : RuntimeItem,
@@ -171,7 +191,7 @@ pub fn director_request_for_item(
     operation: item.operation,
     requested_authority: item.requested_authority,
     input_digest,
-    input_artifacts: item.input_artifacts.copy(),
+    input_artifacts: director_input_artifacts(projection, item),
     timeout_ms: item.timeout_ms,
     created_at: recorded_at,
   }

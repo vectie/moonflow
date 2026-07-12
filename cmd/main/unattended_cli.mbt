@@ -232,7 +232,10 @@ async fn run_unattended_item(
     dispatch_dir + "/" + requirement.requirement_id + ".decision.json",
     decision.to_json(),
   )
-  let input_digest = declared_input_digest(root, ready_item.input_artifacts)
+  let input_digest = declared_input_digest(
+    root,
+    @moonflow.director_input_artifacts(projection, ready_item),
+  )
   let request = @moonflow.director_request_for_item(
     projection, ready_item, input_digest, recorded_at,
   )

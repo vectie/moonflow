@@ -121,9 +121,7 @@ test "director derives a stable request from declared execution binding" {
     projection, item, "sha256:input", "2026-07-12T00:01:00Z",
   )
   assert_eq(request.attempt_id, "attempt-work-research-1")
-  assert_true(
-    request.input_artifacts == ["books/robot/inputs/question.json"],
-  )
+  assert_true(request.input_artifacts == ["books/robot/inputs/question.json"])
   assert_true(request.idempotency_key.contains("sha256:input"))
   let submitted = @moonflow.adapter_submission_event(projection, request)
   let active = @moonflow.replay(
@@ -141,4 +139,53 @@ test "director derives a stable request from declared execution binding" {
   )
   assert_eq(result.request_id, request.request_id)
   assert_eq(result.output_digest, "sha256:output")
+}
+
+///|
+test "director automatically hands accepted dependency artifacts downstream" {
+  let events = @moonflow.events_from_work_graph({
+    "contract_id": "moonsuite.work-model.v1",
+    "graph_id": "handoff-r1",
+    "book_id": "handoff",
+    "declaration_revision": "r1",
+    "source_digest": "sha256:source",
+    "items": [
+      {
+        "work_item_id": "first",
+        "declaration_id": "first",
+        "product_id": "moonwiki",
+        "requested_authority": "observe",
+        "acceptance_criteria": ["evidence exists"],
+        "operation": "research",
+        "input_contracts": ["goal.v1"],
+        "output_contracts": ["evidence.v1"],
+        "required_claim": "research-evidence",
+        "input_artifacts": ["goal.txt"],
+        "timeout_ms": 1000,
+        "depends_on": [],
+      },
+      {
+        "work_item_id": "second",
+        "declaration_id": "second",
+        "product_id": "moontown",
+        "requested_authority": "cognitive-maintenance",
+        "acceptance_criteria": ["critique exists"],
+        "operation": "critique",
+        "input_contracts": ["evidence.v1"],
+        "output_contracts": ["critique.v1"],
+        "required_claim": "accepted-knowledge",
+        "input_artifacts": ["goal.txt"],
+        "timeout_ms": 1000,
+        "depends_on": ["first"],
+      },
+    ],
+    "recorded_at": "2026-07-12T00:00:00Z",
+  })
+  let projection = @moonflow.replay("handoff-r1", events)
+  guard projection.find_item("first") is Some(first) else { fail("first") }
+  first.status = Accepted
+  first.artifacts.push("evidence/result.json")
+  guard projection.find_item("second") is Some(second) else { fail("second") }
+  let inputs = director_input_artifacts(projection, second)
+  assert_true(inputs == ["goal.txt", "evidence/result.json"])
 }
