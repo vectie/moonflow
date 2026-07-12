@@ -154,6 +154,10 @@ pub(all) struct AdapterRequest {
   product_id : String
   operation : String
   requested_authority : String
+  acceptance_criteria : Array[String]
+  input_contracts : Array[String]
+  output_contracts : Array[String]
+  required_claim : String
   input_digest : String
   input_artifacts : Array[String]
   timeout_ms : Int
@@ -171,6 +175,7 @@ pub fn AdapterRequest::quality_issues(self : AdapterRequest) -> Array[String] {
   add_required_issue(issues, self.idempotency_key, "idempotency_key")
   add_required_issue(issues, self.product_id, "product_id")
   add_required_issue(issues, self.operation, "operation")
+  add_required_issue(issues, self.required_claim, "required_claim")
   add_required_issue(issues, self.input_digest, "input_digest")
   add_required_issue(issues, self.created_at, "created_at")
   if !authority_class_is_canonical(self.requested_authority) {
@@ -195,6 +200,14 @@ pub fn decode_adapter_request(value : Json) -> AdapterRequest raise {
     product_id: wire_string(fields, "product_id"),
     operation: wire_string(fields, "operation"),
     requested_authority: wire_string(fields, "requested_authority"),
+    acceptance_criteria: wire_strings(
+      fields,
+      "acceptance_criteria",
+      required=false,
+    ),
+    input_contracts: wire_strings(fields, "input_contracts", required=false),
+    output_contracts: wire_strings(fields, "output_contracts", required=false),
+    required_claim: wire_string(fields, "required_claim", allow_empty=true),
     input_digest: wire_string(fields, "input_digest"),
     input_artifacts: wire_strings(fields, "input_artifacts", required=false),
     timeout_ms: wire_int(fields, "timeout_ms"),

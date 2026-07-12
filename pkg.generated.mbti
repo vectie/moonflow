@@ -193,6 +193,10 @@ pub(all) struct AdapterRequest {
   product_id : String
   operation : String
   requested_authority : String
+  acceptance_criteria : Array[String]
+  input_contracts : Array[String]
+  output_contracts : Array[String]
+  required_claim : String
   input_digest : String
   input_artifacts : Array[String]
   timeout_ms : Int
