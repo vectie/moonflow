@@ -12,7 +12,6 @@ import shutil
 import signal
 import subprocess
 import sys
-import tempfile
 import time
 
 
@@ -23,6 +22,10 @@ def read(path: Path) -> dict:
 def write(path: Path, value: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, indent=2) + "\n")
+
+
+def qualification_root(name: str) -> Path:
+    return Path.home() / "moonsuite/qualification/harness-work" / name
 
 
 def option(argv: list[str], name: str) -> str:
@@ -381,7 +384,7 @@ def fixture_files(root: Path, script: Path) -> tuple[str, ...]:
 
 
 def run_harness(binary: Path) -> None:
-    root = Path(tempfile.gettempdir()) / "moonflow-unattended-recovery-smoke"
+    root = qualification_root("moonflow-unattended-recovery-smoke")
     shutil.rmtree(root, ignore_errors=True)
     root.mkdir(parents=True)
     root = root.resolve()
@@ -420,7 +423,7 @@ def run_revision_harness(binary: Path, moonbook: Path, product_restart: bool = F
         if product_restart
         else "moonflow-unattended-revision-smoke"
     )
-    root = Path(tempfile.gettempdir()) / fixture_name
+    root = qualification_root(fixture_name)
     shutil.rmtree(root, ignore_errors=True)
     root.mkdir(parents=True)
     root = root.resolve()
@@ -502,7 +505,7 @@ def run_revision_harness(binary: Path, moonbook: Path, product_restart: bool = F
 
 
 def run_helper_harness(moonclaw: Path) -> None:
-    root = Path(tempfile.gettempdir()) / "moonclaw-native-helper-soak"
+    root = qualification_root("moonclaw-native-helper-soak")
     shutil.rmtree(root, ignore_errors=True)
     root.mkdir(parents=True)
     write(
@@ -593,7 +596,7 @@ def run_helper_harness(moonclaw: Path) -> None:
 
 
 def run_combined_lineage_harness(binary: Path, moonbook: Path) -> None:
-    root = Path(tempfile.gettempdir()) / "moonflow-unattended-combined-lineage"
+    root = qualification_root("moonflow-unattended-combined-lineage")
     shutil.rmtree(root, ignore_errors=True)
     root.mkdir(parents=True)
     root = root.resolve()
@@ -675,6 +678,186 @@ def run_combined_lineage_harness(binary: Path, moonbook: Path) -> None:
     )
 
 
+def run_model_loss_harness(moonclaw: Path) -> None:
+    root = qualification_root("moonclaw-model-loss-soak")
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True)
+    write(root / "books/model-loss/goal.txt", {"goal": "prove safe model loss"})
+    write(
+        root / "runtime/request.json",
+        {
+            "contract_id": "moonflow.adapter-request.v1",
+            "request_id": "request-model-loss",
+            "attempt_id": "attempt-model-loss-1",
+            "idempotency_key": "model-loss/attempt-1",
+            "run_id": "model-loss",
+            "work_item_id": "work-model-loss",
+            "declaration_id": "model-loss",
+            "product_id": "moonwiki",
+            "requested_authority": "observe",
+            "acceptance_criteria": ["model loss cannot fabricate evidence"],
+            "operation": "research-goal",
+            "input_contracts": ["moonsuite.goal.v1"],
+            "output_contracts": ["moonwiki.evidence-bundle.v1"],
+            "required_claim": "research-evidence",
+            "input_artifacts": ["books/model-loss/goal.txt"],
+            "created_at": "2026-07-12T10:02:00Z",
+        },
+    )
+    command = [
+        str(moonclaw.resolve()),
+        "flow-adapter",
+        "execute",
+        "--workspace",
+        str(root),
+        "--request",
+        "runtime/request.json",
+        "--result",
+        "runtime/result.json",
+        "--model",
+        "qualification/model-deliberately-unavailable",
+        "--artifact",
+        "books/model-loss/draft.json",
+        "--max-trials",
+        "1",
+    ]
+    completed = subprocess.run(command, capture_output=True, text=True)
+    if completed.returncode == 0:
+        raise SystemExit("missing model unexpectedly produced a successful result")
+    result = read(root / "runtime/result.json")
+    if result["status"] != "failed" or result["output_artifacts"]:
+        raise SystemExit("model loss did not fail closed without evidence")
+    if (root / "books/model-loss/draft.json").exists():
+        raise SystemExit("model loss fabricated a draft artifact")
+    print(json.dumps({"return_code": completed.returncode, "result": result}, indent=2))
+
+
+def run_binding_mutation_harness(binary: Path) -> None:
+    root = qualification_root("moonflow-binding-mutation-soak")
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True)
+    refs = fixture_files(root, Path(__file__).resolve())
+    graph = read(root / refs[0])
+    graph["source_digest"] = "sha256:" + "b" * 64
+    write(root / refs[0], graph)
+    command = [
+        str(binary.resolve()),
+        "run-unattended",
+        str(root),
+        *refs,
+        "2026-07-12T10:02:00Z",
+    ]
+    completed = subprocess.run(command, capture_output=True, text=True)
+    if completed.returncode == 0:
+        raise SystemExit("mutated graph unexpectedly passed envelope binding")
+    receipt = read(
+        root
+        / ".moonsuite/products/moonflow/runs/recovery-smoke-r1/autonomy-binding-rejection.json"
+    )
+    if receipt["field"] != "source_digest" or receipt["actual"] == receipt["expected"]:
+        raise SystemExit("source mutation did not leave a precise durable refusal")
+    print(json.dumps({"return_code": completed.returncode, "receipt": receipt}, indent=2))
+
+
+def run_control_harness(binary: Path) -> None:
+    root = qualification_root("moonflow-control-soak")
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True)
+    refs = fixture_files(root, Path(__file__).resolve())
+    imported = subprocess.run(
+        [str(binary.resolve()), "import-graph", str(root), str(root / refs[0])],
+        capture_output=True,
+        text=True,
+    )
+    if imported.returncode != 0:
+        raise SystemExit(imported.stdout + imported.stderr)
+    for action, at, detail in [
+        ("pause", "2026-07-12T10:03:00Z", "qualification inspection"),
+        ("resume", "2026-07-12T10:04:00Z", ""),
+    ]:
+        command = [
+            str(binary.resolve()),
+            "control",
+            str(root),
+            "recovery-smoke-r1",
+            action,
+            at,
+        ]
+        if detail:
+            command.append(detail)
+        completed = subprocess.run(command, capture_output=True, text=True)
+        if completed.returncode != 0:
+            raise SystemExit(completed.stdout + completed.stderr)
+    control = read(
+        root / ".moonsuite/products/moonflow/runs/recovery-smoke-r1/control.json"
+    )
+    if control["state"] != "running":
+        raise SystemExit("pause/resume did not return the run to running")
+    print(json.dumps({"control": control}, indent=2))
+
+
+def run_budget_harness(moongate: Path) -> None:
+    root = qualification_root("moongate-budget-soak")
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True)
+    refs = fixture_files(root, Path(__file__).resolve())
+    usage = read(root / refs[4])
+    usage["attempts"] = 10
+    write(root / refs[4], usage)
+    write(
+        root / "runtime/event.json",
+        {
+            "contract_id": "moongate.autonomy-event-request.v1",
+            "event_id": "budget-exhaustion-event",
+            "run_id": "recovery-smoke-r1",
+            "product_id": "moonwiki",
+            "operation": "recovery-smoke",
+            "requested_authority": "observe",
+            "claim": "research-evidence",
+            "artifact_paths": ["books/recovery/output.json"],
+            "external_destination": "",
+            "budget_request": {
+                "model_tokens": 1,
+                "tool_calls": 1,
+                "storage_bytes": 4096,
+                "attempts": 1,
+                "concurrency": 1,
+            },
+            "recorded_at": "2026-07-12T10:02:00Z",
+        },
+    )
+    command = [
+        str(moongate.resolve()),
+        "suite",
+        "autonomy-check",
+        "--root",
+        str(root),
+        "--envelope",
+        str(root / refs[3]),
+        "--event",
+        str(root / "runtime/event.json"),
+        "--usage",
+        str(root / refs[4]),
+        "--decision",
+        "budget-exhaustion-decision",
+        "--checked-at",
+        "2026-07-12T10:02:00Z",
+    ]
+    completed = subprocess.run(command, capture_output=True, text=True)
+    if completed.returncode == 0:
+        raise SystemExit("exhausted attempt budget unexpectedly passed MoonGate")
+    decision = read(
+        root
+        / ".moonsuite/products/moongate/autonomy/recovery-envelope/decisions/budget-exhaustion-decision.json"
+    )
+    if decision["accepted"] or not any(
+        "attempt" in finding.lower() and "budget" in finding.lower()
+        for finding in decision["findings"]
+    ):
+        raise SystemExit("budget refusal did not persist an explicit finding")
+    print(json.dumps({"return_code": completed.returncode, "decision": decision}, indent=2))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -685,6 +868,10 @@ def main() -> None:
             "product-restart-harness",
             "helper-harness",
             "combined-lineage-harness",
+            "model-loss-harness",
+            "binding-mutation-harness",
+            "control-harness",
+            "budget-harness",
             "gate",
             "adapter",
             "flaky-adapter",
@@ -724,6 +911,22 @@ def main() -> None:
                 "combined-lineage-harness requires MoonFlow and MoonBook binaries"
             )
         run_combined_lineage_harness(Path(args.rest[0]), Path(args.rest[1]))
+    elif args.mode == "model-loss-harness":
+        if len(args.rest) != 1:
+            raise SystemExit("model-loss-harness requires the MoonClaw binary path")
+        run_model_loss_harness(Path(args.rest[0]))
+    elif args.mode == "binding-mutation-harness":
+        if len(args.rest) != 1:
+            raise SystemExit("binding-mutation-harness requires the MoonFlow binary path")
+        run_binding_mutation_harness(Path(args.rest[0]))
+    elif args.mode == "control-harness":
+        if len(args.rest) != 1:
+            raise SystemExit("control-harness requires the MoonFlow binary path")
+        run_control_harness(Path(args.rest[0]))
+    elif args.mode == "budget-harness":
+        if len(args.rest) != 1:
+            raise SystemExit("budget-harness requires the MoonGate binary path")
+        run_budget_harness(Path(args.rest[0]))
     elif args.mode == "adapter":
         fake_adapter(args.rest)
     elif args.mode == "flaky-adapter":
