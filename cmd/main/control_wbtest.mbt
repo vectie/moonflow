@@ -70,6 +70,28 @@ async test "run control pauses, resumes, cancels, and only narrows authority" {
 }
 
 ///|
+test "terminal unattended usage releases its concurrency lease" {
+  let usage : @pipeline.AutonomyBudgetUsage = {
+    model_tokens: 10,
+    tool_calls: 2,
+    storage_bytes: 100,
+    attempts: 1,
+    concurrency: 1,
+  }
+  let request : @pipeline.AutonomyBudgetUsage = {
+    model_tokens: 5,
+    tool_calls: 1,
+    storage_bytes: 50,
+    attempts: 1,
+    concurrency: 1,
+  }
+  let charged = unattended_usage_add(usage, request)
+  assert_eq(charged.model_tokens, 15)
+  assert_eq(charged.attempts, 2)
+  assert_eq(charged.concurrency, 0)
+}
+
+///|
 async test "adapter circuit opens after three failures and a probe resets it" {
   let workspace = "/tmp/moonflow-adapter-circuit-test"
   let adapter_id = "test-adapter"

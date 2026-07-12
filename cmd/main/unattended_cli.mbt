@@ -58,11 +58,11 @@ fn unattended_usage_add(
     tool_calls: usage.tool_calls + request.tool_calls,
     storage_bytes: usage.storage_bytes + request.storage_bytes,
     attempts: usage.attempts + request.attempts,
-    concurrency: if usage.concurrency > request.concurrency {
-      usage.concurrency
-    } else {
-      request.concurrency
-    },
+    // The director is sequential today, and this function is called only when
+    // an adapter path has reached a terminal return. Concurrency is an
+    // in-flight lease, not cumulative consumption; carrying it into the next
+    // attempt would make every automatic recovery look concurrent.
+    concurrency: 0,
   }
 }
 
