@@ -97,6 +97,19 @@ criteria against that product-owned final path. Durable request, draft result,
 attestation, and review receipts are recovery checkpoints: restarting after any
 one of them does not repeat completed work or create a second attempt.
 
+Install the cross-product unattended runtime reproducibly instead of copying
+development build paths into a manifest:
+
+```sh
+scripts/install_moonsuite_runtime.sh ~/moonsuite
+```
+
+The installer builds the owning products, installs only runtime executables
+under `~/moonsuite/bin`, and writes a content-addressed source/binary manifest
+at `~/moonsuite/.moonsuite/runtime/installed-runtime.json`. Set
+`MOON_SUITE_SOURCE_ROOT` only when the source repositories are not sibling
+directories under `~/Workspace`.
+
 The restart invariant is fault-injected at all three post-action boundaries:
 
 ```text
