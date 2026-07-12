@@ -121,7 +121,9 @@ test "director derives a stable request from declared execution binding" {
     projection, item, "sha256:input", "2026-07-12T00:01:00Z",
   )
   assert_eq(request.attempt_id, "attempt-work-research-1")
-  assert_eq(request.input_artifacts, ["books/robot/inputs/question.json"])
+  assert_true(
+    request.input_artifacts == ["books/robot/inputs/question.json"],
+  )
   assert_true(request.idempotency_key.contains("sha256:input"))
   let submitted = @moonflow.adapter_submission_event(projection, request)
   let active = @moonflow.replay(

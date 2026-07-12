@@ -625,6 +625,7 @@ fn usage() -> Unit {
     "  moonflow prepare-next <workspace> <run-id> <capabilities-artifact> <recorded-at>\n" +
     "  moonflow complete-artifacts <workspace> <run-id> <work-item-id> <recorded-at> <artifact>...\n" +
     "  moonflow bundle-evidence <workspace> <bundle-spec-artifact> <recorded-at>\n" +
+    "  moonflow run-unattended <workspace> <graph-artifact> <capabilities-artifact> <manifest-artifact> <envelope-artifact> <usage-artifact> <recorded-at>\n" +
     "  moonflow validate-capability <capability.json>",
   )
 }
@@ -685,6 +686,20 @@ async fn main {
       )
     ["bundle-evidence", workspace, spec_ref, recorded_at] =>
       bundle_evidence(workspace, spec_ref, recorded_at)
+    [
+      "run-unattended",
+      workspace,
+      graph_ref,
+      capabilities_ref,
+      manifest_ref,
+      envelope_ref,
+      usage_ref,
+      recorded_at,
+    ] =>
+      run_unattended(
+        workspace, graph_ref, capabilities_ref, manifest_ref, envelope_ref, usage_ref,
+        recorded_at,
+      )
     ["validate-capability", capability_path] =>
       validate_capability(capability_path)
     ["version"] => println("MoonFlow \{@moonflow.runtime_protocol_id()}")

@@ -3,6 +3,7 @@ package "vectie/moonflow"
 
 import {
   "moonbitlang/core/debug",
+  "vectie/moonlib/pipeline",
 }
 
 // Values
@@ -38,7 +39,15 @@ pub fn decode_evidence_bundle_spec(Json) -> EvidenceBundleSpec raise
 
 pub fn decode_runtime_event(Json) -> RuntimeEvent raise
 
+pub fn decode_unattended_manifest(Json) -> UnattendedManifest raise
+
+pub fn director_request_for_item(RunProjection, RuntimeItem, String, String) -> AdapterRequest
+
+pub fn director_requirement_for_item(RuntimeItem) -> DirectorRequirement
+
 pub fn director_retry_decision(DirectorFailureClass) -> DirectorRetryDecision
+
+pub fn director_success_result_for_item(RuntimeItem, String, Array[String], String) -> AdapterResult
 
 pub fn empty_projection(String) -> RunProjection
 
@@ -63,6 +72,8 @@ pub fn protocol_id() -> String
 pub fn ready_events(RunProjection, String) -> Array[RuntimeEvent]
 
 pub fn reconcile_adapter_result(AdapterRequest, AdapterResult) -> ReconciliationDecision raise AdapterContractError
+
+pub fn render_unattended_arguments(Array[String], String, String, String, String, String) -> Array[String]
 
 pub fn replay(String, Array[RuntimeEvent]) -> RunProjection raise FlowError
 
@@ -366,6 +377,12 @@ pub(all) struct RuntimeEvent {
   source_digest : String
   requested_authority : String
   acceptance_criteria : Array[String]
+  operation : String
+  input_contracts : Array[String]
+  output_contracts : Array[String]
+  required_claim : String
+  input_artifacts : Array[String]
+  timeout_ms : Int
   request_id : String
   result_id : String
   attempt_id : String
@@ -390,6 +407,12 @@ pub(all) struct RuntimeItem {
   product_id : String
   requested_authority : String
   acceptance_criteria : Array[String]
+  operation : String
+  input_contracts : Array[String]
+  output_contracts : Array[String]
+  required_claim : String
+  input_artifacts : Array[String]
+  timeout_ms : Int
   depends_on : Array[String]
   mut status : RuntimeStatus
   mut attempt_count : Int
@@ -399,7 +422,6 @@ pub(all) struct RuntimeItem {
   mut idempotency_key : String
   mut external_job_id : String
   mut attempt_status : String
-  mut operation : String
   mut input_digest : String
   mut output_digest : String
   mut error_kind : String
@@ -426,6 +448,28 @@ pub(all) enum RuntimeStatus {
 } derive(Compare, Eq, Hash, ToJson, @debug.Debug)
 pub fn RuntimeStatus::id(Self) -> String
 pub fn RuntimeStatus::is_terminal(Self) -> Bool
+
+pub(all) struct UnattendedDriver {
+  adapter_id : String
+  executable : String
+  arguments : Array[String]
+  expected_output_artifacts : Array[String]
+  reviewer_id : String
+  reviewer_executable : String
+  reviewer_arguments : Array[String]
+  review_authority_id : String
+  budget_request : @pipeline.AutonomyBudgetUsage
+} derive(Eq, @debug.Debug)
+
+pub(all) struct UnattendedManifest {
+  contract_id : String
+  gate_executable : String
+  gate_arguments : Array[String]
+  max_cycles : Int
+  drivers : Array[UnattendedDriver]
+} derive(Eq, @debug.Debug)
+pub fn UnattendedManifest::find_driver(Self, String) -> UnattendedDriver?
+pub fn UnattendedManifest::quality_issues(Self) -> Array[String]
 
 // Type aliases
 

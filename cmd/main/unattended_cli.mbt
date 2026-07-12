@@ -1,0 +1,486 @@
+///|
+priv struct UnattendedCommandResult {
+  status : Int
+  stdout : String
+  stderr : String
+}
+
+///|
+async fn run_unattended_process(
+  executable : String,
+  arguments : Array[String],
+  cwd : String,
+) -> UnattendedCommandResult {
+  @async.with_task_group(group => {
+    fn capture() raise {
+      let (pipe, output) = @process.read_from_process()
+      let task = group.spawn(() => {
+        defer pipe.close()
+        @utf8.decode_lossy(pipe.read_all().binary())
+      })
+      (task, output)
+    }
+
+    let stdout = capture()
+    let stderr = capture()
+    let status = @process.run(
+      executable,
+      arguments,
+      cwd~,
+      stdout=stdout.1,
+      stderr=stderr.1,
+    ) catch {
+      _ => -1
+    }
+    { status, stdout: stdout.0.wait(), stderr: stderr.0.wait() }
+  })
+}
+
+///|
+fn unattended_usage_add(
+  usage : @pipeline.AutonomyBudgetUsage,
+  request : @pipeline.AutonomyBudgetUsage,
+) -> @pipeline.AutonomyBudgetUsage {
+  {
+    model_tokens: usage.model_tokens + request.model_tokens,
+    tool_calls: usage.tool_calls + request.tool_calls,
+    storage_bytes: usage.storage_bytes + request.storage_bytes,
+    attempts: usage.attempts + request.attempts,
+    concurrency: if usage.concurrency > request.concurrency {
+      usage.concurrency
+    } else {
+      request.concurrency
+    },
+  }
+}
+
+///|
+fn unattended_block_event(
+  projection : @moonflow.RunProjection,
+  item : @moonflow.RuntimeItem,
+  detail : String,
+  recorded_at : String,
+) -> @moonflow.RuntimeEvent {
+  {
+    sequence: projection.last_sequence + 1,
+    event_id: "event-\{projection.run_id}-supervisor-block-\{item.work_item_id}-\{projection.last_sequence + 1}",
+    run_id: projection.run_id,
+    work_item_id: item.work_item_id,
+    kind: ItemBlocked,
+    product_id: item.product_id,
+    declaration_id: item.declaration_id,
+    book_id: projection.book_id,
+    declaration_revision: projection.declaration_revision,
+    source_digest: projection.source_digest,
+    requested_authority: item.requested_authority,
+    acceptance_criteria: item.acceptance_criteria.copy(),
+    operation: item.operation,
+    input_contracts: item.input_contracts.copy(),
+    output_contracts: item.output_contracts.copy(),
+    required_claim: item.required_claim,
+    input_artifacts: item.input_artifacts.copy(),
+    timeout_ms: item.timeout_ms,
+    request_id: item.request_id,
+    result_id: item.result_id,
+    attempt_id: item.active_attempt_id,
+    idempotency_key: item.idempotency_key,
+    external_job_id: item.external_job_id,
+    attempt_status: item.attempt_status,
+    input_digest: item.input_digest,
+    output_digest: item.output_digest,
+    output_artifacts: item.artifacts.copy(),
+    error_kind: "supervisor-blocked",
+    compensable: false,
+    depends_on: [],
+    detail,
+    artifact_id: "",
+    authority_id: "moongate",
+    recorded_at,
+  }
+}
+
+///|
+async fn unattended_block(
+  workspace : String,
+  run_id : String,
+  events : Array[@moonflow.RuntimeEvent],
+  item_id : String,
+  detail : String,
+  recorded_at : String,
+) -> @moonflow.RunProjection {
+  let projection = @moonflow.replay(run_id, events)
+  guard projection.find_item(item_id) is Some(item) else {
+    fail("unattended supervisor lost work item: \{item_id}")
+  }
+  events.push(unattended_block_event(projection, item, detail, recorded_at))
+  persist_run(workspace, run_id, events)
+}
+
+///|
+async fn write_unattended_log(
+  directory : String,
+  name : String,
+  result : UnattendedCommandResult,
+) -> Unit {
+  write_json(directory + "/" + name + ".json", {
+    "status": result.status,
+    "stdout": result.stdout,
+    "stderr": result.stderr,
+  })
+}
+
+///|
+async fn gate_unattended_attempt(
+  root : String,
+  run_id : String,
+  item : @moonflow.RuntimeItem,
+  driver : @moonflow.UnattendedDriver,
+  manifest : @moonflow.UnattendedManifest,
+  envelope_ref : String,
+  usage_ref : String,
+  dispatch_ref : String,
+  dispatch_dir : String,
+  recorded_at : String,
+) -> Bool {
+  let event_ref = dispatch_ref +
+    "/gate-" +
+    item.active_attempt_id +
+    ".event.json"
+  let event_path = root + "/" + event_ref
+  write_json(
+    event_path,
+    @pipeline.autonomy_event_request_json({
+      contract_id: "moongate.autonomy-event-request.v1",
+      event_id: "event-" + item.active_attempt_id,
+      run_id,
+      product_id: item.product_id,
+      operation: item.operation,
+      requested_authority: @pipeline.authority_class_from_id(
+        item.requested_authority,
+      ),
+      claim: @pipeline.claim_class_from_id(item.required_claim),
+      artifact_paths: driver.expected_output_artifacts.copy(),
+      external_destination: "",
+      budget_request: driver.budget_request,
+      recorded_at,
+    }),
+  )
+  let decision_id = "decision-" + item.active_attempt_id
+  let arguments = manifest.gate_arguments +
+    [
+      "--root",
+      root,
+      "--envelope",
+      root + "/" + envelope_ref,
+      "--event",
+      event_path,
+      "--usage",
+      root + "/" + usage_ref,
+      "--decision",
+      decision_id,
+      "--checked-at",
+      recorded_at,
+    ]
+  let result = run_unattended_process(manifest.gate_executable, arguments, root)
+  write_unattended_log(dispatch_dir, decision_id + ".gate", result)
+  result.status == 0
+}
+
+///|
+async fn run_unattended_item(
+  root : String,
+  run_id : String,
+  events : Array[@moonflow.RuntimeEvent],
+  capabilities : Array[@moonflow.AdapterCapability],
+  manifest : @moonflow.UnattendedManifest,
+  envelope_ref : String,
+  usage_ref : String,
+  usage : @pipeline.AutonomyBudgetUsage,
+  item_id : String,
+  recorded_at : String,
+) -> @pipeline.AutonomyBudgetUsage {
+  let projection = @moonflow.replay(run_id, events)
+  guard projection.find_item(item_id) is Some(ready_item) else { return usage }
+  let requirement = @moonflow.director_requirement_for_item(ready_item)
+  let decision = @moonflow.select_adapter(capabilities, requirement)
+  if !decision.accepted {
+    ignore(
+      unattended_block(
+        root,
+        run_id,
+        events,
+        item_id,
+        "no conforming healthy adapter: " + decision.to_json().stringify(),
+        recorded_at,
+      ),
+    )
+    return usage
+  }
+  guard manifest.find_driver(decision.selected_adapter_id) is Some(driver) else {
+    ignore(
+      unattended_block(
+        root, run_id, events, item_id, "selected adapter has no executable driver",
+        recorded_at,
+      ),
+    )
+    return usage
+  }
+  let dispatch_ref = ".moonsuite/products/moonflow/runs/" + run_id + "/dispatch"
+  let dispatch_dir = root + "/" + dispatch_ref
+  ensure_directory(dispatch_dir)
+  write_json(
+    dispatch_dir + "/" + requirement.requirement_id + ".decision.json",
+    decision.to_json(),
+  )
+  let input_digest = declared_input_digest(root, ready_item.input_artifacts)
+  let request = @moonflow.director_request_for_item(
+    projection, ready_item, input_digest, recorded_at,
+  )
+  let request_ref = dispatch_ref + "/" + request.request_id + ".request.json"
+  write_json(root + "/" + request_ref, request.to_json())
+  events.push(@moonflow.adapter_submission_event(projection, request))
+  ignore(persist_run(root, run_id, events))
+  let active = @moonflow.replay(run_id, events)
+  guard active.find_item(item_id) is Some(active_item) else { return usage }
+  if !gate_unattended_attempt(
+      root, run_id, active_item, driver, manifest, envelope_ref, usage_ref, dispatch_ref,
+      dispatch_dir, recorded_at,
+    ) {
+    ignore(
+      unattended_block(
+        root, run_id, events, item_id, "MoonGate refused unattended adapter execution",
+        recorded_at,
+      ),
+    )
+    return usage
+  }
+  let result_ref = dispatch_ref +
+    "/result-" +
+    active_item.active_attempt_id +
+    ".json"
+  let receipt_ref = dispatch_ref +
+    "/review-" +
+    active_item.active_attempt_id +
+    ".json"
+  let review_packet_ref = dispatch_ref +
+    "/review-packet-" +
+    active_item.active_attempt_id +
+    ".json"
+  let adapter_args = @moonflow.render_unattended_arguments(
+    driver.arguments,
+    root,
+    request_ref,
+    result_ref,
+    receipt_ref,
+    review_packet_ref,
+  )
+  let adapter_run = run_unattended_process(
+    driver.executable,
+    adapter_args,
+    root,
+  )
+  write_unattended_log(
+    dispatch_dir,
+    "adapter-" + active_item.active_attempt_id,
+    adapter_run,
+  )
+  if adapter_run.status != 0 || !@fs.exists(root + "/" + result_ref) {
+    ignore(
+      unattended_block(
+        root, run_id, events, item_id, "adapter process failed or omitted its result receipt",
+        recorded_at,
+      ),
+    )
+    return unattended_usage_add(usage, driver.budget_request)
+  }
+  let result = @moonflow.decode_adapter_result(
+    read_json(root + "/" + result_ref),
+  )
+  if result.output_artifacts != driver.expected_output_artifacts {
+    ignore(
+      unattended_block(
+        root, run_id, events, item_id, "adapter outputs differ from pre-authorized artifacts",
+        recorded_at,
+      ),
+    )
+    return unattended_usage_add(usage, driver.budget_request)
+  }
+  let verified_digest = declared_input_digest(root, result.output_artifacts)
+  if verified_digest != result.output_digest {
+    ignore(
+      unattended_block(
+        root, run_id, events, item_id, "adapter output digest failed independent verification",
+        recorded_at,
+      ),
+    )
+    return unattended_usage_add(usage, driver.budget_request)
+  }
+  events.push(@moonflow.adapter_reconciliation_event(active, result))
+  ignore(persist_run(root, run_id, events))
+  write_json(
+    root + "/" + review_packet_ref,
+    (
+      {
+        "contract_id": "moonflow.acceptance-review-request.v1",
+        "run_id": run_id,
+        "work_item_id": active_item.work_item_id,
+        "declaration_id": active_item.declaration_id,
+        "result_id": result.result_id,
+        "attempt_id": result.attempt_id,
+        "output_digest": result.output_digest,
+        "acceptance_criteria": active_item.acceptance_criteria.to_json(),
+        "evidence_refs": result.output_artifacts.to_json(),
+        "reviewer_id": driver.reviewer_id,
+        "review_authority_id": driver.review_authority_id,
+        "receipt_artifact": receipt_ref,
+        "recorded_at": recorded_at,
+      } : Json),
+  )
+  let review_args = @moonflow.render_unattended_arguments(
+    driver.reviewer_arguments,
+    root,
+    request_ref,
+    result_ref,
+    receipt_ref,
+    review_packet_ref,
+  )
+  let review_run = run_unattended_process(
+    driver.reviewer_executable,
+    review_args,
+    root,
+  )
+  write_unattended_log(
+    dispatch_dir,
+    "reviewer-" + active_item.active_attempt_id,
+    review_run,
+  )
+  if review_run.status != 0 || !@fs.exists(root + "/" + receipt_ref) {
+    ignore(
+      unattended_block(
+        root, run_id, events, item_id, "independent reviewer failed or omitted its receipt",
+        recorded_at,
+      ),
+    )
+    return unattended_usage_add(usage, driver.budget_request)
+  }
+  let receipt = @moonflow.decode_acceptance_review_receipt(
+    read_json(root + "/" + receipt_ref),
+  )
+  if receipt.reviewer_id != driver.reviewer_id ||
+    receipt.review_authority_id != driver.review_authority_id {
+    ignore(
+      unattended_block(
+        root, run_id, events, item_id, "review receipt identity differs from the governed driver manifest",
+        recorded_at,
+      ),
+    )
+    return unattended_usage_add(usage, driver.budget_request)
+  }
+  let review_projection = @moonflow.replay(run_id, events)
+  events.push(@moonflow.acceptance_review_event(review_projection, receipt))
+  ignore(persist_run(root, run_id, events))
+  unattended_usage_add(usage, driver.budget_request)
+}
+
+///|
+async fn run_unattended(
+  workspace : String,
+  graph_ref : String,
+  capabilities_ref : String,
+  manifest_ref : String,
+  envelope_ref : String,
+  usage_ref : String,
+  recorded_at : String,
+) -> Unit {
+  let root = @fs.realpath(@moonflow.normalize_workspace_path(workspace))
+  for
+    artifact in [
+      graph_ref, capabilities_ref, manifest_ref, envelope_ref, usage_ref,
+    ] {
+    validate_artifact_ref(root, artifact)
+  }
+  let graph_events = @moonflow.events_from_work_graph(
+    read_json(root + "/" + graph_ref),
+  )
+  let run_id = graph_events[0].run_id
+  let event_path = run_dir(root, run_id) + "/events.json"
+  let events = if @fs.exists(event_path) {
+    load_events(root, run_id)
+  } else {
+    ignore(persist_run(root, run_id, graph_events))
+    graph_events
+  }
+  let capabilities = @moonflow.decode_adapter_capabilities(
+    read_json(root + "/" + capabilities_ref),
+  )
+  let manifest = @moonflow.decode_unattended_manifest(
+    read_json(root + "/" + manifest_ref),
+  )
+  let envelope = @pipeline.decode_autonomy_envelope(
+    read_json(root + "/" + envelope_ref),
+  )
+  if envelope.workspace_root != root {
+    fail(
+      "autonomy envelope workspace_root differs from the canonical workspace",
+    )
+  }
+  let mut usage = @pipeline.decode_autonomy_budget_usage(
+    read_json(root + "/" + usage_ref),
+  )
+  let mut cycles = 0
+  for ;; {
+    cycles += 1
+    if cycles > manifest.max_cycles {
+      fail("MoonFlow unattended supervisor exhausted max_cycles")
+    }
+    let before = @moonflow.replay(run_id, events)
+    if before.outcome == "accepted" ||
+      before.outcome == "blocked" ||
+      before.outcome == "failed" {
+      break
+    }
+    for ready in @moonflow.ready_events(before, recorded_at) {
+      events.push(ready)
+    }
+    ignore(persist_run(root, run_id, events))
+    let ready = @moonflow.replay(run_id, events)
+    let runnable = ready.runnable_item_ids()
+    if runnable.is_empty() {
+      fail("MoonFlow unattended supervisor made no progress")
+    }
+    for item_id in runnable {
+      usage = run_unattended_item(
+        root, run_id, events, capabilities, manifest, envelope_ref, usage_ref, usage,
+        item_id, recorded_at,
+      )
+      write_json(
+        root + "/" + usage_ref,
+        @pipeline.autonomy_budget_usage_json(usage),
+      )
+    }
+  }
+  let final_projection = persist_run(root, run_id, events)
+  let scorecard_path = run_dir(root, run_id) + "/intervention-scorecard.json"
+  write_json(scorecard_path, {
+    "contract_id": "moonflow.intervention-scorecard.v1",
+    "run_id": run_id,
+    "constitutional_authority_count": 1,
+    "optional_observation_count": 0,
+    "required_intervention_count": 0,
+    "hidden_orchestration_count": 0,
+    "normal_path_manual_count": 0,
+    "unattended_qualified": final_projection.outcome == "accepted",
+    "recorded_at": recorded_at,
+  })
+  println(
+    (
+      {
+        "contract_id": "moonflow.unattended-run.v1",
+        "cycles": cycles,
+        "intervention_scorecard": ".moonsuite/products/moonflow/runs/" +
+        run_id +
+        "/intervention-scorecard.json",
+        "projection": @moonflow.projection_json(final_projection),
+      } : Json).stringify(indent=2),
+  )
+}
