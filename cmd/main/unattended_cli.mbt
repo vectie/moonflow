@@ -211,6 +211,98 @@ async fn write_unattended_log(
 }
 
 ///|
+async fn snapshot_unattended_outputs(
+  workspace : String,
+  dispatch_ref : String,
+  attempt_id : String,
+  artifacts : Array[String],
+) -> Array[String] {
+  let snapshots : Array[String] = []
+  for index, artifact in artifacts {
+    validate_artifact_ref(workspace, artifact)
+    let snapshot_ref = dispatch_ref +
+      "/evidence-" +
+      attempt_id +
+      "-" +
+      index.to_string() +
+      ".artifact"
+    let source = @fs.read_file(workspace + "/" + artifact)
+    let snapshot_path = workspace + "/" + snapshot_ref
+    if @fs.exists(snapshot_path) {
+      if @fs.read_file(snapshot_path).binary() != source.binary() {
+        fail("immutable unattended evidence snapshot changed")
+      }
+    } else {
+      @fs.write_file(snapshot_path, source, create=0o444, truncate=false)
+    }
+    snapshots.push(snapshot_ref)
+  }
+  snapshots
+}
+
+///|
+fn observer_recovery_refs(stdout : String) -> (String, String) {
+  let parsed = @json.parse(stdout) catch { _ => return ("", "") }
+  guard parsed is Object(fields) else { return ("", "") }
+  let graph_ref = match fields.get("recovery_graph_ref") {
+    Some(String(value)) => value
+    _ => ""
+  }
+  let proposal_ref = match fields.get("recovery_proposal_ref") {
+    Some(String(value)) => value
+    _ => ""
+  }
+  (graph_ref, proposal_ref)
+}
+
+///|
+async fn apply_automatic_recovery_revision(
+  workspace : String,
+  parent : @moonflow.RunProjection,
+  child_graph_ref : String,
+  proposal_ref : String,
+  recorded_at : String,
+) -> String {
+  validate_artifact_ref(workspace, child_graph_ref)
+  validate_artifact_ref(workspace, proposal_ref)
+  let result = @moonflow.revise_run(
+    parent,
+    read_json(workspace + "/" + child_graph_ref),
+    "automatic-recovery-" +
+    parent.run_id +
+    "-" +
+    parent.last_sequence.to_string(),
+    proposal_ref,
+    recorded_at,
+  )
+  let child_id = result.receipt.child_run_id
+  let child_directory = run_dir(workspace, child_id)
+  let event_path = child_directory + "/events.json"
+  let migration_path = child_directory + "/migration.json"
+  let mut events_to_persist = result.events
+  if @fs.exists(event_path) {
+    let existing = @moonflow.decode_event_array(read_json(event_path))
+    if result.events.any(expected => {
+        !existing.any(persisted => persisted == expected)
+      }) {
+      fail("automatic recovery child identity has conflicting events")
+    }
+    events_to_persist = existing
+  }
+  if @fs.exists(migration_path) {
+    if read_json(migration_path).stringify() !=
+      result.receipt.to_json().stringify() {
+      fail("automatic recovery migration identity conflict")
+    }
+  }
+  ignore(persist_run(workspace, child_id, events_to_persist))
+  if !@fs.exists(migration_path) {
+    write_json(migration_path, result.receipt.to_json())
+  }
+  child_id
+}
+
+///|
 async fn reject_unattended_binding(
   workspace : String,
   run_id : String,
@@ -680,15 +772,15 @@ async fn run_unattended_item(
       return unattended_usage_add(usage, driver.budget_request)
     }
   }
-  let final_digest = declared_input_digest(
+  let immutable_outputs = snapshot_unattended_outputs(
     root,
+    dispatch_ref,
+    active_item.active_attempt_id,
     driver.expected_output_artifacts,
   )
+  let final_digest = declared_input_digest(root, immutable_outputs)
   let final_result = @moonflow.director_success_result_for_item(
-    active_item,
-    final_digest,
-    driver.expected_output_artifacts.copy(),
-    recorded_at,
+    active_item, final_digest, immutable_outputs, recorded_at,
   )
   let final_result_ref = dispatch_ref +
     "/final-result-" +
@@ -907,6 +999,7 @@ async fn run_unattended(
   let projection_path = run_dir(root, run_id) + "/projection.json"
   let mut observer_succeeded = false
   let mut observer_finding = "event-driven Bookkeeper observer is not configured"
+  let mut observer_stdout = ""
   if !manifest.observer_executable.trim().is_empty() {
     let observer_run = run_unattended_process(
       manifest.observer_executable,
@@ -927,6 +1020,7 @@ async fn run_unattended(
       observer_run,
     )
     observer_succeeded = observer_run.status == 0
+    observer_stdout = observer_run.stdout
     observer_finding = if observer_succeeded {
       ""
     } else {
@@ -934,6 +1028,11 @@ async fn run_unattended(
     }
   }
   let scorecard_path = run_dir(root, run_id) + "/intervention-scorecard.json"
+  let recovery_refs = if observer_succeeded {
+    observer_recovery_refs(observer_stdout)
+  } else {
+    ("", "")
+  }
   write_json(scorecard_path, {
     "contract_id": "moonflow.intervention-scorecard.v1",
     "run_id": run_id,
@@ -944,6 +1043,7 @@ async fn run_unattended(
     "normal_path_manual_count": 0,
     "unattended_qualified": final_projection.outcome == "accepted" &&
     observer_succeeded,
+    "automatic_recovery_graph_ref": recovery_refs.0,
     "finalization_findings": if observer_finding.is_empty() {
       Json::array([])
     } else {
@@ -951,6 +1051,33 @@ async fn run_unattended(
     },
     "recorded_at": recorded_at,
   })
+  if final_projection.outcome == "blocked" && !recovery_refs.0.is_empty() {
+    let child_id = apply_automatic_recovery_revision(
+      root,
+      final_projection,
+      recovery_refs.0,
+      recovery_refs.1,
+      recorded_at,
+    )
+    write_json(run_dir(root, run_id) + "/continuation.json", {
+      "contract_id": "moonflow.automatic-recovery-continuation.v1",
+      "parent_run_id": run_id,
+      "child_run_id": child_id,
+      "recovery_graph_ref": recovery_refs.0,
+      "recovery_proposal_ref": recovery_refs.1,
+      "recorded_at": recorded_at,
+    })
+    run_unattended(
+      root,
+      recovery_refs.0,
+      capabilities_ref,
+      manifest_ref,
+      envelope_ref,
+      usage_ref,
+      recorded_at,
+    )
+    return
+  }
   println(
     (
       {

@@ -134,6 +134,44 @@ def fake_reviewer(argv: list[str]) -> None:
     kill_parent_once(root, "after-review")
 
 
+def fake_revision_reviewer(argv: list[str]) -> None:
+    root = Path(option(argv, "--workspace"))
+    packet = read(root / option(argv, "--review-packet"))
+    accepted = "auto-recovery" in packet["run_id"]
+    receipt_ref = packet["receipt_artifact"]
+    write(
+        root / receipt_ref,
+        {
+            "contract_id": "moonflow.acceptance-review.v1",
+            "review_id": f"review-{packet['attempt_id']}",
+            "run_id": packet["run_id"],
+            "work_item_id": packet["work_item_id"],
+            "declaration_id": packet["declaration_id"],
+            "result_id": packet["result_id"],
+            "attempt_id": packet["attempt_id"],
+            "output_digest": packet["output_digest"],
+            "decision": "accepted" if accepted else "rejected",
+            "criteria": [
+                {
+                    "criterion": criterion,
+                    "satisfied": accepted,
+                    "evidence_refs": packet["evidence_refs"],
+                    "note": (
+                        "bounded recovery evidence accepted"
+                        if accepted
+                        else "seeded review rejection requires diagnostic revision"
+                    ),
+                }
+                for criterion in packet["acceptance_criteria"]
+            ],
+            "reviewer_id": packet["reviewer_id"],
+            "review_authority_id": packet["review_authority_id"],
+            "receipt_artifact": receipt_ref,
+            "recorded_at": packet["recorded_at"],
+        },
+    )
+
+
 def fixture_files(root: Path, script: Path) -> tuple[str, ...]:
     goal_ref = "books/recovery/goal.txt"
     graph_ref = "runtime/graph.json"
@@ -346,21 +384,102 @@ def run_harness(binary: Path) -> None:
     print(json.dumps({"return_codes": return_codes, "projection": projection, "scorecard": scorecard}, indent=2))
 
 
+def run_revision_harness(binary: Path, moonbook: Path) -> None:
+    root = Path(tempfile.gettempdir()) / "moonflow-unattended-revision-smoke"
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True)
+    root = root.resolve()
+    refs = fixture_files(root, Path(__file__).resolve())
+    for stage in ("after-result", "after-attestation", "after-review"):
+        marker = root / ".faults" / stage
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text("revision harness disables crash injection\n")
+    manifest = read(root / refs[2])
+    manifest["drivers"][0]["reviewer_arguments"] = [
+        str(Path(__file__).resolve()),
+        "revision-reviewer",
+        "--workspace",
+        "{workspace}",
+        "--review-packet",
+        "{review}",
+    ]
+    manifest["observer_executable"] = str(moonbook.resolve())
+    manifest["observer_arguments"] = [
+        "bookkeeper",
+        "reconcile-run",
+        "{workspace}/books/{book_id}",
+        "{projection}",
+        "{recorded_at}",
+    ]
+    write(root / refs[2], manifest)
+    command = [str(binary.resolve()), "run-unattended", str(root), *refs, "2026-07-12T10:02:00Z"]
+    completed = subprocess.run(command, capture_output=True, text=True)
+    if completed.returncode != 0:
+        raise SystemExit(completed.stdout + completed.stderr)
+    parent_dir = root / ".moonsuite/products/moonflow/runs/recovery-smoke-r1"
+    continuation = read(parent_dir / "continuation.json")
+    child_dir = root / ".moonsuite/products/moonflow/runs" / continuation["child_run_id"]
+    parent = read(parent_dir / "projection.json")
+    child = read(child_dir / "projection.json")
+    migration = read(child_dir / "migration.json")
+    usage = read(root / refs[4])
+    if parent["outcome"] != "blocked" or child["outcome"] != "accepted":
+        raise SystemExit("automatic revision did not progress blocked parent to accepted child")
+    if migration["invalidated_count"] != 1 or usage["attempts"] != 2:
+        raise SystemExit("automatic revision did not preserve bounded migration and usage")
+    parent_evidence = parent["items"][0]["artifacts"][0]
+    child_evidence = child["items"][0]["artifacts"][0]
+    if parent_evidence == child_evidence:
+        raise SystemExit("revision overwrote rejected evidence identity")
+    if not (root / parent_evidence).exists() or not (root / child_evidence).exists():
+        raise SystemExit("revision lost immutable evidence snapshots")
+    print(
+        json.dumps(
+            {
+                "parent": parent,
+                "continuation": continuation,
+                "child": child,
+                "migration": migration,
+                "usage": usage,
+            },
+            indent=2,
+        )
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["harness", "gate", "adapter", "attestor", "reviewer", "observer"])
+    parser.add_argument(
+        "mode",
+        choices=[
+            "harness",
+            "revision-harness",
+            "gate",
+            "adapter",
+            "attestor",
+            "reviewer",
+            "revision-reviewer",
+            "observer",
+        ],
+    )
     parser.add_argument("rest", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if args.mode == "harness":
         if not args.rest:
             raise SystemExit("harness requires the MoonFlow binary path")
         run_harness(Path(args.rest[0]).resolve())
+    elif args.mode == "revision-harness":
+        if len(args.rest) != 2:
+            raise SystemExit("revision-harness requires MoonFlow and MoonBook binaries")
+        run_revision_harness(Path(args.rest[0]), Path(args.rest[1]))
     elif args.mode == "adapter":
         fake_adapter(args.rest)
     elif args.mode == "attestor":
         fake_attestor(args.rest)
     elif args.mode == "reviewer":
         fake_reviewer(args.rest)
+    elif args.mode == "revision-reviewer":
+        fake_revision_reviewer(args.rest)
     elif args.mode in {"gate", "observer"}:
         return
 

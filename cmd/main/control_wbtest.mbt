@@ -143,3 +143,51 @@ async test "unattended source mutations fail closed with a durable receipt" {
   assert_true(receipt.contains("\"field\":\"source_digest\""))
   assert_true(receipt.contains("sha256:mutated"))
 }
+
+///|
+async test "product finals are snapshotted immutably before review" {
+  let workspace = "/tmp/moonflow-immutable-output-test"
+  let dispatch_ref = ".moonsuite/products/moonflow/runs/output-test/dispatch"
+  if !@fs.exists(workspace + "/" + dispatch_ref) {
+    @fs.mkdir(workspace + "/" + dispatch_ref, permission=0o755, recursive=true)
+  }
+  if !@fs.exists(workspace + "/books/output-test/flow/outputs") {
+    @fs.mkdir(
+      workspace + "/books/output-test/flow/outputs",
+      permission=0o755,
+      recursive=true,
+    )
+  }
+  let source_ref = "books/output-test/flow/outputs/result.json"
+  @fs.write_file(
+    workspace + "/" + source_ref,
+    @utf8.encode("{\"version\":1}"),
+    create=0o644,
+    truncate=true,
+  )
+  let snapshots = snapshot_unattended_outputs(
+    workspace,
+    dispatch_ref,
+    "attempt-output-1",
+    [source_ref],
+  )
+  assert_eq(snapshots.length(), 1)
+  @fs.write_file(
+    workspace + "/" + source_ref,
+    @utf8.encode("{\"version\":2}"),
+    create=0o644,
+    truncate=true,
+  )
+  assert_true(
+    @fs.read_file(workspace + "/" + snapshots[0]).text().contains("version\":1"),
+  )
+  let conflict = try
+    snapshot_unattended_outputs(workspace, dispatch_ref, "attempt-output-1", [
+      source_ref,
+    ])
+    |> Ok
+  catch {
+    error => Err(error)
+  }
+  assert_true(conflict is Err(_))
+}

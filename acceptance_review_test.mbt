@@ -123,6 +123,7 @@ test "rejected review returns Work to a visible blocker" {
   let projection = review_projection()
   projection.apply(@moonflow.acceptance_review_event(projection, receipt))
   assert_true(projection.items[0].status == Blocked)
+  assert_eq(projection.items[0].error_kind, "acceptance-rejected")
   assert_true(
     projection.items[0].blocker.contains("source timestamp is absent"),
   )

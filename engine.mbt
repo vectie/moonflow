@@ -234,6 +234,7 @@ fn RunProjection::apply_new_event(
           ])
           item.status = Blocked
           item.blocker = event.detail
+          item.error_kind = event.error_kind
           if event.error_kind == "acceptance-rejected" {
             item.acceptance_review_id = event.result_id
             item.acceptance_review_artifact = event.artifact_id
