@@ -94,3 +94,46 @@ async test "adapter circuit opens after three failures and a probe resets it" {
   record_adapter_health(workspace, adapter_id, true, "2026-07-12T01:10:00Z")
   assert_eq(json_int_or(read_json(health_path), "consecutive_failures", -1), 0)
 }
+
+///|
+test "unattended source identity is bound and mutations fail closed" {
+  let events = @moonflow.events_from_work_graph({
+    "contract_id": "moonsuite.work-model.v1",
+    "graph_id": "source-bound-run",
+    "book_id": "source-bound-book",
+    "declaration_revision": "r1",
+    "source_digest": "sha256:source-bound",
+    "items": [
+      {
+        "work_item_id": "work-source",
+        "declaration_id": "source",
+        "product_id": "moonwiki",
+        "requested_authority": "observe",
+        "acceptance_criteria": ["source identity remains immutable"],
+        "operation": "research-goal",
+        "input_contracts": ["goal.v1"],
+        "output_contracts": ["evidence.v1"],
+        "required_claim": "research-evidence",
+        "input_artifacts": ["inputs/goal.txt"],
+        "timeout_ms": 60000,
+        "depends_on": [],
+      },
+    ],
+    "recorded_at": "2026-07-12T00:00:00Z",
+  })
+  let projection = @moonflow.replay("source-bound-run", events)
+  validate_unattended_source_binding(
+    "sha256:source-bound",
+    projection.source_digest,
+  )
+  let mismatch = try
+    validate_unattended_source_binding(
+      "sha256:authorized",
+      projection.source_digest,
+    )
+    |> Ok
+  catch {
+    error => Err(error)
+  }
+  assert_true(mismatch is Err(_))
+}
