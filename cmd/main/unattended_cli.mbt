@@ -644,6 +644,7 @@ async fn run_unattended_item(
     "/review-" +
     active_item.active_attempt_id +
     ".json"
+  let review_id = "review-" + active_item.active_attempt_id
   let review_packet_ref = dispatch_ref +
     "/review-packet-" +
     active_item.active_attempt_id +
@@ -815,12 +816,19 @@ async fn run_unattended_item(
     (
       {
         "contract_id": "moonflow.acceptance-review-request.v1",
+        "review_id": review_id,
         "run_id": run_id,
         "work_item_id": active_item.work_item_id,
         "declaration_id": active_item.declaration_id,
         "result_id": final_result.result_id,
         "attempt_id": final_result.attempt_id,
         "output_digest": final_result.output_digest,
+        "executor_output_digest": result.output_digest,
+        "digest_lineage": {
+          "executor_output_digest": "binds the adapter-authored draft artifacts and is independently checked by the product attestor",
+          "output_digest": "binds MoonFlow's immutable evidence snapshots presented to this review",
+          "comparison_rule": "verify each digest against its declared stage; the two digests are not expected to be equal because their artifact identities differ",
+        },
         "acceptance_criteria": active_item.acceptance_criteria.to_json(),
         "evidence_refs": final_result.output_artifacts.to_json(),
         "product_attestation_ref": attestation_ref,
