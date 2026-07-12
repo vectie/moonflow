@@ -709,6 +709,25 @@ async fn run_unattended_item(
     )
     return unattended_usage_add(usage, driver.budget_request)
   }
+  let immutable_drafts = snapshot_unattended_outputs(
+    root,
+    dispatch_ref,
+    active_item.active_attempt_id + "-draft",
+    result.output_artifacts,
+  )
+  write_json(
+    dispatch_dir + "/draft-evidence-" + active_item.active_attempt_id + ".json",
+    {
+      "contract_id": "moonflow.immutable-draft-evidence.v1",
+      "run_id": run_id,
+      "work_item_id": item_id,
+      "attempt_id": active_item.active_attempt_id,
+      "result_id": result.result_id,
+      "draft_digest": verified_digest,
+      "draft_artifacts": immutable_drafts.to_json(),
+      "recorded_at": recorded_at,
+    },
+  )
   if !@fs.exists(root + "/" + attestation_ref) {
     let attestor_run = run_unattended_process(
       driver.attestor_executable,

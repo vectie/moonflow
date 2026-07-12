@@ -74,6 +74,18 @@ def main() -> None:
                     ],
                 )
             )
+            commands.append(
+                (
+                    "product-restart",
+                    [
+                        sys.executable,
+                        str(recovery),
+                        "product-restart-harness",
+                        str(binary),
+                        str(moonbook),
+                    ],
+                )
+            )
         checks = []
         for name, command in commands:
             completed = subprocess.run(

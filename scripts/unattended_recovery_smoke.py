@@ -78,6 +78,17 @@ def fake_adapter(argv: list[str]) -> None:
     kill_parent_once(root, "after-result")
 
 
+def fake_flaky_adapter(argv: list[str]) -> None:
+    root = Path(option(argv, "--workspace"))
+    request = read(root / option(argv, "--request"))
+    marker = root / ".faults" / "product-adapter-failed-once"
+    if "auto-recovery" not in request["run_id"] and not marker.exists():
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text("seeded product process crash\n")
+        raise SystemExit(17)
+    fake_adapter(argv)
+
+
 def fake_attestor(argv: list[str]) -> None:
     root = Path(option(argv, "--workspace"))
     request = read(root / option(argv, "--request"))
@@ -384,8 +395,13 @@ def run_harness(binary: Path) -> None:
     print(json.dumps({"return_codes": return_codes, "projection": projection, "scorecard": scorecard}, indent=2))
 
 
-def run_revision_harness(binary: Path, moonbook: Path) -> None:
-    root = Path(tempfile.gettempdir()) / "moonflow-unattended-revision-smoke"
+def run_revision_harness(binary: Path, moonbook: Path, product_restart: bool = False) -> None:
+    fixture_name = (
+        "moonflow-unattended-product-restart-smoke"
+        if product_restart
+        else "moonflow-unattended-revision-smoke"
+    )
+    root = Path(tempfile.gettempdir()) / fixture_name
     shutil.rmtree(root, ignore_errors=True)
     root.mkdir(parents=True)
     root = root.resolve()
@@ -395,6 +411,19 @@ def run_revision_harness(binary: Path, moonbook: Path) -> None:
         marker.parent.mkdir(parents=True, exist_ok=True)
         marker.write_text("revision harness disables crash injection\n")
     manifest = read(root / refs[2])
+    if product_restart:
+        manifest["drivers"][0]["arguments"] = [
+            str(Path(__file__).resolve()),
+            "flaky-adapter",
+            "--workspace",
+            "{workspace}",
+            "--request",
+            "{request}",
+            "--result",
+            "{result}",
+            "--artifact",
+            "books/recovery/drafts/output.json",
+        ]
     manifest["drivers"][0]["reviewer_arguments"] = [
         str(Path(__file__).resolve()),
         "revision-reviewer",
@@ -425,14 +454,20 @@ def run_revision_harness(binary: Path, moonbook: Path) -> None:
     usage = read(root / refs[4])
     if parent["outcome"] != "blocked" or child["outcome"] != "accepted":
         raise SystemExit("automatic revision did not progress blocked parent to accepted child")
+    if product_restart and "adapter process failed" not in parent["items"][0]["blocker"]:
+        raise SystemExit("product restart harness did not seed an adapter process failure")
     if migration["invalidated_count"] != 1 or usage["attempts"] != 2:
         raise SystemExit("automatic revision did not preserve bounded migration and usage")
-    parent_evidence = parent["items"][0]["artifacts"][0]
     child_evidence = child["items"][0]["artifacts"][0]
-    if parent_evidence == child_evidence:
-        raise SystemExit("revision overwrote rejected evidence identity")
-    if not (root / parent_evidence).exists() or not (root / child_evidence).exists():
-        raise SystemExit("revision lost immutable evidence snapshots")
+    if product_restart:
+        if not (root / child_evidence).exists():
+            raise SystemExit("product restart lost child evidence snapshot")
+    else:
+        parent_evidence = parent["items"][0]["artifacts"][0]
+        if parent_evidence == child_evidence:
+            raise SystemExit("revision overwrote rejected evidence identity")
+        if not (root / parent_evidence).exists() or not (root / child_evidence).exists():
+            raise SystemExit("revision lost immutable evidence snapshots")
     print(
         json.dumps(
             {
@@ -454,8 +489,10 @@ def main() -> None:
         choices=[
             "harness",
             "revision-harness",
+            "product-restart-harness",
             "gate",
             "adapter",
+            "flaky-adapter",
             "attestor",
             "reviewer",
             "revision-reviewer",
@@ -472,8 +509,18 @@ def main() -> None:
         if len(args.rest) != 2:
             raise SystemExit("revision-harness requires MoonFlow and MoonBook binaries")
         run_revision_harness(Path(args.rest[0]), Path(args.rest[1]))
+    elif args.mode == "product-restart-harness":
+        if len(args.rest) != 2:
+            raise SystemExit("product-restart-harness requires MoonFlow and MoonBook binaries")
+        run_revision_harness(
+            Path(args.rest[0]),
+            Path(args.rest[1]),
+            product_restart=True,
+        )
     elif args.mode == "adapter":
         fake_adapter(args.rest)
+    elif args.mode == "flaky-adapter":
+        fake_flaky_adapter(args.rest)
     elif args.mode == "attestor":
         fake_attestor(args.rest)
     elif args.mode == "reviewer":
