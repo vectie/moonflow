@@ -10,30 +10,42 @@ async fn run_unattended_process(
   executable : String,
   arguments : Array[String],
   cwd : String,
+  timeout_ms : Int,
 ) -> UnattendedCommandResult {
-  @async.with_task_group(group => {
-    fn capture() raise {
-      let (pipe, output) = @process.read_from_process()
-      let task = group.spawn(() => {
-        defer pipe.close()
-        @utf8.decode_lossy(pipe.read_all().binary())
-      })
-      (task, output)
-    }
+  let completed = @async.with_timeout_opt(timeout_ms, () => {
+    @async.with_task_group(group => {
+      fn capture() raise {
+        let (pipe, output) = @process.read_from_process()
+        let task = group.spawn(() => {
+          defer pipe.close()
+          @utf8.decode_lossy(pipe.read_all().binary())
+        })
+        (task, output)
+      }
 
-    let stdout = capture()
-    let stderr = capture()
-    let status = @process.run(
-      executable,
-      arguments,
-      cwd~,
-      stdout=stdout.1,
-      stderr=stderr.1,
-    ) catch {
-      _ => -1
-    }
-    { status, stdout: stdout.0.wait(), stderr: stderr.0.wait() }
+      let stdout = capture()
+      let stderr = capture()
+      let status = @process.run(
+        executable,
+        arguments,
+        cwd~,
+        stdout=stdout.1,
+        stderr=stderr.1,
+      ) catch {
+        _ => -1
+      }
+      { status, stdout: stdout.0.wait(), stderr: stderr.0.wait() }
+    })
   })
+  match completed {
+    Some(result) => result
+    None =>
+      {
+        status: 124,
+        stdout: "",
+        stderr: "MoonFlow process exceeded its declared timeout",
+      }
+  }
 }
 
 ///|
@@ -373,7 +385,12 @@ async fn gate_unattended_attempt(
       "--checked-at",
       recorded_at,
     ]
-  let result = run_unattended_process(manifest.gate_executable, arguments, root)
+  let result = run_unattended_process(
+    manifest.gate_executable,
+    arguments,
+    root,
+    30000,
+  )
   write_unattended_log(dispatch_dir, decision_id + ".gate", result)
   result.status == 0
 }
@@ -530,6 +547,7 @@ async fn run_unattended_item(
       driver.executable,
       adapter_args,
       root,
+      active_item.timeout_ms,
     )
     write_unattended_log(
       dispatch_dir,
@@ -586,6 +604,7 @@ async fn run_unattended_item(
         driver.expected_output_artifacts[0],
       ),
       root,
+      active_item.timeout_ms,
     )
     write_unattended_log(
       dispatch_dir,
@@ -687,6 +706,7 @@ async fn run_unattended_item(
       driver.reviewer_executable,
       review_args,
       root,
+      active_item.timeout_ms,
     )
     write_unattended_log(
       dispatch_dir,
@@ -857,6 +877,7 @@ async fn run_unattended(
         recorded_at,
       ),
       root,
+      120000,
     )
     write_unattended_log(
       run_dir(root, run_id),
