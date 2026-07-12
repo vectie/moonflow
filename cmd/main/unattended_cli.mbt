@@ -463,6 +463,34 @@ async fn run_unattended(
     }
   }
   let final_projection = persist_run(root, run_id, events)
+  let projection_path = run_dir(root, run_id) + "/projection.json"
+  let mut observer_succeeded = false
+  let mut observer_finding = "event-driven Bookkeeper observer is not configured"
+  if !manifest.observer_executable.trim().is_empty() {
+    let observer_run = run_unattended_process(
+      manifest.observer_executable,
+      @moonflow.render_unattended_observer_arguments(
+        manifest.observer_arguments,
+        root,
+        run_id,
+        final_projection.book_id,
+        projection_path,
+        recorded_at,
+      ),
+      root,
+    )
+    write_unattended_log(
+      run_dir(root, run_id),
+      "bookkeeper-observer",
+      observer_run,
+    )
+    observer_succeeded = observer_run.status == 0
+    observer_finding = if observer_succeeded {
+      ""
+    } else {
+      "event-driven Bookkeeper reconciliation failed"
+    }
+  }
   let scorecard_path = run_dir(root, run_id) + "/intervention-scorecard.json"
   write_json(scorecard_path, {
     "contract_id": "moonflow.intervention-scorecard.v1",
@@ -472,7 +500,13 @@ async fn run_unattended(
     "required_intervention_count": 0,
     "hidden_orchestration_count": 0,
     "normal_path_manual_count": 0,
-    "unattended_qualified": final_projection.outcome == "accepted",
+    "unattended_qualified": final_projection.outcome == "accepted" &&
+    observer_succeeded,
+    "finalization_findings": if observer_finding.is_empty() {
+      Json::array([])
+    } else {
+      [observer_finding].to_json()
+    },
     "recorded_at": recorded_at,
   })
   println(

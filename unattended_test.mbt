@@ -5,6 +5,8 @@ test "unattended manifest requires independent reviewer and scoped outputs" {
     gate_executable: "moongate",
     gate_arguments: ["suite", "autonomy-check"],
     max_cycles: 10,
+    observer_executable: "",
+    observer_arguments: [],
     drivers: [
       {
         adapter_id: "builder",

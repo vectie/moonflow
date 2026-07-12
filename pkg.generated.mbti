@@ -77,6 +77,8 @@ pub fn reconcile_adapter_result(AdapterRequest, AdapterResult) -> Reconciliation
 
 pub fn render_unattended_arguments(Array[String], String, String, String, String, String) -> Array[String]
 
+pub fn render_unattended_observer_arguments(Array[String], String, String, String, String, String) -> Array[String]
+
 pub fn replay(String, Array[RuntimeEvent]) -> RunProjection raise FlowError
 
 pub fn revise_run(RunProjection, Json, String, String, String) -> RunRevisionResult raise
@@ -473,6 +475,8 @@ pub(all) struct UnattendedManifest {
   gate_arguments : Array[String]
   max_cycles : Int
   drivers : Array[UnattendedDriver]
+  observer_executable : String
+  observer_arguments : Array[String]
 } derive(Eq, @debug.Debug)
 pub fn UnattendedManifest::find_driver(Self, String) -> UnattendedDriver?
 pub fn UnattendedManifest::quality_issues(Self) -> Array[String]

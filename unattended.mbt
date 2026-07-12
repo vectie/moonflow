@@ -18,6 +18,8 @@ pub(all) struct UnattendedManifest {
   gate_arguments : Array[String]
   max_cycles : Int
   drivers : Array[UnattendedDriver]
+  observer_executable : String
+  observer_arguments : Array[String]
 } derive(Debug, Eq)
 
 ///|
@@ -55,6 +57,16 @@ pub fn decode_unattended_manifest(value : Json) -> UnattendedManifest raise {
     gate_arguments: wire_strings(fields, "gate_arguments", required=false),
     max_cycles: wire_int(fields, "max_cycles"),
     drivers: drivers.map(decode_unattended_driver),
+    observer_executable: match fields.get("observer_executable") {
+      Some(String(value)) => value
+      None => ""
+      _ => fail("observer_executable must be a string")
+    },
+    observer_arguments: wire_strings(
+      fields,
+      "observer_arguments",
+      required=false,
+    ),
   }
   let issues = manifest.quality_issues()
   if !issues.is_empty() {
@@ -79,6 +91,10 @@ pub fn UnattendedManifest::quality_issues(
   }
   if self.drivers.is_empty() {
     issues.push("at least one unattended driver is required")
+  }
+  if self.observer_executable.trim().is_empty() !=
+    self.observer_arguments.is_empty() {
+    issues.push("observer executable and arguments must be declared together")
   }
   let ids : Array[String] = []
   for driver in self.drivers {
@@ -114,6 +130,25 @@ pub fn UnattendedManifest::quality_issues(
     }
   }
   issues
+}
+
+///|
+pub fn render_unattended_observer_arguments(
+  arguments : Array[String],
+  workspace : String,
+  run_id : String,
+  book_id : String,
+  projection_path : String,
+  recorded_at : String,
+) -> Array[String] {
+  arguments.map(argument => {
+    argument
+    .replace(old="{workspace}", new=workspace)
+    .replace(old="{run_id}", new=run_id)
+    .replace(old="{book_id}", new=book_id)
+    .replace(old="{projection}", new=projection_path)
+    .replace(old="{recorded_at}", new=recorded_at)
+  })
 }
 
 ///|
