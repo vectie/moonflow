@@ -53,6 +53,7 @@ pub(all) enum EventKind {
   ApprovalGranted
   AttemptSubmitted
   AttemptReconciled
+  CheckpointReused
 } derive(Debug, Eq, Compare, Hash, ToJson)
 
 ///|
@@ -73,6 +74,7 @@ pub fn EventKind::id(self : EventKind) -> String {
     ApprovalGranted => "approval-granted"
     AttemptSubmitted => "attempt-submitted"
     AttemptReconciled => "attempt-reconciled"
+    CheckpointReused => "checkpoint-reused"
   }
 }
 

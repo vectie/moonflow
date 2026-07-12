@@ -10,5 +10,5 @@ pub fn protocol_id() -> String {
 
 ///|
 pub fn runtime_protocol_id() -> String {
-  "moonflow.event-stream.v2"
+  "moonflow.event-stream.v3"
 }

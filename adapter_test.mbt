@@ -124,6 +124,10 @@ test "production capability requires reconciliation" {
     protocol: "moonflow.adapter.v1",
     operations: ["research"],
     authority_classes: ["observe"],
+    input_contracts: ["moonsuite.work-model.v1"],
+    output_contracts: ["moonsuite.run-receipt.v1"],
+    claim_ceiling: "research-evidence",
+    healthy: true,
     supports_cancel: true,
     supports_reconcile: false,
   }
@@ -146,6 +150,10 @@ test "MoonGate capability validates without granting external effects" {
     "authority_classes": [
       "observe", "cognitive-maintenance", "sandbox-execution", "workspace-mutation",
     ],
+    "input_contracts": ["moonsuite.model-route.v1"],
+    "output_contracts": ["moonsuite.run-receipt.v1"],
+    "claim_ceiling": "observation",
+    "healthy": true,
     "supports_cancel": false,
     "supports_reconcile": true,
   })

@@ -18,7 +18,11 @@ pub fn artifact_ref_is_workspace_relative(String) -> Bool
 
 pub fn authority_class_is_canonical(String) -> Bool
 
+pub fn claim_class_rank(String) -> Int?
+
 pub fn decode_acceptance_review_receipt(Json) -> AcceptanceReviewReceipt raise
+
+pub fn decode_adapter_capabilities(Json) -> Array[AdapterCapability] raise
 
 pub fn decode_adapter_capability(Json) -> AdapterCapability raise
 
@@ -26,9 +30,15 @@ pub fn decode_adapter_request(Json) -> AdapterRequest raise
 
 pub fn decode_adapter_result(Json) -> AdapterResult raise
 
+pub fn decode_director_requirement(Json) -> DirectorRequirement raise
+
 pub fn decode_event_array(Json) -> Array[RuntimeEvent] raise
 
+pub fn decode_evidence_bundle_spec(Json) -> EvidenceBundleSpec raise
+
 pub fn decode_runtime_event(Json) -> RuntimeEvent raise
+
+pub fn director_retry_decision(DirectorFailureClass) -> DirectorRetryDecision
 
 pub fn empty_projection(String) -> RunProjection
 
@@ -37,6 +47,8 @@ pub fn event_array_json(Array[RuntimeEvent]) -> Json
 pub fn event_kind_from_id(String) -> EventKind raise
 
 pub fn events_from_work_graph(Json) -> Array[RuntimeEvent] raise
+
+pub fn evidence_bundle_manifest(EvidenceBundleSpec, Array[EvidenceBundleEntry], String, String) -> EvidenceBundleManifest raise
 
 pub fn normalize_workspace_path(String) -> String
 
@@ -54,9 +66,13 @@ pub fn reconcile_adapter_result(AdapterRequest, AdapterResult) -> Reconciliation
 
 pub fn replay(String, Array[RuntimeEvent]) -> RunProjection raise FlowError
 
+pub fn revise_run(RunProjection, Json, String, String, String) -> RunRevisionResult raise
+
 pub fn runtime_event_json(RuntimeEvent) -> Json
 
 pub fn runtime_protocol_id() -> String
+
+pub fn select_adapter(Array[AdapterCapability], DirectorRequirement) -> DirectorDecision
 
 pub fn validate_adapter_capability(Json) -> AdapterCapability raise AdapterContractError
 
@@ -145,6 +161,10 @@ pub(all) struct AdapterCapability {
   protocol : String
   operations : Array[String]
   authority_classes : Array[String]
+  input_contracts : Array[String]
+  output_contracts : Array[String]
+  claim_ceiling : String
+  healthy : Bool
   supports_cancel : Bool
   supports_reconcile : Bool
 } derive(Eq, ToJson, @debug.Debug)
@@ -183,6 +203,56 @@ pub(all) struct AdapterResult {
 } derive(Eq, ToJson, @debug.Debug)
 pub fn AdapterResult::quality_issues(Self) -> Array[String]
 
+pub(all) struct CheckpointMigrationDecision {
+  child_work_item_id : String
+  source_work_item_id : String
+  declaration_id : String
+  decision : String
+  reason : String
+  evidence_refs : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DirectorCandidateReview {
+  adapter_id : String
+  accepted : Bool
+  reasons : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DirectorDecision {
+  contract_id : String
+  requirement_id : String
+  selected_adapter_id : String
+  accepted : Bool
+  reviews : Array[DirectorCandidateReview]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) enum DirectorFailureClass {
+  TransientFailure
+  QualityRejection
+  AuthorityDenial
+  PermanentIncompatibility
+  UnknownOutcome
+} derive(Compare, Eq, Hash, ToJson, @debug.Debug)
+pub fn DirectorFailureClass::id(Self) -> String
+
+pub(all) struct DirectorRequirement {
+  requirement_id : String
+  product_id : String
+  operation : String
+  requested_authority : String
+  input_contracts : Array[String]
+  output_contracts : Array[String]
+  required_claim : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DirectorRetryDecision {
+  failure_class : DirectorFailureClass
+  action : String
+  preserves_attempt_evidence : Bool
+  reuses_idempotency_lineage : Bool
+  requires_reconciliation : Bool
+} derive(Eq, ToJson, @debug.Debug)
+
 pub(all) enum EventKind {
   RunCreated
   ItemRegistered
@@ -199,8 +269,43 @@ pub(all) enum EventKind {
   ApprovalGranted
   AttemptSubmitted
   AttemptReconciled
+  CheckpointReused
 } derive(Compare, Eq, Hash, ToJson, @debug.Debug)
 pub fn EventKind::id(Self) -> String
+
+pub(all) struct EvidenceBundleEntry {
+  artifact_ref : String
+  object_ref : String
+  producer_product_id : String
+  contract_id : String
+  claim_class : String
+  result_id : String
+  sha256 : String
+  size_bytes : Int
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct EvidenceBundleManifest {
+  contract_id : String
+  bundle_id : String
+  content_digest : String
+  entries : Array[EvidenceBundleEntry]
+  recorded_at : String
+} derive(Eq, ToJson, @debug.Debug)
+pub fn EvidenceBundleManifest::quality_issues(Self) -> Array[String]
+
+pub(all) struct EvidenceBundleSpec {
+  contract_id : String
+  bundle_id : String
+  sources : Array[EvidenceSourceSpec]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct EvidenceSourceSpec {
+  artifact_ref : String
+  producer_product_id : String
+  contract_id : String
+  claim_class : String
+  result_id : String
+} derive(Eq, ToJson, @debug.Debug)
 
 pub(all) enum ReconciliationDecision {
   Pending
@@ -209,6 +314,24 @@ pub(all) enum ReconciliationDecision {
   ImportCancellation
   InvestigateUnknown
 } derive(Compare, Eq, Hash, ToJson, @debug.Debug)
+
+pub(all) struct RunMigrationReceipt {
+  contract_id : String
+  migration_id : String
+  parent_run_id : String
+  child_run_id : String
+  parent_revision : String
+  child_revision : String
+  parent_source_digest : String
+  child_source_digest : String
+  revision_proposal_ref : String
+  decisions : Array[CheckpointMigrationDecision]
+  reused_count : Int
+  invalidated_count : Int
+  new_count : Int
+  recorded_at : String
+} derive(Eq, ToJson, @debug.Debug)
+pub fn RunMigrationReceipt::quality_issues(Self) -> Array[String]
 
 pub(all) struct RunProjection {
   run_id : String
@@ -224,6 +347,11 @@ pub(all) struct RunProjection {
 pub fn RunProjection::apply(Self, RuntimeEvent) -> Unit raise FlowError
 pub fn RunProjection::find_item(Self, String) -> RuntimeItem?
 pub fn RunProjection::runnable_item_ids(Self) -> Array[String]
+
+pub(all) struct RunRevisionResult {
+  events : Array[RuntimeEvent]
+  receipt : RunMigrationReceipt
+} derive(Eq, ToJson, @debug.Debug)
 
 pub(all) struct RuntimeEvent {
   sequence : Int

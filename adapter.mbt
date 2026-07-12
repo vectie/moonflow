@@ -50,6 +50,10 @@ pub(all) struct AdapterCapability {
   protocol : String
   operations : Array[String]
   authority_classes : Array[String]
+  input_contracts : Array[String]
+  output_contracts : Array[String]
+  claim_ceiling : String
+  healthy : Bool
   supports_cancel : Bool
   supports_reconcile : Bool
 } derive(Debug, Eq, ToJson)
@@ -87,6 +91,15 @@ pub fn AdapterCapability::quality_issues(
   if self.authority_classes.is_empty() {
     issues.push("adapter authority classes are required")
   }
+  if self.input_contracts.is_empty() {
+    issues.push("adapter input contracts are required")
+  }
+  if self.output_contracts.is_empty() {
+    issues.push("adapter output contracts are required")
+  }
+  if claim_class_rank(self.claim_ceiling) is None {
+    issues.push("unsupported claim ceiling: \{self.claim_ceiling}")
+  }
   for authority in self.authority_classes {
     if !authority_class_is_canonical(authority) {
       issues.push("unsupported authority class: \{authority}")
@@ -107,6 +120,10 @@ pub fn decode_adapter_capability(value : Json) -> AdapterCapability raise {
     protocol: wire_string(fields, "protocol"),
     operations: wire_strings(fields, "operations"),
     authority_classes: wire_strings(fields, "authority_classes"),
+    input_contracts: wire_strings(fields, "input_contracts"),
+    output_contracts: wire_strings(fields, "output_contracts"),
+    claim_ceiling: wire_string(fields, "claim_ceiling"),
+    healthy: wire_bool(fields, "healthy"),
     supports_cancel: wire_bool(fields, "supports_cancel"),
     supports_reconcile: wire_bool(fields, "supports_reconcile"),
   }

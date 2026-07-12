@@ -443,6 +443,61 @@ fn RunProjection::apply_new_event(
               raise UnsupportedAttemptStatus(item_id=item.work_item_id, status~)
           }
         }
+        CheckpointReused => {
+          require_transition(item, event, [Proposed, Ready])
+          match self.unaccepted_dependency(item) {
+            Some(dependency_id) =>
+              raise DependencyNotAccepted(
+                item_id=item.work_item_id,
+                dependency_id~,
+              )
+            None => ()
+          }
+          for
+            pair in [
+              ("source_checkpoint", event.detail),
+              ("result_id", event.result_id),
+              ("attempt_id", event.attempt_id),
+              ("output_digest", event.output_digest),
+              ("review_receipt", event.artifact_id),
+              ("review_authority", event.authority_id),
+            ] {
+            let (field, value) = pair
+            if value.trim().is_empty() {
+              raise MissingAcceptanceReviewField(
+                item_id=item.work_item_id,
+                field~,
+              )
+            }
+          }
+          if event.acceptance_criteria != item.acceptance_criteria {
+            raise SourceContextMismatch(
+              field="acceptance_criteria",
+              expected=item.acceptance_criteria.join("\n"),
+              actual=event.acceptance_criteria.join("\n"),
+            )
+          }
+          item.status = Accepted
+          item.result_id = event.result_id
+          item.active_attempt_id = event.attempt_id
+          item.output_digest = event.output_digest
+          item.attempt_status = "checkpoint-reused"
+          item.acceptance_review_id = event.detail
+          item.acceptance_review_artifact = event.artifact_id
+          item.acceptance_reviewer_id = event.authority_id
+          item.blocker = ""
+          for artifact in event.output_artifacts {
+            if !item.artifacts.contains(artifact) {
+              item.artifacts.push(artifact)
+            }
+          }
+          if !item.artifacts.contains(event.artifact_id) {
+            item.artifacts.push(event.artifact_id)
+          }
+          if !item.approvals.contains(event.authority_id) {
+            item.approvals.push(event.authority_id)
+          }
+        }
         RunCreated | ItemRegistered => ()
       }
     }

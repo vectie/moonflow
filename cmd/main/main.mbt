@@ -84,6 +84,185 @@ async fn validate_artifact_ref(
 }
 
 ///|
+fn hex_digit(value : Int) -> Char {
+  if value < 10 {
+    ('0'.to_int() + value).unsafe_to_char()
+  } else {
+    ('a'.to_int() + value - 10).unsafe_to_char()
+  }
+}
+
+///|
+fn sha256_hex(bytes : Bytes) -> String {
+  let digest = @crypto.sha256(bytes)
+  let builder = StringBuilder::new()
+  for byte in digest {
+    let value = byte.to_int()
+    builder.write_char(hex_digit(value / 16))
+    builder.write_char(hex_digit(value % 16))
+  }
+  builder.to_string()
+}
+
+///|
+async fn ensure_directory(path : String) -> Unit {
+  if !@fs.exists(path) {
+    @fs.mkdir(path, permission=0o755, recursive=true)
+  }
+}
+
+///|
+async fn revise_run_command(
+  workspace : String,
+  parent_run_id : String,
+  child_graph_ref : String,
+  proposal_ref : String,
+  migration_id : String,
+  recorded_at : String,
+) -> Unit {
+  validate_artifact_ref(workspace, child_graph_ref)
+  validate_artifact_ref(workspace, proposal_ref)
+  let root = @fs.realpath(@moonflow.normalize_workspace_path(workspace))
+  let parent = @moonflow.replay(
+    parent_run_id,
+    load_events(workspace, parent_run_id),
+  )
+  let result = @moonflow.revise_run(
+    parent,
+    read_json(root + "/" + child_graph_ref),
+    migration_id,
+    proposal_ref,
+    recorded_at,
+  )
+  let child_directory = run_dir(workspace, result.receipt.child_run_id)
+  let event_path = child_directory + "/events.json"
+  let migration_path = child_directory + "/migration.json"
+  if @fs.exists(event_path) &&
+    read_json(event_path).stringify() !=
+    @moonflow.event_array_json(result.events).stringify() {
+    fail("child run identity already exists with different migrated events")
+  }
+  if @fs.exists(migration_path) &&
+    read_json(migration_path).stringify() != result.receipt.to_json().stringify() {
+    fail("migration identity already exists with different content")
+  }
+  let projection = persist_run(
+    workspace,
+    result.receipt.child_run_id,
+    result.events,
+  )
+  if !@fs.exists(migration_path) {
+    write_json(migration_path, result.receipt.to_json())
+  }
+  println(
+    {
+      "projection": @moonflow.projection_json(projection),
+      "migration": result.receipt.to_json(),
+    }
+    .to_json()
+    .stringify(indent=2),
+  )
+}
+
+///|
+async fn select_adapter_command(
+  workspace : String,
+  capabilities_ref : String,
+  requirement_ref : String,
+) -> Unit {
+  validate_artifact_ref(workspace, capabilities_ref)
+  validate_artifact_ref(workspace, requirement_ref)
+  let root = @fs.realpath(@moonflow.normalize_workspace_path(workspace))
+  let decision = @moonflow.select_adapter(
+    @moonflow.decode_adapter_capabilities(
+      read_json(root + "/" + capabilities_ref),
+    ),
+    @moonflow.decode_director_requirement(
+      read_json(root + "/" + requirement_ref),
+    ),
+  )
+  println(decision.to_json().stringify(indent=2))
+}
+
+///|
+async fn bundle_evidence(
+  workspace : String,
+  spec_ref : String,
+  recorded_at : String,
+) -> Unit {
+  validate_artifact_ref(workspace, spec_ref)
+  let root = @fs.realpath(@moonflow.normalize_workspace_path(workspace))
+  let spec = @moonflow.decode_evidence_bundle_spec(
+    read_json(root + "/" + spec_ref),
+  )
+  ignore(safe_id(spec.bundle_id, "bundle_id"))
+  let evidence_root = root + "/.moonsuite/products/moonflow/evidence"
+  let objects_dir = evidence_root + "/objects"
+  let bundle_dir = evidence_root + "/bundles/" + spec.bundle_id
+  ensure_directory(objects_dir)
+  ensure_directory(bundle_dir)
+  let entries : Array[@moonflow.EvidenceBundleEntry] = []
+  for source in spec.sources {
+    validate_artifact_ref(root, source.artifact_ref)
+    let source_path = @fs.realpath(root + "/" + source.artifact_ref)
+    let data = @fs.read_file(source_path)
+    let bytes = data.binary()
+    let digest_hex = sha256_hex(bytes)
+    let object_ref = ".moonsuite/products/moonflow/evidence/objects/" +
+      digest_hex
+    entries.push({
+      artifact_ref: source.artifact_ref,
+      object_ref,
+      producer_product_id: source.producer_product_id,
+      contract_id: source.contract_id,
+      claim_class: source.claim_class,
+      result_id: source.result_id,
+      sha256: "sha256:" + digest_hex,
+      size_bytes: bytes.length(),
+    })
+  }
+  let digest_seed = entries
+    .map(entry => {
+      "\{entry.artifact_ref}|\{entry.sha256}|\{entry.producer_product_id}|\{entry.contract_id}|\{entry.claim_class}|\{entry.result_id}"
+    })
+    .join("\n")
+  let content_digest = "sha256:" + sha256_hex(@utf8.encode(digest_seed))
+  let manifest = @moonflow.evidence_bundle_manifest(
+    spec, entries, content_digest, recorded_at,
+  )
+  let manifest_path = bundle_dir + "/bundle.json"
+  if @fs.exists(manifest_path) {
+    if read_json(manifest_path).stringify() != manifest.to_json().stringify() {
+      fail("evidence bundle identity already exists with different content")
+    }
+  }
+  for entry in entries {
+    let source_data = @fs.read_file(root + "/" + entry.artifact_ref)
+    if "sha256:" + sha256_hex(source_data.binary()) != entry.sha256 {
+      fail("evidence source changed while constructing its bundle")
+    }
+    let object_path = root + "/" + entry.object_ref
+    if @fs.exists(object_path) {
+      if "sha256:" + sha256_hex(@fs.read_file(object_path).binary()) != entry.sha256 {
+        fail("content-addressed evidence object failed digest verification")
+      }
+    } else {
+      @fs.write_file(object_path, source_data, create=0o444, truncate=false)
+    }
+    if !@moonflow.path_is_within_workspace(root, @fs.realpath(object_path)) {
+      fail("evidence object escaped workspace after mutation")
+    }
+  }
+  if !@fs.exists(manifest_path) {
+    write_json(manifest_path, manifest.to_json())
+  }
+  if !@moonflow.path_is_within_workspace(root, @fs.realpath(manifest_path)) {
+    fail("evidence manifest escaped workspace after mutation")
+  }
+  println(manifest.to_json().stringify(indent=2))
+}
+
+///|
 fn transition_kind(action : String) -> @moonflow.EventKind raise {
   match action {
     "ready" => ItemReady
@@ -274,6 +453,9 @@ fn usage() -> Unit {
     "  moonflow submit-attempt <workspace> <run-id> <request.json>\n" +
     "  moonflow reconcile-attempt <workspace> <run-id> <result.json>\n" +
     "  moonflow review-outcome <workspace> <run-id> <receipt-artifact>\n" +
+    "  moonflow revise-run <workspace> <parent-run-id> <child-graph-artifact> <proposal-artifact> <migration-id> <recorded-at>\n" +
+    "  moonflow select-adapter <workspace> <capabilities-artifact> <requirement-artifact>\n" +
+    "  moonflow bundle-evidence <workspace> <bundle-spec-artifact> <recorded-at>\n" +
     "  moonflow validate-capability <capability.json>",
   )
 }
@@ -301,6 +483,22 @@ async fn main {
       reconcile_attempt(workspace, run_id, result_path)
     ["review-outcome", workspace, run_id, receipt_artifact] =>
       review_outcome(workspace, run_id, receipt_artifact)
+    [
+      "revise-run",
+      workspace,
+      parent_run_id,
+      child_graph_ref,
+      proposal_ref,
+      migration_id,
+      recorded_at,
+    ] =>
+      revise_run_command(
+        workspace, parent_run_id, child_graph_ref, proposal_ref, migration_id, recorded_at,
+      )
+    ["select-adapter", workspace, capabilities_ref, requirement_ref] =>
+      select_adapter_command(workspace, capabilities_ref, requirement_ref)
+    ["bundle-evidence", workspace, spec_ref, recorded_at] =>
+      bundle_evidence(workspace, spec_ref, recorded_at)
     ["validate-capability", capability_path] =>
       validate_capability(capability_path)
     ["version"] => println("MoonFlow \{@moonflow.runtime_protocol_id()}")

@@ -99,6 +99,7 @@ pub fn event_kind_from_id(id : String) -> EventKind raise {
     "approval-granted" => ApprovalGranted
     "attempt-submitted" => AttemptSubmitted
     "attempt-reconciled" => AttemptReconciled
+    "checkpoint-reused" => CheckpointReused
     _ => fail("unsupported MoonFlow event kind: \{id}")
   }
 }
@@ -226,7 +227,7 @@ pub fn projection_json(projection : RunProjection) -> Json {
       } : Json)
   })
   {
-    "protocol": "moonflow.run-projection.v2",
+    "protocol": "moonflow.run-projection.v3",
     "run_id": projection.run_id,
     "book_id": projection.book_id,
     "declaration_revision": projection.declaration_revision,
