@@ -222,6 +222,12 @@ pub fn acceptance_review_event(
     source_digest: projection.source_digest,
     requested_authority: item.requested_authority,
     acceptance_criteria: item.acceptance_criteria.copy(),
+    operation: item.operation,
+    input_contracts: item.input_contracts.copy(),
+    output_contracts: item.output_contracts.copy(),
+    required_claim: item.required_claim,
+    input_artifacts: item.input_artifacts.copy(),
+    timeout_ms: item.timeout_ms,
     request_id: item.request_id,
     result_id: if receipt.decision == "accepted" {
       receipt.result_id

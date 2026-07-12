@@ -92,6 +92,12 @@ pub(all) struct RuntimeEvent {
   source_digest : String
   requested_authority : String
   acceptance_criteria : Array[String]
+  operation : String
+  input_contracts : Array[String]
+  output_contracts : Array[String]
+  required_claim : String
+  input_artifacts : Array[String]
+  timeout_ms : Int
   request_id : String
   result_id : String
   attempt_id : String
@@ -117,6 +123,12 @@ pub(all) struct RuntimeItem {
   product_id : String
   requested_authority : String
   acceptance_criteria : Array[String]
+  operation : String
+  input_contracts : Array[String]
+  output_contracts : Array[String]
+  required_claim : String
+  input_artifacts : Array[String]
+  timeout_ms : Int
   depends_on : Array[String]
   mut status : RuntimeStatus
   mut attempt_count : Int
@@ -126,7 +138,6 @@ pub(all) struct RuntimeItem {
   mut idempotency_key : String
   mut external_job_id : String
   mut attempt_status : String
-  mut operation : String
   mut input_digest : String
   mut output_digest : String
   mut error_kind : String

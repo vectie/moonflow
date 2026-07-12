@@ -119,6 +119,17 @@ fn RunProjection::apply_new_event(
       if event.acceptance_criteria.is_empty() {
         raise MissingAcceptanceCriteria(event.work_item_id)
       }
+      if event.operation.trim().is_empty() ||
+        event.input_contracts.is_empty() ||
+        event.output_contracts.is_empty() ||
+        event.required_claim.trim().is_empty() ||
+        event.input_artifacts.is_empty() ||
+        event.timeout_ms <= 0 {
+        raise MissingAttemptField(
+          item_id=event.work_item_id,
+          field="execution_binding",
+        )
+      }
       if ![
           "observe", "cognitive-maintenance", "sandbox-execution", "workspace-mutation",
           "external-effect", "physical-effect",
@@ -134,6 +145,12 @@ fn RunProjection::apply_new_event(
         product_id: event.product_id,
         requested_authority: event.requested_authority,
         acceptance_criteria: event.acceptance_criteria.copy(),
+        operation: event.operation,
+        input_contracts: event.input_contracts.copy(),
+        output_contracts: event.output_contracts.copy(),
+        required_claim: event.required_claim,
+        input_artifacts: event.input_artifacts.copy(),
+        timeout_ms: event.timeout_ms,
         depends_on: event.depends_on.copy(),
         status: Proposed,
         attempt_count: 0,
@@ -143,7 +160,6 @@ fn RunProjection::apply_new_event(
         idempotency_key: "",
         external_job_id: "",
         attempt_status: "",
-        operation: "",
         input_digest: "",
         output_digest: "",
         error_kind: "",
@@ -361,7 +377,13 @@ fn RunProjection::apply_new_event(
           item.idempotency_key = event.idempotency_key
           item.external_job_id = ""
           item.attempt_status = event.attempt_status
-          item.operation = event.detail
+          if event.detail != item.operation {
+            raise SourceContextMismatch(
+              field="operation",
+              expected=item.operation,
+              actual=event.detail,
+            )
+          }
           item.input_digest = event.input_digest
           item.output_digest = ""
           item.error_kind = ""

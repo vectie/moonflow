@@ -46,6 +46,12 @@ input/output contracts, and a claim ceiling. The director selects an adapter
 only when all dimensions match. Unknown outcomes reconcile before any retry;
 quality rejection revises the input or procedure instead of repeating it.
 
+`prepare-next` removes hand-authored dispatch requests. It derives each ready
+item's requirement from its MoonBook execution binding, selects a healthy
+compatible adapter, verifies and hashes the declared input artifacts, writes a
+durable decision/request pair, and submits the attempt event. A rejected
+selection is retained as a decision receipt and does not start work.
+
 ## Native revision and evidence lineage
 
 `revise-run` creates a child run and never rewrites its parent. It reuses an
@@ -73,6 +79,7 @@ moonflow reconcile-attempt <workspace> <run-id> <result.json>
 moonflow review-outcome <workspace> <run-id> <workspace-relative-review-receipt>
 moonflow revise-run <workspace> <parent-run-id> <child-graph-artifact> <proposal-artifact> <migration-id> <recorded-at>
 moonflow select-adapter <workspace> <capabilities-artifact> <requirement-artifact>
+moonflow prepare-next <workspace> <run-id> <capabilities-artifact> <recorded-at>
 moonflow bundle-evidence <workspace> <bundle-spec-artifact> <recorded-at>
 moonflow validate-capability <capability.json>
 ```

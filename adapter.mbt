@@ -373,6 +373,7 @@ pub fn adapter_submission_event(
     item.requested_authority,
     request.requested_authority,
   )
+  require_adapter_identity("operation", item.operation, request.operation)
   {
     sequence: projection.last_sequence + 1,
     event_id: submission_event_id,
@@ -386,6 +387,12 @@ pub fn adapter_submission_event(
     source_digest: projection.source_digest,
     requested_authority: request.requested_authority,
     acceptance_criteria: item.acceptance_criteria.copy(),
+    operation: item.operation,
+    input_contracts: item.input_contracts.copy(),
+    output_contracts: item.output_contracts.copy(),
+    required_claim: item.required_claim,
+    input_artifacts: item.input_artifacts.copy(),
+    timeout_ms: item.timeout_ms,
     request_id: request.request_id,
     result_id: "",
     attempt_id: request.attempt_id,
@@ -467,6 +474,12 @@ pub fn adapter_reconciliation_event(
     source_digest: projection.source_digest,
     requested_authority: item.requested_authority,
     acceptance_criteria: item.acceptance_criteria.copy(),
+    operation: item.operation,
+    input_contracts: item.input_contracts.copy(),
+    output_contracts: item.output_contracts.copy(),
+    required_claim: item.required_claim,
+    input_artifacts: item.input_artifacts.copy(),
+    timeout_ms: item.timeout_ms,
     request_id: result.request_id,
     result_id: result.result_id,
     attempt_id: result.attempt_id,

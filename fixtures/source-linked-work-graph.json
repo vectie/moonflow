@@ -13,6 +13,12 @@
       "acceptance_criteria": [
         "reviewed evidence and limitations are attached"
       ],
+      "operation": "query-evidence",
+      "input_contracts": ["moonbook.research-question.v1"],
+      "output_contracts": ["moonsuite.evidence-envelope.v1"],
+      "required_claim": "research-evidence",
+      "input_artifacts": ["books/source-linked-fixture/inputs/research.json"],
+      "timeout_ms": 120000,
       "depends_on": []
     },
     {
@@ -23,6 +29,12 @@
       "acceptance_criteria": [
         "the declared digital validation gate passes"
       ],
+      "operation": "simulate",
+      "input_contracts": ["moonsuite.robot-design.v1"],
+      "output_contracts": ["moonmoon.robot-mission-result.v1"],
+      "required_claim": "simulation-evidence",
+      "input_artifacts": ["books/source-linked-fixture/inputs/design.json"],
+      "timeout_ms": 120000,
       "depends_on": [
         "work-research"
       ]

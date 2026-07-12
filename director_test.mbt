@@ -82,3 +82,45 @@ test "unknown outcome reconciles before retry and every retry preserves evidence
     assert_true(decision.reuses_idempotency_lineage)
   }
 }
+
+///|
+test "director derives a stable request from declared execution binding" {
+  let projection = @moonflow.replay(
+    "flow-r1",
+    @moonflow.events_from_work_graph({
+      "contract_id": "moonsuite.work-model.v1",
+      "graph_id": "flow-r1",
+      "book_id": "robot",
+      "declaration_revision": "r1",
+      "source_digest": "sha256:source",
+      "items": [
+        {
+          "work_item_id": "work-research",
+          "declaration_id": "research",
+          "product_id": "moonwiki",
+          "requested_authority": "observe",
+          "acceptance_criteria": ["evidence reviewed"],
+          "operation": "query-evidence",
+          "input_contracts": ["question.v1"],
+          "output_contracts": ["evidence.v1"],
+          "required_claim": "research-evidence",
+          "input_artifacts": ["books/robot/inputs/question.json"],
+          "timeout_ms": 60000,
+          "depends_on": [],
+        },
+      ],
+      "recorded_at": "2026-07-12T00:00:00Z",
+    }),
+  )
+  guard projection.find_item("work-research") is Some(item) else {
+    fail("expected item")
+  }
+  let requirement = director_requirement_for_item(item)
+  assert_eq(requirement.operation, "query-evidence")
+  let request = director_request_for_item(
+    projection, item, "sha256:input", "2026-07-12T00:01:00Z",
+  )
+  assert_eq(request.attempt_id, "attempt-work-research-1")
+  assert_eq(request.input_artifacts, ["books/robot/inputs/question.json"])
+  assert_true(request.idempotency_key.contains("sha256:input"))
+}

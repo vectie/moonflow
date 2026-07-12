@@ -139,6 +139,45 @@ pub fn select_adapter(
 }
 
 ///|
+pub fn director_requirement_for_item(item : RuntimeItem) -> DirectorRequirement {
+  {
+    requirement_id: "requirement-\{item.work_item_id}-a\{item.attempt_count + 1}",
+    product_id: item.product_id,
+    operation: item.operation,
+    requested_authority: item.requested_authority,
+    input_contracts: item.input_contracts.copy(),
+    output_contracts: item.output_contracts.copy(),
+    required_claim: item.required_claim,
+  }
+}
+
+///|
+pub fn director_request_for_item(
+  projection : RunProjection,
+  item : RuntimeItem,
+  input_digest : String,
+  recorded_at : String,
+) -> AdapterRequest {
+  let attempt_number = item.attempt_count + 1
+  let attempt_id = "attempt-\{item.work_item_id}-\{attempt_number}"
+  {
+    request_id: "request-\{projection.run_id}-\{item.work_item_id}-a\{attempt_number}",
+    run_id: projection.run_id,
+    work_item_id: item.work_item_id,
+    declaration_id: item.declaration_id,
+    attempt_id,
+    idempotency_key: "\{projection.run_id}/\{item.work_item_id}/\{attempt_number}/\{input_digest}",
+    product_id: item.product_id,
+    operation: item.operation,
+    requested_authority: item.requested_authority,
+    input_digest,
+    input_artifacts: item.input_artifacts.copy(),
+    timeout_ms: item.timeout_ms,
+    created_at: recorded_at,
+  }
+}
+
+///|
 pub(all) enum DirectorFailureClass {
   TransientFailure
   QualityRejection

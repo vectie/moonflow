@@ -41,6 +41,40 @@ fn event(
     source_digest: "sha256:selene-r1",
     requested_authority,
     acceptance_criteria,
+    operation: if kind == ItemRegistered {
+      if product_id == "moonmoon" {
+        "simulate-mission"
+      } else {
+        "query-evidence"
+      }
+    } else {
+      detail
+    },
+    input_contracts: if kind == ItemRegistered {
+      ["test.input.v1"]
+    } else {
+      []
+    },
+    output_contracts: if kind == ItemRegistered {
+      ["test.output.v1"]
+    } else {
+      []
+    },
+    required_claim: if kind == ItemRegistered {
+      "research-evidence"
+    } else {
+      ""
+    },
+    input_artifacts: if kind == ItemRegistered {
+      ["evidence/input.json"]
+    } else {
+      []
+    },
+    timeout_ms: if kind == ItemRegistered {
+      1000
+    } else {
+      0
+    },
     request_id,
     result_id,
     attempt_id,
