@@ -1,0 +1,15 @@
+supported_targets = "native"
+
+import {
+  "moonbitlang/async/fs",
+  "moonbitlang/core/json",
+  "moonbitlang/core/encoding/utf8",
+  "vectie/moonflow/closed_loop/contracts",
+  "vectie/moonflow/closed_loop/effects",
+  "vectie/moonflow/closed_loop/orchestration",
+  "vectie/moonflow/closed_loop/storage",
+}
+
+options(
+  "native-stub": [ "operator_materialization_native_stub.c" ],
+)
