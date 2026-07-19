@@ -1,0 +1,527 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/closed_loop/storage"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonflow/closed_loop/contracts",
+}
+
+// Values
+pub fn default_guard_profile_id() -> String
+
+pub fn default_guard_profile_name() -> String
+
+pub fn empty_replay_digest(@contracts.RecordRef) -> @contracts.ContentDigest
+
+// Errors
+pub(all) suberror StorageError {
+  ValidationFailure(field~ : String)
+  UnsupportedVersion(record_kind~ : String, version~ : String)
+  OptimisticRevisionConflict(workflow_id~ : String, expected~ : Int64, actual~ : Int64)
+  IdentityConflict(kind~ : String, id~ : String, version~ : String)
+  IdempotencyConflict(key~ : String)
+  GuardedCommitRequired(workflow_id~ : String, key~ : String, binding_digest~ : String)
+  GuardedBindingConflict(workflow_id~ : String, field~ : String)
+  GuardedBindingFork(workflow_id~ : String)
+  GuardedRegistryMissing(name~ : String)
+  GuardedRegistryCorrupt(name~ : String)
+  SequenceGap(workflow_id~ : String, expected~ : Int64, actual~ : Int64)
+  RevisionGap(workflow_id~ : String, expected~ : Int64, actual~ : Int64)
+  DigestMismatch(record_kind~ : String, record_id~ : String, expected~ : String, actual~ : String)
+  CorruptCommittedData(name~ : String)
+  UnsafePath(path~ : String)
+  SymlinkRejected(path~ : String)
+  IoFailure(operation~ : String, status~ : Int)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub struct CheckpointRecord {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  projection_version : @contracts.Version
+  checkpoint_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  event_sequence : Int64
+  workflow_revision : Int64
+  last_event_digest : @contracts.ContentDigest?
+  snapshot : @contracts.WireEnvelope
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+}
+pub fn CheckpointRecord::canonical_bytes(Self) -> Bytes
+pub fn CheckpointRecord::checkpoint_ref(Self) -> @contracts.RecordRef
+pub fn CheckpointRecord::event_sequence(Self) -> Int64
+pub fn CheckpointRecord::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn CheckpointRecord::last_event_digest(Self) -> @contracts.ContentDigest?
+pub fn CheckpointRecord::new(String, String, String, String, @contracts.RecordRef, Int64, Int64, @contracts.WireEnvelope, Array[@contracts.EvidenceRef], last_event_digest? : @contracts.ContentDigest) -> Self raise StorageError
+pub fn CheckpointRecord::projection_version(Self) -> @contracts.Version
+pub fn CheckpointRecord::record_version(Self) -> @contracts.Version
+pub fn CheckpointRecord::schema_version(Self) -> @contracts.Version
+pub fn CheckpointRecord::snapshot(Self) -> @contracts.WireEnvelope
+pub fn CheckpointRecord::workflow(Self) -> @contracts.RecordRef
+pub fn CheckpointRecord::workflow_revision(Self) -> Int64
+pub impl Eq for CheckpointRecord
+
+pub(all) enum ClassifiedGuardedCommitOutcome {
+  FreshlyApplied(CommitResult)
+  AlreadyCommitted(CommitResult)
+  GuardRejected(GuardConflictReceipt)
+}
+
+pub struct CommitRequest {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  workflow : @contracts.RecordRef
+  expected_revision : Int64
+  command_idempotency_key : String
+  events : ReadOnlyArray[WorkflowEvent]
+  intents : ReadOnlyArray[OutboxIntent]
+}
+pub fn CommitRequest::canonical_bytes(Self) -> Bytes
+pub fn CommitRequest::command_idempotency_key(Self) -> String
+pub fn CommitRequest::events(Self) -> ReadOnlyArray[WorkflowEvent]
+pub fn CommitRequest::expected_revision(Self) -> Int64
+pub fn CommitRequest::intents(Self) -> ReadOnlyArray[OutboxIntent]
+pub fn CommitRequest::new(String, String, @contracts.RecordRef, Int64, String, Array[WorkflowEvent], Array[OutboxIntent]) -> Self raise StorageError
+pub fn CommitRequest::record_version(Self) -> @contracts.Version
+pub fn CommitRequest::schema_version(Self) -> @contracts.Version
+pub fn CommitRequest::workflow(Self) -> @contracts.RecordRef
+pub impl Eq for CommitRequest
+
+pub struct CommitResult {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  workflow : @contracts.RecordRef
+  command_idempotency_key : String
+  first_sequence : Int64
+  last_sequence : Int64
+  workflow_revision : Int64
+  event_count : Int64
+  intent_count : Int64
+  last_event_digest : @contracts.ContentDigest
+  batch_digest : @contracts.ContentDigest
+} derive(Eq, @debug.Debug)
+pub fn CommitResult::batch_digest(Self) -> @contracts.ContentDigest
+pub fn CommitResult::command_idempotency_key(Self) -> String
+pub fn CommitResult::event_count(Self) -> Int64
+pub fn CommitResult::first_sequence(Self) -> Int64
+pub fn CommitResult::intent_count(Self) -> Int64
+pub fn CommitResult::last_event_digest(Self) -> @contracts.ContentDigest
+pub fn CommitResult::last_sequence(Self) -> Int64
+pub fn CommitResult::record_version(Self) -> @contracts.Version
+pub fn CommitResult::schema_version(Self) -> @contracts.Version
+pub fn CommitResult::workflow(Self) -> @contracts.RecordRef
+pub fn CommitResult::workflow_revision(Self) -> Int64
+
+pub struct CommittedBatchBoundary {
+  command_idempotency_key : String
+  expected_revision : Int64
+  event_refs : ReadOnlyArray[@contracts.RecordRef]
+  intent_refs : ReadOnlyArray[@contracts.RecordRef]
+  guards : ReadOnlyArray[WorkflowHeadGuard]
+  batch_digest : @contracts.ContentDigest
+}
+pub fn CommittedBatchBoundary::batch_digest(Self) -> @contracts.ContentDigest
+pub fn CommittedBatchBoundary::command_idempotency_key(Self) -> String
+pub fn CommittedBatchBoundary::event_refs(Self) -> ReadOnlyArray[@contracts.RecordRef]
+pub fn CommittedBatchBoundary::expected_revision(Self) -> Int64
+pub fn CommittedBatchBoundary::guards(Self) -> ReadOnlyArray[WorkflowHeadGuard]
+pub fn CommittedBatchBoundary::intent_refs(Self) -> ReadOnlyArray[@contracts.RecordRef]
+
+pub struct FileSystemGuardedStore {
+  mutation : FileSystemStore
+  guard_roots : ReadOnlyArray[String]
+  guard_root_identities : ReadOnlyArray[String]
+  expected_binding : GuardedWorkflowBinding?
+  selected_profile_id : String?
+}
+pub fn FileSystemGuardedStore::commit(Self, CommitRequest) -> CommitResult raise StorageError
+pub fn FileSystemGuardedStore::events(Self, @contracts.RecordRef) -> ReadOnlyArray[WorkflowEvent] raise StorageError
+pub fn FileSystemGuardedStore::guarded_commit(Self, GuardedCommitRequest) -> GuardedCommitOutcome raise StorageError
+pub fn FileSystemGuardedStore::head(Self, @contracts.RecordRef) -> WorkflowHead raise StorageError
+pub fn FileSystemGuardedStore::intents(Self, @contracts.RecordRef) -> ReadOnlyArray[OutboxIntent] raise StorageError
+pub fn FileSystemGuardedStore::mutation_store(Self) -> FileSystemStore
+pub fn FileSystemGuardedStore::new(FileSystemStore, Array[FileSystemStore]) -> Self raise StorageError
+pub fn FileSystemGuardedStore::read_checkpoint(Self, @contracts.RecordRef) -> CheckpointRecord? raise StorageError
+pub fn FileSystemGuardedStore::replay(Self, @contracts.RecordRef) -> ReplayResult raise StorageError
+pub fn FileSystemGuardedStore::write_checkpoint(Self, CheckpointRecord) -> Unit raise StorageError
+pub impl GuardedStoragePort for FileSystemGuardedStore
+pub impl StoragePort for FileSystemGuardedStore
+
+pub struct FileSystemStore {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  workspace_root : String
+  storage_root : String
+  root_identity : String
+}
+pub fn FileSystemStore::activate_guarded_workflow(Self, @contracts.RecordRef, Array[Self], Array[@contracts.RecordRef]) -> GuardedWorkflowActivationReceipt raise StorageError
+pub fn FileSystemStore::activate_guarded_workflow_profiles(Self, @contracts.RecordRef, Array[GuardProfileConfig], Array[Array[Self]]) -> GuardedWorkflowActivationReceipt raise StorageError
+pub fn FileSystemStore::add_guard_profile(Self, @contracts.RecordRef, GuardedWorkflowActivationReceipt, GuardProfileConfig, Array[Self]) -> GuardedWorkflowEvolutionReceipt raise StorageError
+pub fn FileSystemStore::commit(Self, CommitRequest) -> CommitResult raise StorageError
+pub fn FileSystemStore::current_guarded_activation_receipt(Self, @contracts.RecordRef) -> GuardedWorkflowActivationReceipt? raise StorageError
+pub fn FileSystemStore::events(Self, @contracts.RecordRef) -> ReadOnlyArray[WorkflowEvent] raise StorageError
+pub fn FileSystemStore::guarded_commit(Self, GuardedCommitRequest) -> GuardedCommitOutcome raise StorageError
+pub fn FileSystemStore::head(Self, @contracts.RecordRef) -> WorkflowHead raise StorageError
+pub fn FileSystemStore::intents(Self, @contracts.RecordRef) -> ReadOnlyArray[OutboxIntent] raise StorageError
+pub fn FileSystemStore::open(String, String) -> Self raise StorageError
+pub fn FileSystemStore::read_checkpoint(Self, @contracts.RecordRef) -> CheckpointRecord? raise StorageError
+pub fn FileSystemStore::record_version(Self) -> @contracts.Version
+pub fn FileSystemStore::registered_guard_profiles(Self, @contracts.RecordRef) -> ReadOnlyArray[GuardProfile] raise StorageError
+pub fn FileSystemStore::replay(Self, @contracts.RecordRef) -> ReplayResult raise StorageError
+pub fn FileSystemStore::schema_version(Self) -> @contracts.Version
+pub fn FileSystemStore::storage_root(Self) -> String
+pub fn FileSystemStore::workspace_root(Self) -> String
+pub fn FileSystemStore::write_checkpoint(Self, CheckpointRecord) -> Unit raise StorageError
+pub impl GuardedStoragePort for FileSystemStore
+pub impl StoragePort for FileSystemStore
+
+pub struct GuardConflictReceipt {
+  request_digest : @contracts.ContentDigest
+  mutation_workflow : @contracts.RecordRef
+  command_idempotency_key : String
+  guard_workflow : @contracts.RecordRef
+  expected_revision : Int64
+  expected_head_digest : @contracts.ContentDigest?
+  expected_replay_digest : @contracts.ContentDigest
+  actual_revision : Int64
+  actual_head_digest : @contracts.ContentDigest?
+  actual_replay_digest : @contracts.ContentDigest
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn GuardConflictReceipt::actual_head_digest(Self) -> @contracts.ContentDigest?
+pub fn GuardConflictReceipt::actual_replay_digest(Self) -> @contracts.ContentDigest
+pub fn GuardConflictReceipt::actual_revision(Self) -> Int64
+pub fn GuardConflictReceipt::canonical_bytes(Self) -> Bytes
+pub fn GuardConflictReceipt::command_idempotency_key(Self) -> String
+pub fn GuardConflictReceipt::digest(Self) -> @contracts.ContentDigest
+pub fn GuardConflictReceipt::expected_head_digest(Self) -> @contracts.ContentDigest?
+pub fn GuardConflictReceipt::expected_replay_digest(Self) -> @contracts.ContentDigest
+pub fn GuardConflictReceipt::expected_revision(Self) -> Int64
+pub fn GuardConflictReceipt::guard_workflow(Self) -> @contracts.RecordRef
+pub fn GuardConflictReceipt::mutation_workflow(Self) -> @contracts.RecordRef
+pub fn GuardConflictReceipt::request_digest(Self) -> @contracts.ContentDigest
+pub fn GuardConflictReceipt::validate_current(Self, ReplayResult) -> Unit raise StorageError
+
+pub struct GuardProfile {
+  profile_id : String
+  profile_name : String
+  guard_root_locators : ReadOnlyArray[String]
+  guard_root_identities : ReadOnlyArray[String]
+  guard_workflows : ReadOnlyArray[@contracts.RecordRef]
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn GuardProfile::canonical_bytes(Self) -> Bytes
+pub fn GuardProfile::digest(Self) -> @contracts.ContentDigest
+pub fn GuardProfile::guard_root_identities(Self) -> ReadOnlyArray[String]
+pub fn GuardProfile::guard_root_locators(Self) -> ReadOnlyArray[String]
+pub fn GuardProfile::guard_workflows(Self) -> ReadOnlyArray[@contracts.RecordRef]
+pub fn GuardProfile::profile_id(Self) -> String
+pub fn GuardProfile::profile_name(Self) -> String
+
+pub struct GuardProfileConfig {
+  profile_id : String
+  profile_name : String
+  guard_workflows : ReadOnlyArray[@contracts.RecordRef]
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn GuardProfileConfig::canonical_bytes(Self) -> Bytes
+pub fn GuardProfileConfig::digest(Self) -> @contracts.ContentDigest
+pub fn GuardProfileConfig::guard_workflows(Self) -> ReadOnlyArray[@contracts.RecordRef]
+pub fn GuardProfileConfig::new(String, String, Array[@contracts.RecordRef]) -> Self raise StorageError
+pub fn GuardProfileConfig::profile_id(Self) -> String
+pub fn GuardProfileConfig::profile_name(Self) -> String
+
+pub(all) enum GuardedCommitOutcome {
+  GuardedCommitSucceeded(CommitResult)
+  GuardedCommitRejected(GuardConflictReceipt)
+}
+
+pub struct GuardedCommitRequest {
+  mutation : CommitRequest
+  guards : ReadOnlyArray[WorkflowHeadGuard]
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn GuardedCommitRequest::canonical_bytes(Self) -> Bytes
+pub fn GuardedCommitRequest::digest(Self) -> @contracts.ContentDigest
+pub fn GuardedCommitRequest::guards(Self) -> ReadOnlyArray[WorkflowHeadGuard]
+pub fn GuardedCommitRequest::mutation(Self) -> CommitRequest
+pub fn GuardedCommitRequest::new(CommitRequest, Array[WorkflowHeadGuard]) -> Self raise StorageError
+pub impl Eq for GuardedCommitRequest
+
+pub struct GuardedMemoryStore {
+  store : MemoryStore
+  receipt : GuardedWorkflowActivationReceipt
+  selected_profile_id : String
+}
+pub fn GuardedMemoryStore::classified_guarded_commit(Self, GuardedCommitRequest) -> ClassifiedGuardedCommitOutcome raise StorageError
+pub fn GuardedMemoryStore::commit(Self, CommitRequest) -> CommitResult raise StorageError
+pub fn GuardedMemoryStore::events(Self, @contracts.RecordRef) -> ReadOnlyArray[WorkflowEvent] raise StorageError
+pub fn GuardedMemoryStore::guarded_commit(Self, GuardedCommitRequest) -> GuardedCommitOutcome raise StorageError
+pub fn GuardedMemoryStore::head(Self, @contracts.RecordRef) -> WorkflowHead raise StorageError
+pub fn GuardedMemoryStore::intents(Self, @contracts.RecordRef) -> ReadOnlyArray[OutboxIntent] raise StorageError
+pub fn GuardedMemoryStore::mutation_store(Self) -> MemoryStore
+pub fn GuardedMemoryStore::new(MemoryStore, GuardedWorkflowActivationReceipt) -> Self raise StorageError
+pub fn GuardedMemoryStore::new_for_profile(MemoryStore, GuardedWorkflowActivationReceipt, String) -> Self raise StorageError
+pub fn GuardedMemoryStore::read_checkpoint(Self, @contracts.RecordRef) -> CheckpointRecord? raise StorageError
+pub fn GuardedMemoryStore::registered_guard_profiles(Self) -> ReadOnlyArray[GuardProfile] raise StorageError
+pub fn GuardedMemoryStore::replay(Self, @contracts.RecordRef) -> ReplayResult raise StorageError
+pub fn GuardedMemoryStore::replay_registered_guard(Self, @contracts.RecordRef) -> ReplayResult raise StorageError
+pub fn GuardedMemoryStore::selected_guard_profile(Self) -> GuardProfile raise StorageError
+pub fn GuardedMemoryStore::write_checkpoint(Self, CheckpointRecord) -> Unit raise StorageError
+pub impl ClassifiedRegistryBoundGuardedStoragePort for GuardedMemoryStore
+pub impl GuardedStoragePort for GuardedMemoryStore
+pub impl RegistryBoundGuardedStoragePort for GuardedMemoryStore
+pub impl StoragePort for GuardedMemoryStore
+
+pub struct GuardedWorkflowActivationReceipt {
+  registry_version : @contracts.Version
+  binding : GuardedWorkflowBinding
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn GuardedWorkflowActivationReceipt::activation_revision(Self) -> Int64
+pub fn GuardedWorkflowActivationReceipt::canonical_bytes(Self) -> Bytes
+pub fn GuardedWorkflowActivationReceipt::digest(Self) -> @contracts.ContentDigest
+pub fn GuardedWorkflowActivationReceipt::guard_profiles(Self) -> ReadOnlyArray[GuardProfile]
+pub fn GuardedWorkflowActivationReceipt::mutation_workflow(Self) -> @contracts.RecordRef
+pub fn GuardedWorkflowActivationReceipt::registry_digest(Self) -> @contracts.ContentDigest
+pub fn GuardedWorkflowActivationReceipt::registry_generation(Self) -> Int64
+pub fn GuardedWorkflowActivationReceipt::registry_version(Self) -> @contracts.Version
+pub fn GuardedWorkflowActivationReceipt::workflow_binding(Self) -> GuardedWorkflowBinding
+
+pub struct GuardedWorkflowBinding {
+  registry_version : @contracts.Version
+  registry_generation : Int64
+  prior_registry_digest : @contracts.ContentDigest?
+  store_domain : String
+  workspace_identity : String
+  mutation_root_locator : String
+  mutation_root_identity : String
+  mutation_workflow : @contracts.RecordRef
+  profiles : ReadOnlyArray[GuardProfile]
+  guard_root_locators : ReadOnlyArray[String]
+  guard_root_identities : ReadOnlyArray[String]
+  guard_workflows : ReadOnlyArray[@contracts.RecordRef]
+  activation_revision : Int64
+  activation_head_digest : @contracts.ContentDigest?
+  activation_replay_digest : @contracts.ContentDigest
+  canonical : Bytes
+  registry_digest : @contracts.ContentDigest
+}
+pub fn GuardedWorkflowBinding::activation_revision(Self) -> Int64
+pub fn GuardedWorkflowBinding::canonical_bytes(Self) -> Bytes
+pub fn GuardedWorkflowBinding::guard_profile(Self, String) -> GuardProfile?
+pub fn GuardedWorkflowBinding::guard_profiles(Self) -> ReadOnlyArray[GuardProfile]
+pub fn GuardedWorkflowBinding::mutation_workflow(Self) -> @contracts.RecordRef
+pub fn GuardedWorkflowBinding::prior_registry_digest(Self) -> @contracts.ContentDigest?
+pub fn GuardedWorkflowBinding::registry_digest(Self) -> @contracts.ContentDigest
+pub fn GuardedWorkflowBinding::registry_generation(Self) -> Int64
+pub fn GuardedWorkflowBinding::registry_version(Self) -> @contracts.Version
+
+pub struct GuardedWorkflowEvolutionReceipt {
+  registry_version : @contracts.Version
+  prior_registry_generation : Int64
+  prior_registry_digest : @contracts.ContentDigest
+  current_binding : GuardedWorkflowBinding
+  added_profile_id : String
+  added_profile_digest : @contracts.ContentDigest
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn GuardedWorkflowEvolutionReceipt::activation_receipt(Self) -> GuardedWorkflowActivationReceipt
+pub fn GuardedWorkflowEvolutionReceipt::added_profile_digest(Self) -> @contracts.ContentDigest
+pub fn GuardedWorkflowEvolutionReceipt::added_profile_id(Self) -> String
+pub fn GuardedWorkflowEvolutionReceipt::canonical_bytes(Self) -> Bytes
+pub fn GuardedWorkflowEvolutionReceipt::digest(Self) -> @contracts.ContentDigest
+pub fn GuardedWorkflowEvolutionReceipt::guard_profiles(Self) -> ReadOnlyArray[GuardProfile]
+pub fn GuardedWorkflowEvolutionReceipt::mutation_workflow(Self) -> @contracts.RecordRef
+pub fn GuardedWorkflowEvolutionReceipt::prior_registry_digest(Self) -> @contracts.ContentDigest
+pub fn GuardedWorkflowEvolutionReceipt::prior_registry_generation(Self) -> Int64
+pub fn GuardedWorkflowEvolutionReceipt::registry_digest(Self) -> @contracts.ContentDigest
+pub fn GuardedWorkflowEvolutionReceipt::registry_generation(Self) -> Int64
+pub fn GuardedWorkflowEvolutionReceipt::registry_version(Self) -> @contracts.Version
+pub fn GuardedWorkflowEvolutionReceipt::workflow_binding(Self) -> GuardedWorkflowBinding
+
+pub struct MemoryStore {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  store_identity : String
+  batches : Array[Bytes]
+  checkpoints : Array[Bytes]
+  registry_declarations : Array[Bytes]
+  registry_markers : Array[Bytes]
+}
+pub fn MemoryStore::activate_guarded_workflow(Self, @contracts.RecordRef, Array[@contracts.RecordRef]) -> GuardedWorkflowActivationReceipt raise StorageError
+pub fn MemoryStore::activate_guarded_workflow_profiles(Self, @contracts.RecordRef, Array[GuardProfileConfig]) -> GuardedWorkflowActivationReceipt raise StorageError
+pub fn MemoryStore::add_guard_profile(Self, @contracts.RecordRef, GuardedWorkflowActivationReceipt, GuardProfileConfig) -> GuardedWorkflowEvolutionReceipt raise StorageError
+pub fn MemoryStore::commit(Self, CommitRequest) -> CommitResult raise StorageError
+pub fn MemoryStore::events(Self, @contracts.RecordRef) -> ReadOnlyArray[WorkflowEvent] raise StorageError
+pub fn MemoryStore::guarded_commit(Self, GuardedCommitRequest) -> GuardedCommitOutcome raise StorageError
+pub fn MemoryStore::head(Self, @contracts.RecordRef) -> WorkflowHead raise StorageError
+pub fn MemoryStore::intents(Self, @contracts.RecordRef) -> ReadOnlyArray[OutboxIntent] raise StorageError
+pub fn MemoryStore::new() -> Self
+pub fn MemoryStore::read_checkpoint(Self, @contracts.RecordRef) -> CheckpointRecord? raise StorageError
+pub fn MemoryStore::record_version(Self) -> @contracts.Version
+pub fn MemoryStore::registered_guard_profiles(Self, @contracts.RecordRef) -> ReadOnlyArray[GuardProfile] raise StorageError
+pub fn MemoryStore::replay(Self, @contracts.RecordRef) -> ReplayResult raise StorageError
+pub fn MemoryStore::schema_version(Self) -> @contracts.Version
+pub fn MemoryStore::write_checkpoint(Self, CheckpointRecord) -> Unit raise StorageError
+pub impl GuardedStoragePort for MemoryStore
+pub impl StoragePort for MemoryStore
+
+pub struct OutboxIntent {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  intent_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  causative_event : @contracts.RecordRef
+  idempotency_key : String
+  payload : @contracts.WireEnvelope
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+}
+pub fn OutboxIntent::canonical_bytes(Self) -> Bytes
+pub fn OutboxIntent::causative_event(Self) -> @contracts.RecordRef
+pub fn OutboxIntent::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn OutboxIntent::idempotency_key(Self) -> String
+pub fn OutboxIntent::intent_ref(Self) -> @contracts.RecordRef
+pub fn OutboxIntent::new(String, String, String, @contracts.RecordRef, @contracts.RecordRef, String, @contracts.WireEnvelope, Array[@contracts.EvidenceRef]) -> Self raise StorageError
+pub fn OutboxIntent::payload(Self) -> @contracts.WireEnvelope
+pub fn OutboxIntent::record_version(Self) -> @contracts.Version
+pub fn OutboxIntent::schema_version(Self) -> @contracts.Version
+pub fn OutboxIntent::workflow(Self) -> @contracts.RecordRef
+pub impl Eq for OutboxIntent
+
+pub struct RegistryBoundFileSystemStore {
+  guarded : FileSystemGuardedStore
+}
+pub fn RegistryBoundFileSystemStore::classified_guarded_commit(Self, GuardedCommitRequest) -> ClassifiedGuardedCommitOutcome raise StorageError
+pub fn RegistryBoundFileSystemStore::commit(Self, CommitRequest) -> CommitResult raise StorageError
+pub fn RegistryBoundFileSystemStore::events(Self, @contracts.RecordRef) -> ReadOnlyArray[WorkflowEvent] raise StorageError
+pub fn RegistryBoundFileSystemStore::guarded_commit(Self, GuardedCommitRequest) -> GuardedCommitOutcome raise StorageError
+pub fn RegistryBoundFileSystemStore::head(Self, @contracts.RecordRef) -> WorkflowHead raise StorageError
+pub fn RegistryBoundFileSystemStore::intents(Self, @contracts.RecordRef) -> ReadOnlyArray[OutboxIntent] raise StorageError
+pub fn RegistryBoundFileSystemStore::mutation_store(Self) -> FileSystemStore
+pub fn RegistryBoundFileSystemStore::new(FileSystemStore, GuardedWorkflowActivationReceipt) -> Self raise StorageError
+pub fn RegistryBoundFileSystemStore::new_for_profile(FileSystemStore, GuardedWorkflowActivationReceipt, String) -> Self raise StorageError
+pub fn RegistryBoundFileSystemStore::read_checkpoint(Self, @contracts.RecordRef) -> CheckpointRecord? raise StorageError
+pub fn RegistryBoundFileSystemStore::registered_guard_profiles(Self) -> ReadOnlyArray[GuardProfile] raise StorageError
+pub fn RegistryBoundFileSystemStore::replay(Self, @contracts.RecordRef) -> ReplayResult raise StorageError
+pub fn RegistryBoundFileSystemStore::replay_registered_guard(Self, @contracts.RecordRef) -> ReplayResult raise StorageError
+pub fn RegistryBoundFileSystemStore::selected_guard_profile(Self) -> GuardProfile raise StorageError
+pub fn RegistryBoundFileSystemStore::write_checkpoint(Self, CheckpointRecord) -> Unit raise StorageError
+pub impl ClassifiedRegistryBoundGuardedStoragePort for RegistryBoundFileSystemStore
+pub impl GuardedStoragePort for RegistryBoundFileSystemStore
+pub impl RegistryBoundGuardedStoragePort for RegistryBoundFileSystemStore
+pub impl StoragePort for RegistryBoundFileSystemStore
+
+pub struct ReplayResult {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  workflow : @contracts.RecordRef
+  events : ReadOnlyArray[WorkflowEvent]
+  intents : ReadOnlyArray[OutboxIntent]
+  committed_batches : ReadOnlyArray[CommittedBatchBoundary]
+  checkpoint : CheckpointRecord?
+  tail_events : ReadOnlyArray[WorkflowEvent]
+  head : WorkflowHead
+  replay_digest : @contracts.ContentDigest
+}
+pub fn ReplayResult::checkpoint(Self) -> CheckpointRecord?
+pub fn ReplayResult::committed_batches(Self) -> ReadOnlyArray[CommittedBatchBoundary]
+pub fn ReplayResult::events(Self) -> ReadOnlyArray[WorkflowEvent]
+pub fn ReplayResult::head(Self) -> WorkflowHead
+pub fn ReplayResult::intents(Self) -> ReadOnlyArray[OutboxIntent]
+pub fn ReplayResult::record_version(Self) -> @contracts.Version
+pub fn ReplayResult::replay_digest(Self) -> @contracts.ContentDigest
+pub fn ReplayResult::schema_version(Self) -> @contracts.Version
+pub fn ReplayResult::tail_events(Self) -> ReadOnlyArray[WorkflowEvent]
+pub fn ReplayResult::verified_prefix(Self, Int64) -> Self raise StorageError
+pub fn ReplayResult::workflow(Self) -> @contracts.RecordRef
+
+pub struct WorkflowEvent {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  workflow : @contracts.RecordRef
+  event_ref : @contracts.RecordRef
+  sequence : Int64
+  revision : Int64
+  idempotency_key : String
+  payload : @contracts.WireEnvelope
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  previous_event_digest : @contracts.ContentDigest?
+}
+pub fn WorkflowEvent::canonical_bytes(Self) -> Bytes
+pub fn WorkflowEvent::event_ref(Self) -> @contracts.RecordRef
+pub fn WorkflowEvent::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn WorkflowEvent::idempotency_key(Self) -> String
+pub fn WorkflowEvent::new(String, String, @contracts.RecordRef, String, Int64, Int64, String, @contracts.WireEnvelope, Array[@contracts.EvidenceRef], previous_event_digest? : @contracts.ContentDigest) -> Self raise StorageError
+pub fn WorkflowEvent::payload(Self) -> @contracts.WireEnvelope
+pub fn WorkflowEvent::previous_event_digest(Self) -> @contracts.ContentDigest?
+pub fn WorkflowEvent::record_version(Self) -> @contracts.Version
+pub fn WorkflowEvent::revision(Self) -> Int64
+pub fn WorkflowEvent::schema_version(Self) -> @contracts.Version
+pub fn WorkflowEvent::sequence(Self) -> Int64
+pub fn WorkflowEvent::workflow(Self) -> @contracts.RecordRef
+pub impl Eq for WorkflowEvent
+
+pub struct WorkflowHead {
+  workflow : @contracts.RecordRef
+  sequence : Int64
+  revision : Int64
+  last_event_digest : @contracts.ContentDigest?
+  event_count : Int64
+  intent_count : Int64
+} derive(Eq, @debug.Debug)
+pub fn WorkflowHead::event_count(Self) -> Int64
+pub fn WorkflowHead::intent_count(Self) -> Int64
+pub fn WorkflowHead::last_event_digest(Self) -> @contracts.ContentDigest?
+pub fn WorkflowHead::revision(Self) -> Int64
+pub fn WorkflowHead::sequence(Self) -> Int64
+pub fn WorkflowHead::workflow(Self) -> @contracts.RecordRef
+
+pub struct WorkflowHeadGuard {
+  workflow : @contracts.RecordRef
+  expected_revision : Int64
+  expected_head_digest : @contracts.ContentDigest?
+  expected_replay_digest : @contracts.ContentDigest
+  canonical : Bytes
+}
+pub fn WorkflowHeadGuard::canonical_bytes(Self) -> Bytes
+pub fn WorkflowHeadGuard::expected_head_digest(Self) -> @contracts.ContentDigest?
+pub fn WorkflowHeadGuard::expected_replay_digest(Self) -> @contracts.ContentDigest
+pub fn WorkflowHeadGuard::expected_revision(Self) -> Int64
+pub fn WorkflowHeadGuard::new(@contracts.RecordRef, Int64, @contracts.ContentDigest?, @contracts.ContentDigest) -> Self raise StorageError
+pub fn WorkflowHeadGuard::workflow(Self) -> @contracts.RecordRef
+pub impl Eq for WorkflowHeadGuard
+
+// Type aliases
+
+// Traits
+pub trait ClassifiedRegistryBoundGuardedStoragePort : RegistryBoundGuardedStoragePort {
+  fn classified_guarded_commit(Self, GuardedCommitRequest) -> ClassifiedGuardedCommitOutcome raise StorageError
+}
+
+pub(open) trait GuardedStoragePort : StoragePort {
+  fn guarded_commit(Self, GuardedCommitRequest) -> GuardedCommitOutcome raise StorageError
+}
+
+pub trait RegistryBoundGuardedStoragePort : GuardedStoragePort {
+  fn selected_guard_profile(Self) -> GuardProfile raise StorageError
+  fn registered_guard_profiles(Self) -> ReadOnlyArray[GuardProfile] raise StorageError
+  fn replay_registered_guard(Self, @contracts.RecordRef) -> ReplayResult raise StorageError
+}
+
+pub(open) trait StoragePort {
+  fn commit(Self, CommitRequest) -> CommitResult raise StorageError
+  fn replay(Self, @contracts.RecordRef) -> ReplayResult raise StorageError
+  fn write_checkpoint(Self, CheckpointRecord) -> Unit raise StorageError
+  fn read_checkpoint(Self, @contracts.RecordRef) -> CheckpointRecord? raise StorageError
+  fn head(Self, @contracts.RecordRef) -> WorkflowHead raise StorageError
+  fn events(Self, @contracts.RecordRef) -> ReadOnlyArray[WorkflowEvent] raise StorageError
+  fn intents(Self, @contracts.RecordRef) -> ReadOnlyArray[OutboxIntent] raise StorageError
+}
+

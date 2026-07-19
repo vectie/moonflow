@@ -1,0 +1,219 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/closed_loop/contracts"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn decide_envelope_replay(WireEnvelope, WireEnvelope) -> ReplayDecision raise ContractError
+
+pub fn decode_wire_envelope(Bytes) -> WireEnvelope raise ContractError
+
+pub fn encode_wire_envelope(WireEnvelope) -> Bytes
+
+pub fn negotiate_highest(VersionProfile, VersionProfile) -> Version raise ContractError
+
+pub fn sha256_digest(Bytes) -> ContentDigest
+
+pub fn sha256_hex(Bytes) -> String
+
+// Errors
+pub(all) suberror ContractError {
+  InvalidReferenceField(reference~ : String, field~ : String)
+  InvalidDigestSyntax(field~ : String)
+  UnsupportedDigestAlgorithm(String)
+  MalformedVersion(field~ : String)
+  UnsupportedVersion(field~ : String, version~ : String)
+  NoCommonVersion
+  InvalidVersionProfile
+  CanonicalizationError(String)
+  UnsupportedCanonicalVersion(String)
+  PayloadDigestMismatch(expected~ : String, actual~ : String)
+  EnvelopeDigestMismatch(expected~ : String, actual~ : String)
+  ConflictingReferenceIdentity(kind~ : String, id~ : String, version~ : String)
+  ConflictingEnvelopeIdentity(String)
+  DecodeError(String)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub struct ArtifactRef {
+  record : RecordRef
+  locator : String
+  media_type : String
+  run_ref : RecordRef?
+  stage_ref : RecordRef?
+  attempt_ref : RecordRef?
+  provenance_ref : RecordRef
+  observed_digest : ContentDigest
+  confidentiality : String?
+} derive(Eq, @debug.Debug)
+pub fn ArtifactRef::attempt_ref(Self) -> RecordRef?
+pub fn ArtifactRef::confidentiality(Self) -> String?
+pub fn ArtifactRef::locator(Self) -> String
+pub fn ArtifactRef::media_type(Self) -> String
+pub fn ArtifactRef::new(RecordRef, String, String, RecordRef, String, run_ref? : RecordRef, stage_ref? : RecordRef, attempt_ref? : RecordRef, confidentiality? : String) -> Self raise ContractError
+pub fn ArtifactRef::observed_digest(Self) -> ContentDigest
+pub fn ArtifactRef::provenance_ref(Self) -> RecordRef
+pub fn ArtifactRef::record(Self) -> RecordRef
+pub fn ArtifactRef::run_ref(Self) -> RecordRef?
+pub fn ArtifactRef::stage_ref(Self) -> RecordRef?
+
+pub struct ContentDigest {
+  algorithm : String
+  hex : String
+} derive(Compare, Eq, @debug.Debug)
+pub fn ContentDigest::algorithm(Self) -> String
+pub fn ContentDigest::hex(Self) -> String
+pub fn ContentDigest::parse(String) -> Self raise ContractError
+pub fn ContentDigest::text(Self) -> String
+
+pub struct EvidenceRef {
+  record : RecordRef
+  provenance_ref : RecordRef
+  observed_digest : ContentDigest
+  locator : String?
+  media_type : String?
+} derive(Eq, @debug.Debug)
+pub fn EvidenceRef::locator(Self) -> String?
+pub fn EvidenceRef::media_type(Self) -> String?
+pub fn EvidenceRef::new(RecordRef, RecordRef, String, locator? : String, media_type? : String) -> Self raise ContractError
+pub fn EvidenceRef::observed_digest(Self) -> ContentDigest
+pub fn EvidenceRef::provenance_ref(Self) -> RecordRef
+pub fn EvidenceRef::record(Self) -> RecordRef
+
+pub struct OpaqueExtension {
+  namespace_id : String
+  name : String
+  value : Bytes
+}
+pub fn OpaqueExtension::name(Self) -> String
+pub fn OpaqueExtension::namespace_id(Self) -> String
+pub fn OpaqueExtension::new(String, String, Bytes) -> Self raise ContractError
+pub fn OpaqueExtension::value(Self) -> Bytes
+pub impl Eq for OpaqueExtension
+
+pub struct RecordRef {
+  kind : String
+  id : String
+  version : Version
+  digest : ContentDigest
+} derive(Eq, @debug.Debug)
+pub fn RecordRef::digest(Self) -> ContentDigest
+pub fn RecordRef::id(Self) -> String
+pub fn RecordRef::kind(Self) -> String
+pub fn RecordRef::new(String, String, String, String) -> Self raise ContractError
+pub fn RecordRef::version(Self) -> Version
+
+pub(all) enum ReplayDecision {
+  ExactDuplicate
+  NewIdentity
+} derive(Eq, @debug.Debug)
+
+pub struct SchemaRef {
+  contract_id : String
+  contract_version : Version
+  schema_id : String
+  schema_version : Version
+  schema_digest : ContentDigest
+} derive(Eq, @debug.Debug)
+pub fn SchemaRef::contract_id(Self) -> String
+pub fn SchemaRef::contract_version(Self) -> Version
+pub fn SchemaRef::new(String, String, String, String, String) -> Self raise ContractError
+pub fn SchemaRef::schema_digest(Self) -> ContentDigest
+pub fn SchemaRef::schema_id(Self) -> String
+pub fn SchemaRef::schema_version(Self) -> Version
+
+pub struct Version {
+  major : Int
+  minor : Int
+  patch : Int
+  text : String
+} derive(Compare, Eq, @debug.Debug)
+pub fn Version::major(Self) -> Int
+pub fn Version::minor(Self) -> Int
+pub fn Version::parse(String) -> Self raise ContractError
+pub fn Version::patch(Self) -> Int
+pub fn Version::text(Self) -> String
+
+pub struct VersionProfile {
+  versions : ReadOnlyArray[Version]
+} derive(Eq, @debug.Debug)
+pub fn VersionProfile::new(Array[String]) -> Self raise ContractError
+pub fn VersionProfile::require_supported(Self, Version) -> Unit raise ContractError
+pub fn VersionProfile::supports(Self, Version) -> Bool
+pub fn VersionProfile::versions(Self) -> ReadOnlyArray[Version]
+
+pub struct WireEnvelope {
+  canonical_version : Version
+  contract_id : String
+  contract_version : Version
+  envelope_id : String
+  envelope_kind : String
+  subject : RecordRef
+  schema : SchemaRef
+  payload : Bytes
+  payload_digest : ContentDigest
+  producer_id : String
+  producer_version : Version
+  run_ref : RecordRef?
+  stage_ref : RecordRef?
+  attempt_ref : RecordRef?
+  correlation_ref : String?
+  causation_ref : String?
+  idempotency_ref : String?
+  artifacts : ReadOnlyArray[ArtifactRef]
+  evidence : ReadOnlyArray[EvidenceRef]
+  previous_digest : ContentDigest?
+  extensions : ReadOnlyArray[OpaqueExtension]
+  envelope_digest : ContentDigest
+}
+pub fn WireEnvelope::artifacts(Self) -> ReadOnlyArray[ArtifactRef]
+pub fn WireEnvelope::attempt_ref(Self) -> RecordRef?
+pub fn WireEnvelope::canonical_bytes(Self) -> Bytes
+pub fn WireEnvelope::canonical_version(Self) -> Version
+pub fn WireEnvelope::causation_ref(Self) -> String?
+pub fn WireEnvelope::contract_id(Self) -> String
+pub fn WireEnvelope::contract_version(Self) -> Version
+pub fn WireEnvelope::correlation_ref(Self) -> String?
+pub fn WireEnvelope::envelope_digest(Self) -> ContentDigest
+pub fn WireEnvelope::envelope_id(Self) -> String
+pub fn WireEnvelope::envelope_kind(Self) -> String
+pub fn WireEnvelope::evidence(Self) -> ReadOnlyArray[EvidenceRef]
+pub fn WireEnvelope::extensions(Self) -> ReadOnlyArray[OpaqueExtension]
+pub fn WireEnvelope::idempotency_ref(Self) -> String?
+pub fn WireEnvelope::new(String, String, String, String, RecordRef, SchemaRef, Bytes, String, String, Array[ArtifactRef], Array[EvidenceRef], run_ref? : RecordRef, stage_ref? : RecordRef, attempt_ref? : RecordRef, correlation_ref? : String, causation_ref? : String, idempotency_ref? : String, previous_digest? : ContentDigest, extensions? : Array[OpaqueExtension]) -> Self raise ContractError
+pub fn WireEnvelope::payload(Self) -> Bytes
+pub fn WireEnvelope::payload_digest(Self) -> ContentDigest
+pub fn WireEnvelope::previous_digest(Self) -> ContentDigest?
+pub fn WireEnvelope::producer_id(Self) -> String
+pub fn WireEnvelope::producer_version(Self) -> Version
+pub fn WireEnvelope::run_ref(Self) -> RecordRef?
+pub fn WireEnvelope::schema(Self) -> SchemaRef
+pub fn WireEnvelope::stage_ref(Self) -> RecordRef?
+pub fn WireEnvelope::subject(Self) -> RecordRef
+pub impl Eq for WireEnvelope
+
+// Type aliases
+
+// Traits
+pub(open) trait EnvelopeCodec {
+  fn supported_versions(Self) -> VersionProfile
+  fn encode_envelope(Self, WireEnvelope, Version) -> Bytes raise ContractError
+  fn decode_envelope(Self, Bytes, Version) -> WireEnvelope raise ContractError
+}
+
+pub(open) trait ReceiptExchangePort {
+  fn supported_versions(Self) -> VersionProfile
+  fn encode_receipt(Self, WireEnvelope, Version) -> Bytes raise ContractError
+  fn decode_receipt(Self, Bytes, Version) -> WireEnvelope raise ContractError
+}
+
+pub(open) trait WorkExchangePort {
+  fn supported_versions(Self) -> VersionProfile
+  fn encode_request(Self, WireEnvelope, Version) -> Bytes raise ContractError
+  fn decode_request(Self, Bytes, Version) -> WireEnvelope raise ContractError
+  fn encode_result(Self, WireEnvelope, Version) -> Bytes raise ContractError
+  fn decode_result(Self, Bytes, Version) -> WireEnvelope raise ContractError
+}
+
