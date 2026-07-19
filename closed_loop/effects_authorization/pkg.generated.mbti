@@ -1,0 +1,396 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/closed_loop/effects_authorization"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonflow/closed_loop/contracts",
+}
+
+// Values
+pub let authorization_event_genesis_digest_v2 : @contracts.ContentDigest
+
+pub let contract_id : String
+
+pub let contract_version : String
+
+pub fn decode_authorization_event_envelope_v2(Bytes) -> Result[AuthorizationEventEnvelopeV2, AuthorizationError]
+
+pub fn decode_authorized_attempt_registration(String, Bytes) -> Result[AuthorizedAttemptRegistration, AuthorizationError]
+
+pub fn decode_authorized_effect_intent(String, Bytes) -> Result[AuthorizedEffectIntent, AuthorizationError]
+
+pub fn decode_eligible_authorization_proof_v2(String, Bytes) -> Result[EligibleAuthorizationProofV2, AuthorizationError]
+
+pub fn decode_pre_dispatch_authorization(String, Bytes) -> Result[PreDispatchAuthorization, AuthorizationError]
+
+pub fn derive_eligible_authorization_proof_commit_v2(AuthorizationEventStoreV2, String, String) -> Result[EligibleAuthorizationProofCommitV2, AuthorizationError]
+
+pub let lane : String
+
+pub fn recover_v2_store(Array[Bytes]) -> Result[AuthorizationEventStoreV2, AuthorizationError]
+
+// Errors
+
+// Types and methods
+pub struct AttemptLink {
+  attempt_ref : @contracts.RecordRef
+  attempt_digest : @contracts.ContentDigest
+  committed_position : ReplayPosition
+} derive(Eq)
+pub fn AttemptLink::attempt_digest(Self) -> @contracts.ContentDigest
+pub fn AttemptLink::attempt_ref(Self) -> @contracts.RecordRef
+pub fn AttemptLink::committed_position(Self) -> ReplayPosition
+pub fn AttemptLink::new(@contracts.RecordRef, @contracts.ContentDigest, ReplayPosition) -> Result[Self, AuthorizationError]
+
+pub struct AuthorizationControls {
+  capability : CapabilityBinding?
+  evidence : ReadOnlyArray[EvidenceBinding]
+  evidence_digest : @contracts.ContentDigest
+  fencing : FencingBinding?
+  not_before_inclusive : Int64?
+  deadline_inclusive : Int64
+} derive(Eq)
+pub fn AuthorizationControls::accepts(Self, Int64) -> Bool
+pub fn AuthorizationControls::capability(Self) -> CapabilityBinding?
+pub fn AuthorizationControls::deadline_inclusive(Self) -> Int64
+pub fn AuthorizationControls::evidence(Self) -> Array[EvidenceBinding]
+pub fn AuthorizationControls::evidence_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizationControls::fencing(Self) -> FencingBinding?
+pub fn AuthorizationControls::new(CapabilityBinding?, ArrayView[EvidenceBinding], FencingBinding?, Int64?, Int64) -> Result[Self, AuthorizationError]
+pub fn AuthorizationControls::not_before_inclusive(Self) -> Int64?
+
+pub enum AuthorizationError {
+  Blank(String)
+  Negative(String)
+  IncompleteOption(String)
+  DuplicateEvidence(String)
+  TupleMismatch(String)
+  OutsideGovernanceWindow
+  OutsideDispatchWindow
+  InvalidInterval(String)
+  CausalMismatch(String)
+  CanonicalCodecError(String)
+  ContentReferenceMismatch(String)
+  ReplayConflict(String)
+  PreviousDigestMismatch(String)
+  ProducerMismatch(String)
+  ControlMismatch(String)
+  EligibilityMismatch(String)
+  GovernanceMismatch(String)
+  ProofMismatch(String)
+  DispatchIneligible(String)
+} derive(Eq, @debug.Debug)
+
+pub struct AuthorizationEventEnvelopeV2 {
+  kind : AuthorizationEventKindV2
+  contract : String
+  schema : String
+  event_ref : @contracts.RecordRef
+  event_digest : @contracts.ContentDigest
+  record_ref : @contracts.RecordRef
+  record_digest : @contracts.ContentDigest
+  sequence : Int64
+  revision : Int64
+  causation : @contracts.ContentDigest
+  previous_digest : @contracts.ContentDigest
+  payload : Bytes
+  canonical : Bytes
+} derive(Eq)
+pub fn AuthorizationEventEnvelopeV2::canonical_bytes(Self) -> Bytes
+pub fn AuthorizationEventEnvelopeV2::causation(Self) -> @contracts.ContentDigest
+pub fn AuthorizationEventEnvelopeV2::contract(Self) -> String
+pub fn AuthorizationEventEnvelopeV2::event_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizationEventEnvelopeV2::event_ref(Self) -> @contracts.RecordRef
+pub fn AuthorizationEventEnvelopeV2::kind(Self) -> AuthorizationEventKindV2
+pub fn AuthorizationEventEnvelopeV2::new(String, AuthorizationEventKindV2, String, String, @contracts.RecordRef, @contracts.ContentDigest, Int64, Int64, @contracts.ContentDigest, @contracts.ContentDigest, Bytes) -> Result[Self, AuthorizationError]
+pub fn AuthorizationEventEnvelopeV2::payload(Self) -> Bytes
+pub fn AuthorizationEventEnvelopeV2::previous_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizationEventEnvelopeV2::record_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizationEventEnvelopeV2::record_ref(Self) -> @contracts.RecordRef
+pub fn AuthorizationEventEnvelopeV2::revision(Self) -> Int64
+pub fn AuthorizationEventEnvelopeV2::schema(Self) -> String
+pub fn AuthorizationEventEnvelopeV2::sequence(Self) -> Int64
+
+pub enum AuthorizationEventKindV2 {
+  PreDispatchAuthorizationCommittedV2
+  AuthorizedAttemptRegistrationCommittedV2
+  AuthorizedEffectIntentCommittedV2
+  EligibleAuthorizationProofCommittedV2
+} derive(Eq, @debug.Debug)
+pub fn AuthorizationEventKindV2::authorized_attempt_registration_committed() -> Self
+pub fn AuthorizationEventKindV2::authorized_effect_intent_committed() -> Self
+pub fn AuthorizationEventKindV2::eligible_authorization_proof_committed() -> Self
+pub fn AuthorizationEventKindV2::pre_dispatch_authorization_committed() -> Self
+pub fn AuthorizationEventKindV2::text(Self) -> String
+
+pub struct AuthorizationEventStoreV2 {
+  events_ : Array[AuthorizationEventEnvelopeV2]
+  frames_ : Array[Bytes]
+}
+pub fn AuthorizationEventStoreV2::append(Self, AuthorizationEventEnvelopeV2) -> Result[Bool, AuthorizationError]
+pub fn AuthorizationEventStoreV2::events(Self) -> Array[AuthorizationEventEnvelopeV2]
+pub fn AuthorizationEventStoreV2::frames(Self) -> Array[Bytes]
+pub fn AuthorizationEventStoreV2::new() -> Self
+
+pub struct AuthorizationGovernanceBinding {
+  decision_ref : @contracts.RecordRef
+  decision_digest : @contracts.ContentDigest
+  policy_ref : @contracts.RecordRef
+  policy_digest : @contracts.ContentDigest
+  governed_subject : @contracts.RecordRef
+  valid_from_inclusive : Int64
+  valid_until_inclusive : Int64
+} derive(Eq)
+pub fn AuthorizationGovernanceBinding::accepts(Self, Int64) -> Bool
+pub fn AuthorizationGovernanceBinding::decision_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizationGovernanceBinding::decision_ref(Self) -> @contracts.RecordRef
+pub fn AuthorizationGovernanceBinding::governed_subject(Self) -> @contracts.RecordRef
+pub fn AuthorizationGovernanceBinding::new(@contracts.RecordRef, @contracts.ContentDigest, @contracts.RecordRef, @contracts.ContentDigest, @contracts.RecordRef, Int64, Int64) -> Result[Self, AuthorizationError]
+pub fn AuthorizationGovernanceBinding::policy_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizationGovernanceBinding::policy_ref(Self) -> @contracts.RecordRef
+pub fn AuthorizationGovernanceBinding::valid_from_inclusive(Self) -> Int64
+pub fn AuthorizationGovernanceBinding::valid_until_inclusive(Self) -> Int64
+
+pub struct AuthorizationLink {
+  authorization_ref : @contracts.RecordRef
+  authorization_digest : @contracts.ContentDigest
+  committed_position : ReplayPosition
+} derive(Eq)
+pub fn AuthorizationLink::authorization_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizationLink::authorization_ref(Self) -> @contracts.RecordRef
+pub fn AuthorizationLink::committed_position(Self) -> ReplayPosition
+pub fn AuthorizationLink::new(@contracts.RecordRef, @contracts.ContentDigest, ReplayPosition) -> Result[Self, AuthorizationError]
+
+pub struct AuthorizationManifest {
+  authorization_ref : @contracts.RecordRef
+  attempt_ref : @contracts.RecordRef
+  intent_ref : @contracts.RecordRef
+} derive(Eq)
+pub fn AuthorizationManifest::attempt_ref(Self) -> @contracts.RecordRef
+pub fn AuthorizationManifest::authorization_ref(Self) -> @contracts.RecordRef
+pub fn AuthorizationManifest::intent_ref(Self) -> @contracts.RecordRef
+pub fn AuthorizationManifest::new(@contracts.RecordRef, @contracts.RecordRef, @contracts.RecordRef) -> Self
+
+pub struct AuthorizationProof {
+  authorization : AuthorizationLink
+  attempt : AttemptLink
+  intent_ref : @contracts.RecordRef
+  intent_digest : @contracts.ContentDigest
+} derive(Eq)
+pub fn AuthorizationProof::attempt(Self) -> AttemptLink
+pub fn AuthorizationProof::authorization(Self) -> AuthorizationLink
+pub fn AuthorizationProof::intent_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizationProof::intent_ref(Self) -> @contracts.RecordRef
+pub fn AuthorizationProof::new(AuthorizationLink, AttemptLink, @contracts.RecordRef, @contracts.ContentDigest) -> Result[Self, AuthorizationError]
+
+pub struct AuthorizedAttemptRegistration {
+  record_ref : @contracts.RecordRef
+  record_digest : @contracts.ContentDigest
+  authorization : AuthorizationLink
+  producer : ProducerDescriptor
+  governance : AuthorizationGovernanceBinding
+  eligibility : EligibilityBinding
+  planned : PlannedEffectTuple
+  controls : AuthorizationControls
+  canonical : Bytes
+} derive(Eq)
+pub fn AuthorizedAttemptRegistration::authorization(Self) -> AuthorizationLink
+pub fn AuthorizedAttemptRegistration::canonical_bytes(Self) -> Bytes
+pub fn AuthorizedAttemptRegistration::controls(Self) -> AuthorizationControls
+pub fn AuthorizedAttemptRegistration::eligibility(Self) -> EligibilityBinding
+pub fn AuthorizedAttemptRegistration::governance(Self) -> AuthorizationGovernanceBinding
+pub fn AuthorizedAttemptRegistration::new(String, AuthorizationLink, ProducerDescriptor, AuthorizationGovernanceBinding, EligibilityBinding, PlannedEffectTuple, AuthorizationControls) -> Result[Self, AuthorizationError]
+pub fn AuthorizedAttemptRegistration::planned(Self) -> PlannedEffectTuple
+pub fn AuthorizedAttemptRegistration::producer(Self) -> ProducerDescriptor
+pub fn AuthorizedAttemptRegistration::record_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizedAttemptRegistration::record_ref(Self) -> @contracts.RecordRef
+
+pub struct AuthorizedDispatchEnvelope {
+  eligible : EligibleAuthorizedIntent
+  manifest : AuthorizationManifest
+} derive(Eq)
+pub fn AuthorizedDispatchEnvelope::eligible(Self) -> EligibleAuthorizedIntent
+pub fn AuthorizedDispatchEnvelope::manifest(Self) -> AuthorizationManifest
+pub fn AuthorizedDispatchEnvelope::new(EligibleAuthorizedIntent, AuthorizationManifest) -> Result[Self, AuthorizationError]
+
+pub struct AuthorizedEffectIntent {
+  record_ref : @contracts.RecordRef
+  record_digest : @contracts.ContentDigest
+  authorization : AuthorizationLink
+  attempt : AttemptLink
+  producer : ProducerDescriptor
+  governance : AuthorizationGovernanceBinding
+  eligibility : EligibilityBinding
+  planned : PlannedEffectTuple
+  controls : AuthorizationControls
+  canonical : Bytes
+} derive(Eq)
+pub fn AuthorizedEffectIntent::attempt(Self) -> AttemptLink
+pub fn AuthorizedEffectIntent::authorization(Self) -> AuthorizationLink
+pub fn AuthorizedEffectIntent::canonical_bytes(Self) -> Bytes
+pub fn AuthorizedEffectIntent::controls(Self) -> AuthorizationControls
+pub fn AuthorizedEffectIntent::eligibility(Self) -> EligibilityBinding
+pub fn AuthorizedEffectIntent::governance(Self) -> AuthorizationGovernanceBinding
+pub fn AuthorizedEffectIntent::new(String, AuthorizationLink, AttemptLink, ProducerDescriptor, AuthorizationGovernanceBinding, EligibilityBinding, PlannedEffectTuple, AuthorizationControls) -> Result[Self, AuthorizationError]
+pub fn AuthorizedEffectIntent::planned(Self) -> PlannedEffectTuple
+pub fn AuthorizedEffectIntent::producer(Self) -> ProducerDescriptor
+pub fn AuthorizedEffectIntent::record_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorizedEffectIntent::record_ref(Self) -> @contracts.RecordRef
+
+pub struct CapabilityBinding {
+  capability_ref : @contracts.RecordRef
+  capability_digest : @contracts.ContentDigest
+} derive(Eq)
+pub fn CapabilityBinding::capability_digest(Self) -> @contracts.ContentDigest
+pub fn CapabilityBinding::capability_ref(Self) -> @contracts.RecordRef
+pub fn CapabilityBinding::new(@contracts.RecordRef, @contracts.ContentDigest) -> Result[Self, AuthorizationError]
+
+pub struct EligibilityBinding {
+  clock : Int64
+  authoritative_head : ReplayPosition
+} derive(Eq)
+pub fn EligibilityBinding::authoritative_head(Self) -> ReplayPosition
+pub fn EligibilityBinding::clock(Self) -> Int64
+pub fn EligibilityBinding::new(Int64, ReplayPosition) -> Result[Self, AuthorizationError]
+
+pub struct EligibleAuthorizationProofCommitV2 {
+  proof : EligibleAuthorizationProofV2
+  event : AuthorizationEventEnvelopeV2
+} derive(Eq)
+pub fn EligibleAuthorizationProofCommitV2::contains(Self, EligibleAuthorizationProofV2) -> Bool
+pub fn EligibleAuthorizationProofCommitV2::event(Self) -> AuthorizationEventEnvelopeV2
+pub fn EligibleAuthorizationProofCommitV2::proof(Self) -> EligibleAuthorizationProofV2
+
+pub struct EligibleAuthorizationProofV2 {
+  record_ref : @contracts.RecordRef
+  digest : @contracts.ContentDigest
+  authorization : AuthorizationLink
+  attempt : AttemptLink
+  intent_ref : @contracts.RecordRef
+  intent_digest : @contracts.ContentDigest
+  intent_position : ReplayPosition
+  producer : ProducerDescriptor
+  governance : AuthorizationGovernanceBinding
+  eligibility : EligibilityBinding
+  planned : PlannedEffectTuple
+  controls : AuthorizationControls
+  canonical_bytes : Bytes
+} derive(Eq)
+pub fn EligibleAuthorizationProofV2::attempt(Self) -> AttemptLink
+pub fn EligibleAuthorizationProofV2::authorization(Self) -> AuthorizationLink
+pub fn EligibleAuthorizationProofV2::canonical_bytes(Self) -> Bytes
+pub fn EligibleAuthorizationProofV2::controls(Self) -> AuthorizationControls
+pub fn EligibleAuthorizationProofV2::digest(Self) -> @contracts.ContentDigest
+pub fn EligibleAuthorizationProofV2::eligibility(Self) -> EligibilityBinding
+pub fn EligibleAuthorizationProofV2::governance(Self) -> AuthorizationGovernanceBinding
+pub fn EligibleAuthorizationProofV2::intent_digest(Self) -> @contracts.ContentDigest
+pub fn EligibleAuthorizationProofV2::intent_position(Self) -> ReplayPosition
+pub fn EligibleAuthorizationProofV2::intent_ref(Self) -> @contracts.RecordRef
+pub fn EligibleAuthorizationProofV2::planned(Self) -> PlannedEffectTuple
+pub fn EligibleAuthorizationProofV2::producer(Self) -> ProducerDescriptor
+pub fn EligibleAuthorizationProofV2::record_ref(Self) -> @contracts.RecordRef
+
+pub struct EligibleAuthorizedIntent {
+  intent : AuthorizedEffectIntent
+  proof : AuthorizationProof
+} derive(Eq)
+pub fn EligibleAuthorizedIntent::intent(Self) -> AuthorizedEffectIntent
+pub fn EligibleAuthorizedIntent::new(AuthorizedEffectIntent, AuthorizationProof) -> Result[Self, AuthorizationError]
+pub fn EligibleAuthorizedIntent::proof(Self) -> AuthorizationProof
+
+pub struct EvidenceBinding {
+  evidence_ref : @contracts.RecordRef
+  evidence_digest : @contracts.ContentDigest
+} derive(Eq)
+pub fn EvidenceBinding::evidence_digest(Self) -> @contracts.ContentDigest
+pub fn EvidenceBinding::evidence_ref(Self) -> @contracts.RecordRef
+pub fn EvidenceBinding::new(@contracts.RecordRef, @contracts.ContentDigest) -> Result[Self, AuthorizationError]
+
+pub struct FencingBinding {
+  fencing_ref : @contracts.RecordRef
+  lease_epoch : Int64
+  fencing_token : Int64
+} derive(Eq)
+pub fn FencingBinding::fencing_ref(Self) -> @contracts.RecordRef
+pub fn FencingBinding::fencing_token(Self) -> Int64
+pub fn FencingBinding::lease_epoch(Self) -> Int64
+pub fn FencingBinding::new(@contracts.RecordRef, Int64, Int64) -> Result[Self, AuthorizationError]
+
+pub struct PlannedEffectTuple {
+  workflow : @contracts.RecordRef
+  subject : @contracts.RecordRef
+  logical_attempt_id : String
+  logical_attempt_version : String
+  logical_effect_id : String
+  logical_effect_version : String
+  next_ordinal : Int64
+  external_idempotency : String
+  requested_work_ref : @contracts.RecordRef
+  requested_work_digest : @contracts.ContentDigest
+  effect_request_ref : @contracts.RecordRef
+  effect_request_digest : @contracts.ContentDigest
+  artifact_digest : @contracts.ContentDigest
+} derive(Eq)
+pub fn PlannedEffectTuple::artifact_digest(Self) -> @contracts.ContentDigest
+pub fn PlannedEffectTuple::effect_request_digest(Self) -> @contracts.ContentDigest
+pub fn PlannedEffectTuple::effect_request_ref(Self) -> @contracts.RecordRef
+pub fn PlannedEffectTuple::external_idempotency(Self) -> String
+pub fn PlannedEffectTuple::logical_attempt_id(Self) -> String
+pub fn PlannedEffectTuple::logical_attempt_version(Self) -> String
+pub fn PlannedEffectTuple::logical_effect_id(Self) -> String
+pub fn PlannedEffectTuple::logical_effect_version(Self) -> String
+pub fn PlannedEffectTuple::new(@contracts.RecordRef, @contracts.RecordRef, String, String, String, String, Int64, String, @contracts.RecordRef, @contracts.ContentDigest, @contracts.RecordRef, @contracts.ContentDigest, @contracts.ContentDigest) -> Result[Self, AuthorizationError]
+pub fn PlannedEffectTuple::next_ordinal(Self) -> Int64
+pub fn PlannedEffectTuple::requested_work_digest(Self) -> @contracts.ContentDigest
+pub fn PlannedEffectTuple::requested_work_ref(Self) -> @contracts.RecordRef
+pub fn PlannedEffectTuple::subject(Self) -> @contracts.RecordRef
+pub fn PlannedEffectTuple::workflow(Self) -> @contracts.RecordRef
+
+pub struct PreDispatchAuthorization {
+  record_ref : @contracts.RecordRef
+  record_digest : @contracts.ContentDigest
+  producer : ProducerDescriptor
+  governance : AuthorizationGovernanceBinding
+  eligibility : EligibilityBinding
+  planned : PlannedEffectTuple
+  controls : AuthorizationControls
+  canonical : Bytes
+} derive(Eq)
+pub fn PreDispatchAuthorization::canonical_bytes(Self) -> Bytes
+pub fn PreDispatchAuthorization::controls(Self) -> AuthorizationControls
+pub fn PreDispatchAuthorization::eligibility(Self) -> EligibilityBinding
+pub fn PreDispatchAuthorization::governance(Self) -> AuthorizationGovernanceBinding
+pub fn PreDispatchAuthorization::new(String, ProducerDescriptor, AuthorizationGovernanceBinding, EligibilityBinding, PlannedEffectTuple, AuthorizationControls) -> Result[Self, AuthorizationError]
+pub fn PreDispatchAuthorization::planned(Self) -> PlannedEffectTuple
+pub fn PreDispatchAuthorization::producer(Self) -> ProducerDescriptor
+pub fn PreDispatchAuthorization::record_digest(Self) -> @contracts.ContentDigest
+pub fn PreDispatchAuthorization::record_ref(Self) -> @contracts.RecordRef
+
+pub struct ProducerDescriptor {
+  contract_id : String
+  contract_version : String
+  record_ref : @contracts.RecordRef
+  record_digest : @contracts.ContentDigest
+} derive(Eq)
+pub fn ProducerDescriptor::contract_id(Self) -> String
+pub fn ProducerDescriptor::contract_version(Self) -> String
+pub fn ProducerDescriptor::new(String, String, @contracts.RecordRef, @contracts.ContentDigest) -> Result[Self, AuthorizationError]
+pub fn ProducerDescriptor::record_digest(Self) -> @contracts.ContentDigest
+pub fn ProducerDescriptor::record_ref(Self) -> @contracts.RecordRef
+
+pub struct ReplayPosition {
+  event_ref : @contracts.RecordRef
+  sequence : Int64
+  revision : Int64
+  event_digest : @contracts.ContentDigest
+} derive(Eq)
+pub fn ReplayPosition::event_digest(Self) -> @contracts.ContentDigest
+pub fn ReplayPosition::event_ref(Self) -> @contracts.RecordRef
+pub fn ReplayPosition::new(@contracts.RecordRef, Int64, Int64, @contracts.ContentDigest) -> Result[Self, AuthorizationError]
+pub fn ReplayPosition::revision(Self) -> Int64
+pub fn ReplayPosition::sequence(Self) -> Int64
+
+// Type aliases
+
+// Traits
+

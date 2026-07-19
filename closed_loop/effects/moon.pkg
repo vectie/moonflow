@@ -1,0 +1,12 @@
+import {
+  "vectie/moonflow/closed_loop/contracts",
+  "vectie/moonflow/closed_loop/storage",
+  "vectie/moonflow/closed_loop/governance",
+  "vectie/moonflow/closed_loop/retry_authority",
+  "moonbitlang/core/buffer",
+  "moonbitlang/core/encoding/utf8",
+}
+
+options(
+  targets: { "effects_native_wbtest.mbt": [ "native" ] },
+)

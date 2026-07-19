@@ -1,0 +1,643 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/closed_loop/effects"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonflow/closed_loop/contracts",
+  "vectie/moonflow/closed_loop/governance",
+  "vectie/moonflow/closed_loop/retry_authority",
+  "vectie/moonflow/closed_loop/storage",
+}
+
+// Values
+pub fn decode_effect_recovery_state_v3(Bytes) -> EffectRecoveryStateV3 raise EffectsError
+
+pub fn decode_external_recovery_outcome_v3(Bytes) -> ExternalRecoveryOutcomeV3 raise EffectsError
+
+pub fn encode_effect_recovery_state_v3(EffectRecoveryStateV3) -> Bytes
+
+pub fn encode_external_recovery_outcome_v3(ExternalRecoveryOutcomeV3) -> Bytes
+
+pub fn fold_authoritative_replay(EffectsProjection, @storage.ReplayResult, ReplayCatalog) -> EffectsProjection raise EffectsError
+
+pub fn fold_committed_effects_bytes(EffectsProjection, @storage.ReplayResult) -> EffectsProjection raise EffectsError
+
+// Errors
+pub(all) suberror EffectsError {
+  InvalidState(field~ : String)
+  UnsupportedVersion(field~ : String, version~ : String)
+  IdentityMismatch(field~ : String)
+  GovernanceViolation(field~ : String)
+  AuthorityExpired(expires_at~ : Int64, observed_at~ : Int64)
+  ReviewReceiptViolation(field~ : String)
+  OrderingViolation(field~ : String)
+  RevisionMismatch(expected~ : Int64, actual~ : Int64)
+  DigestMismatch(field~ : String)
+  EvidenceMismatch(field~ : String)
+  IdempotencyConflict(key~ : String)
+  FencingViolation(field~ : String)
+  OutboxAtomicityViolation(field~ : String)
+  OutcomeConflict(field~ : String)
+  ReconciliationViolation(field~ : String)
+  RetryEligibilityViolation(field~ : String)
+  MalformedRecord(field~ : String)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub struct AttemptObservation {
+  record_version : @contracts.Version
+  attempt_ref : @contracts.RecordRef
+  observation : @contracts.WireEnvelope
+  capability_receipt : CapabilityReceipt?
+}
+pub fn AttemptObservation::attempt_ref(Self) -> @contracts.RecordRef
+pub fn AttemptObservation::new(@contracts.RecordRef, @contracts.WireEnvelope, capability_receipt? : CapabilityReceipt) -> Self
+
+pub struct AttemptRegistration {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  attempt_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  causal_event_ref : @contracts.RecordRef
+  attempt_ordinal : Int64
+  requested_work : @contracts.WireEnvelope
+  requested_work_bytes : Bytes
+  requested_work_digest : @contracts.ContentDigest
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  evidence_digest : @contracts.ContentDigest
+  governance : GovernanceBinding
+  created_at : Int64
+  idempotency_key : String
+  stage_ref : @contracts.RecordRef?
+  retry_of_intent_ref : @contracts.RecordRef?
+  retry_eligibility_receipt : CommittedRetryEligibilityReceiptV2?
+  retry_plan : @retry_authority.RetryPlanProposalV2?
+  previous_digest : @contracts.ContentDigest
+  canonical : Bytes
+}
+pub fn AttemptRegistration::attempt_ordinal(Self) -> Int64
+pub fn AttemptRegistration::attempt_ref(Self) -> @contracts.RecordRef
+pub fn AttemptRegistration::binding_digest(Self) -> @contracts.ContentDigest
+pub fn AttemptRegistration::canonical_bytes(Self) -> Bytes
+pub fn AttemptRegistration::causal_event_ref(Self) -> @contracts.RecordRef
+pub fn AttemptRegistration::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn AttemptRegistration::governance(Self) -> GovernanceBinding
+pub fn AttemptRegistration::idempotency_key(Self) -> String
+pub fn AttemptRegistration::new(String, String, @contracts.RecordRef, @storage.WorkflowEvent, Int64, @contracts.WireEnvelope, Array[@contracts.EvidenceRef], GovernanceBinding, Int64, String, @contracts.ContentDigest, stage_ref? : @contracts.RecordRef, retry_of_intent_ref? : @contracts.RecordRef, retry_eligibility_receipt? : CommittedRetryEligibilityReceiptV2, retry_plan? : @retry_authority.RetryPlanProposalV2) -> Self raise EffectsError
+pub fn AttemptRegistration::previous_digest(Self) -> @contracts.ContentDigest
+pub fn AttemptRegistration::requested_work(Self) -> @contracts.WireEnvelope
+pub fn AttemptRegistration::requested_work_digest(Self) -> @contracts.ContentDigest
+pub fn AttemptRegistration::retry_eligibility_receipt(Self) -> CommittedRetryEligibilityReceiptV2?
+pub fn AttemptRegistration::retry_of_intent_ref(Self) -> @contracts.RecordRef?
+pub fn AttemptRegistration::retry_plan(Self) -> @retry_authority.RetryPlanProposalV2?
+pub fn AttemptRegistration::workflow(Self) -> @contracts.RecordRef
+pub impl Eq for AttemptRegistration
+
+pub struct CapabilityReceipt {
+  record_version : @contracts.Version
+  capability_ref : @contracts.RecordRef
+  observation : @contracts.WireEnvelope
+  observed_at : Int64
+  canonical : Bytes
+  binding_digest : @contracts.ContentDigest
+}
+pub fn CapabilityReceipt::binding_digest(Self) -> @contracts.ContentDigest
+pub fn CapabilityReceipt::capability_ref(Self) -> @contracts.RecordRef
+pub fn CapabilityReceipt::new(@contracts.RecordRef, @contracts.WireEnvelope, Int64) -> Self
+
+pub struct CommittedEffectTerminalSourceV2 {
+  receipt_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  root_intent_ref : @contracts.RecordRef
+  root_attempt_ref : @contracts.RecordRef
+  source_intent_ref : @contracts.RecordRef
+  source_attempt_ref : @contracts.RecordRef
+  lineage_digest : @contracts.ContentDigest
+  attempt_count : Int64
+  retry_count : Int64
+  state : ReconciliationState
+  source_record_ref : @contracts.RecordRef
+  source_record_bytes : Bytes
+  source_observed_at : Int64
+  source_event_ref : @contracts.RecordRef
+  source_event_bytes : Bytes
+  source_evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  unknown_receipt_ref : @contracts.RecordRef?
+  unknown_receipt_bytes : Bytes?
+  unknown_receipt_event_ref : @contracts.RecordRef?
+  unknown_receipt_event_bytes : Bytes?
+  reconciliation_request_ref : @contracts.RecordRef?
+  reconciliation_request_bytes : Bytes?
+  reconciliation_request_event_ref : @contracts.RecordRef?
+  reconciliation_request_event_bytes : Bytes?
+  projection_sequence : Int64
+  projection_revision : Int64
+  projection_head_digest : @contracts.ContentDigest
+  projection_state_digest : @contracts.ContentDigest
+  projection_replay_digest : @contracts.ContentDigest
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn CommittedEffectTerminalSourceV2::attempt_count(Self) -> Int64
+pub fn CommittedEffectTerminalSourceV2::canonical_bytes(Self) -> Bytes
+pub fn CommittedEffectTerminalSourceV2::digest(Self) -> @contracts.ContentDigest
+pub fn CommittedEffectTerminalSourceV2::lineage_digest(Self) -> @contracts.ContentDigest
+pub fn CommittedEffectTerminalSourceV2::receipt_ref(Self) -> @contracts.RecordRef
+pub fn CommittedEffectTerminalSourceV2::retry_count(Self) -> Int64
+pub fn CommittedEffectTerminalSourceV2::root_attempt_ref(Self) -> @contracts.RecordRef
+pub fn CommittedEffectTerminalSourceV2::root_intent_ref(Self) -> @contracts.RecordRef
+pub fn CommittedEffectTerminalSourceV2::source_attempt_ref(Self) -> @contracts.RecordRef
+pub fn CommittedEffectTerminalSourceV2::source_event_bytes(Self) -> Bytes
+pub fn CommittedEffectTerminalSourceV2::source_event_ref(Self) -> @contracts.RecordRef
+pub fn CommittedEffectTerminalSourceV2::source_evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn CommittedEffectTerminalSourceV2::source_intent_ref(Self) -> @contracts.RecordRef
+pub fn CommittedEffectTerminalSourceV2::source_observed_at(Self) -> Int64
+pub fn CommittedEffectTerminalSourceV2::source_record_bytes(Self) -> Bytes
+pub fn CommittedEffectTerminalSourceV2::source_record_ref(Self) -> @contracts.RecordRef
+pub fn CommittedEffectTerminalSourceV2::state(Self) -> ReconciliationState
+pub fn CommittedEffectTerminalSourceV2::validate_current(Self, EffectsProjection) -> Unit raise EffectsError
+pub fn CommittedEffectTerminalSourceV2::workflow(Self) -> @contracts.RecordRef
+
+pub struct CommittedRetryEligibilityReceiptV2 {
+  receipt_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  root_intent_ref : @contracts.RecordRef
+  root_attempt_ref : @contracts.RecordRef
+  source_intent_ref : @contracts.RecordRef
+  source_attempt_ref : @contracts.RecordRef
+  lineage_digest : @contracts.ContentDigest
+  attempt_count : Int64
+  retry_count : Int64
+  retry_ordinal : Int64
+  cause_key : String
+  source_record_ref : @contracts.RecordRef
+  source_record_digest : @contracts.ContentDigest
+  source_observed_at : Int64
+  source_event_ref : @contracts.RecordRef
+  source_event_digest : @contracts.ContentDigest
+  unknown_receipt_ref : @contracts.RecordRef?
+  unknown_receipt_digest : @contracts.ContentDigest?
+  unknown_receipt_event_ref : @contracts.RecordRef?
+  reconciliation_request_ref : @contracts.RecordRef?
+  reconciliation_request_digest : @contracts.ContentDigest?
+  reconciliation_request_event_ref : @contracts.RecordRef?
+  projection_sequence : Int64
+  projection_revision : Int64
+  projection_head_digest : @contracts.ContentDigest
+  projection_state_digest : @contracts.ContentDigest
+  projection_replay_digest : @contracts.ContentDigest
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn CommittedRetryEligibilityReceiptV2::attempt_count(Self) -> Int64
+pub fn CommittedRetryEligibilityReceiptV2::canonical_bytes(Self) -> Bytes
+pub fn CommittedRetryEligibilityReceiptV2::cause_key(Self) -> String
+pub fn CommittedRetryEligibilityReceiptV2::digest(Self) -> @contracts.ContentDigest
+pub fn CommittedRetryEligibilityReceiptV2::lineage_digest(Self) -> @contracts.ContentDigest
+pub fn CommittedRetryEligibilityReceiptV2::projection_head_digest(Self) -> @contracts.ContentDigest
+pub fn CommittedRetryEligibilityReceiptV2::projection_replay_digest(Self) -> @contracts.ContentDigest
+pub fn CommittedRetryEligibilityReceiptV2::projection_revision(Self) -> Int64
+pub fn CommittedRetryEligibilityReceiptV2::projection_sequence(Self) -> Int64
+pub fn CommittedRetryEligibilityReceiptV2::projection_state_digest(Self) -> @contracts.ContentDigest
+pub fn CommittedRetryEligibilityReceiptV2::receipt_ref(Self) -> @contracts.RecordRef
+pub fn CommittedRetryEligibilityReceiptV2::retry_count(Self) -> Int64
+pub fn CommittedRetryEligibilityReceiptV2::retry_ordinal(Self) -> Int64
+pub fn CommittedRetryEligibilityReceiptV2::root_attempt_ref(Self) -> @contracts.RecordRef
+pub fn CommittedRetryEligibilityReceiptV2::root_intent_ref(Self) -> @contracts.RecordRef
+pub fn CommittedRetryEligibilityReceiptV2::source_attempt_ref(Self) -> @contracts.RecordRef
+pub fn CommittedRetryEligibilityReceiptV2::source_event_digest(Self) -> @contracts.ContentDigest
+pub fn CommittedRetryEligibilityReceiptV2::source_event_ref(Self) -> @contracts.RecordRef
+pub fn CommittedRetryEligibilityReceiptV2::source_intent_ref(Self) -> @contracts.RecordRef
+pub fn CommittedRetryEligibilityReceiptV2::source_observed_at(Self) -> Int64
+pub fn CommittedRetryEligibilityReceiptV2::source_record_ref(Self) -> @contracts.RecordRef
+pub fn CommittedRetryEligibilityReceiptV2::validate_current(Self, EffectsProjection) -> Unit raise EffectsError
+pub fn CommittedRetryEligibilityReceiptV2::workflow(Self) -> @contracts.RecordRef
+
+pub struct DispatchEligibleIntent {
+  record_version : @contracts.Version
+  intent : EffectIntent
+  authoritative_replay_digest : @contracts.ContentDigest
+}
+pub fn DispatchEligibleIntent::authoritative_replay_digest(Self) -> @contracts.ContentDigest
+pub fn DispatchEligibleIntent::intent(Self) -> EffectIntent
+
+pub struct DispatchObservation {
+  record_version : @contracts.Version
+  observation_ref : @contracts.RecordRef
+  intent_ref : @contracts.RecordRef
+  external_idempotency_key : String
+  fencing : FencingBinding?
+  observation : @contracts.WireEnvelope
+  observed_at : Int64
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  canonical : Bytes
+}
+pub fn DispatchObservation::canonical_bytes(Self) -> Bytes
+pub fn DispatchObservation::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn DispatchObservation::external_idempotency_key(Self) -> String
+pub fn DispatchObservation::intent_ref(Self) -> @contracts.RecordRef
+pub fn DispatchObservation::new(String, EffectIntent, @contracts.WireEnvelope, Int64, Array[@contracts.EvidenceRef]) -> Self raise EffectsError
+pub fn DispatchObservation::observation_ref(Self) -> @contracts.RecordRef
+
+pub struct EffectIntent {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  intent_ref : @contracts.RecordRef
+  attempt_ref : @contracts.RecordRef
+  attempt_digest : @contracts.ContentDigest
+  workflow : @contracts.RecordRef
+  governed_subject : @contracts.RecordRef
+  governance : GovernanceBinding
+  effect_request : @contracts.WireEnvelope
+  effect_request_bytes : Bytes
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  evidence_digest : @contracts.ContentDigest
+  external_idempotency_key : String
+  capability_ref : @contracts.RecordRef
+  capability_kind : String
+  fencing : FencingBinding?
+  created_at : Int64
+  causation_ref : @contracts.RecordRef
+  previous_digest : @contracts.ContentDigest
+  canonical : Bytes
+}
+pub fn EffectIntent::attempt_ref(Self) -> @contracts.RecordRef
+pub fn EffectIntent::binding_digest(Self) -> @contracts.ContentDigest
+pub fn EffectIntent::canonical_bytes(Self) -> Bytes
+pub fn EffectIntent::capability_kind(Self) -> String
+pub fn EffectIntent::capability_ref(Self) -> @contracts.RecordRef
+pub fn EffectIntent::effect_request(Self) -> @contracts.WireEnvelope
+pub fn EffectIntent::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn EffectIntent::external_idempotency_key(Self) -> String
+pub fn EffectIntent::fencing(Self) -> FencingBinding?
+pub fn EffectIntent::governance(Self) -> GovernanceBinding
+pub fn EffectIntent::intent_ref(Self) -> @contracts.RecordRef
+pub fn EffectIntent::new(String, String, AttemptRegistration, GovernanceBinding, @contracts.WireEnvelope, Array[@contracts.EvidenceRef], String, @contracts.RecordRef, String, Int64, @contracts.RecordRef, @contracts.ContentDigest, Bool, fencing? : FencingBinding) -> Self raise EffectsError
+pub fn EffectIntent::previous_digest(Self) -> @contracts.ContentDigest
+pub fn EffectIntent::workflow(Self) -> @contracts.RecordRef
+pub impl Eq for EffectIntent
+
+pub struct EffectReceipt {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  receipt_ref : @contracts.RecordRef
+  intent_ref : @contracts.RecordRef
+  intent_digest : @contracts.ContentDigest
+  external_idempotency_key : String
+  attempt_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  capability_ref : @contracts.RecordRef
+  governed_subject : @contracts.RecordRef
+  authority_grant_ref : @contracts.RecordRef
+  review_receipt_ref : @contracts.RecordRef
+  fencing : FencingBinding?
+  dispatcher_receipt : @contracts.WireEnvelope
+  dispatcher_receipt_bytes : Bytes
+  outcome : ExternalOutcome
+  observed_at : Int64
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  canonical : Bytes
+}
+pub fn EffectReceipt::binding_digest(Self) -> @contracts.ContentDigest
+pub fn EffectReceipt::canonical_bytes(Self) -> Bytes
+pub fn EffectReceipt::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn EffectReceipt::external_idempotency_key(Self) -> String
+pub fn EffectReceipt::intent_ref(Self) -> @contracts.RecordRef
+pub fn EffectReceipt::new(String, String, EffectIntent, @contracts.WireEnvelope, ExternalOutcome, Int64, Array[@contracts.EvidenceRef], observed_fencing? : FencingBinding) -> Self raise EffectsError
+pub fn EffectReceipt::outcome(Self) -> ExternalOutcome
+pub fn EffectReceipt::receipt_ref(Self) -> @contracts.RecordRef
+pub impl Eq for EffectReceipt
+
+pub(all) enum EffectRecoveryStateV3 {
+  RecoveryDispatchEligibleV3
+  RecoveryDispatchClaimedV3
+  RecoveryDispatchAttemptedV3
+  RecoveryKnownSuccessV3
+  RecoveryKnownFailureV3
+  RecoveryUnknownRequiresReconciliationV3
+  RecoveryReconciliationClaimedV3
+  RecoveryReconciledSuccessV3
+  RecoveryReconciledFailureV3
+  RecoveryConfirmedNotAppliedRetryEligibleV3
+  RecoveryBackoffPendingV3
+  RecoveryExhaustedV3
+  RecoveryManualInterventionV3
+} derive(Eq, @debug.Debug)
+
+pub struct EffectsProjection {
+  projection_version : @contracts.Version
+  workflow : @contracts.RecordRef
+  policy_ref : @contracts.RecordRef
+  sequence : Int64
+  revision : Int64
+  last_event_digest : @contracts.ContentDigest?
+  attempts : ReadOnlyArray[AttemptRegistration]
+  intents : ReadOnlyArray[EffectIntent]
+  eligible : ReadOnlyArray[DispatchEligibleIntent]
+  observations : ReadOnlyArray[DispatchObservation]
+  receipts : ReadOnlyArray[EffectReceipt]
+  receipt_event_refs : ReadOnlyArray[@contracts.RecordRef]
+  reconciliation_requests : ReadOnlyArray[ReconciliationRequest]
+  reconciliation_request_event_refs : ReadOnlyArray[@contracts.RecordRef]
+  reconciliations : ReadOnlyArray[ReconciliationRecord]
+  reconciliation_event_refs : ReadOnlyArray[@contracts.RecordRef]
+  registry : ExternalIdempotencyRegistry
+  replay_digest : @contracts.ContentDigest?
+  strict_replay : @storage.ReplayResult?
+  strict_snapshot_digest : @contracts.ContentDigest?
+  canonical : Bytes
+  state_digest : @contracts.ContentDigest
+}
+pub fn EffectsProjection::attempts(Self) -> ReadOnlyArray[AttemptRegistration]
+pub fn EffectsProjection::canonical_bytes(Self) -> Bytes
+pub fn EffectsProjection::committed_effect_terminal_source_v2(Self, @contracts.RecordRef) -> CommittedEffectTerminalSourceV2? raise EffectsError
+pub fn EffectsProjection::committed_intent_refs(Self) -> ReadOnlyArray[@contracts.RecordRef] raise EffectsError
+pub fn EffectsProjection::committed_retry_eligibility_receipt(Self, @contracts.RecordRef) -> CommittedRetryEligibilityReceiptV2? raise EffectsError
+pub fn EffectsProjection::committed_retry_plan(Self, @contracts.RecordRef) -> @retry_authority.RetryPlanProposalV2? raise EffectsError
+pub fn EffectsProjection::committed_retry_receipt_for_attempt(Self, @contracts.RecordRef) -> CommittedRetryEligibilityReceiptV2? raise EffectsError
+pub fn EffectsProjection::intents(Self) -> ReadOnlyArray[EffectIntent]
+pub fn EffectsProjection::last_event_digest(Self) -> @contracts.ContentDigest?
+pub fn EffectsProjection::latest_attempt_intent_refs(Self) -> (@contracts.RecordRef?, @contracts.RecordRef?) raise EffectsError
+pub fn EffectsProjection::new(@contracts.RecordRef, @contracts.RecordRef) -> Self
+pub fn EffectsProjection::registry(Self) -> ExternalIdempotencyRegistry
+pub fn EffectsProjection::retry_eligible(Self, @contracts.RecordRef) -> Bool
+pub fn EffectsProjection::revision(Self) -> Int64
+pub fn EffectsProjection::sequence(Self) -> Int64
+pub fn EffectsProjection::state_digest(Self) -> @contracts.ContentDigest
+pub fn EffectsProjection::state_for(Self, @contracts.RecordRef) -> ReconciliationState raise EffectsError
+pub fn EffectsProjection::strict_attempt_target_v2(Self, @contracts.RecordRef) -> StrictAttemptTargetV2 raise EffectsError
+pub fn EffectsProjection::strict_consumed_event_refs(Self) -> ReadOnlyArray[@contracts.RecordRef] raise EffectsError
+pub fn EffectsProjection::strict_dispatch_target_v2(Self, @contracts.RecordRef) -> StrictDispatchTargetV2 raise EffectsError
+pub fn EffectsProjection::strict_intent_state_v2(Self, @contracts.RecordRef) -> StrictIntentStateV2 raise EffectsError
+pub fn EffectsProjection::strict_legacy_transition_catalog_v3(Self) -> ReadOnlyArray[StrictLegacyTransitionIdentityV3] raise EffectsError
+pub fn EffectsProjection::strict_matched_outbox_ref_for(Self, @contracts.RecordRef) -> @contracts.RecordRef raise EffectsError
+pub fn EffectsProjection::strict_matched_outbox_refs(Self) -> ReadOnlyArray[@contracts.RecordRef] raise EffectsError
+pub fn EffectsProjection::strict_recovery_intent_catalog_v3(Self) -> ReadOnlyArray[StrictRecoveryIntentIdentityV3] raise EffectsError
+pub fn EffectsProjection::strict_recovery_target_v3(Self, @contracts.RecordRef) -> StrictRecoveryTargetV3 raise EffectsError
+pub fn EffectsProjection::strict_semantic_governance_v2(Self) -> Bool
+pub fn EffectsProjection::workflow(Self) -> @contracts.RecordRef
+
+pub struct ExternalIdempotencyEntry {
+  key : String
+  intent_ref : @contracts.RecordRef
+  intent_digest : @contracts.ContentDigest
+  receipt_ref : @contracts.RecordRef?
+  outcome : ExternalOutcome?
+}
+pub fn ExternalIdempotencyEntry::intent_ref(Self) -> @contracts.RecordRef
+pub fn ExternalIdempotencyEntry::key(Self) -> String
+pub fn ExternalIdempotencyEntry::outcome(Self) -> ExternalOutcome?
+
+pub struct ExternalIdempotencyRegistry {
+  record_version : @contracts.Version
+  entries : ReadOnlyArray[ExternalIdempotencyEntry]
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn ExternalIdempotencyRegistry::canonical_bytes(Self) -> Bytes
+pub fn ExternalIdempotencyRegistry::entries(Self) -> ReadOnlyArray[ExternalIdempotencyEntry]
+pub fn ExternalIdempotencyRegistry::state_digest(Self) -> @contracts.ContentDigest
+
+pub(all) enum ExternalOutcome {
+  Succeeded
+  Failed
+  Unknown
+} derive(Eq, @debug.Debug)
+
+pub(all) enum ExternalRecoveryOutcomeV3 {
+  RecoveryKnownSucceededV3
+  RecoveryKnownFailedV3
+  RecoveryConfirmedNotAppliedV3
+  RecoveryStillUnknownV3
+} derive(Eq, @debug.Debug)
+
+pub struct FencingBinding {
+  fence_ref : @contracts.RecordRef
+  lease_epoch : Int64
+  fencing_value : Int64
+  canonical : Bytes
+}
+pub fn FencingBinding::canonical_bytes(Self) -> Bytes
+pub fn FencingBinding::fence_ref(Self) -> @contracts.RecordRef
+pub fn FencingBinding::fencing_token(Self) -> Int64
+pub fn FencingBinding::lease_epoch(Self) -> Int64
+pub fn FencingBinding::new(@contracts.RecordRef, Int64, Int64) -> Self raise EffectsError
+pub impl Eq for FencingBinding
+
+pub struct GovernanceBinding {
+  record_version : @contracts.Version
+  workflow : @contracts.RecordRef
+  policy_ref : @contracts.RecordRef
+  authority_request_ref : @contracts.RecordRef
+  authority_grant_ref : @contracts.RecordRef
+  authority_ref : @contracts.RecordRef
+  authority_expires_at : Int64?
+  review_request_ref : @contracts.RecordRef
+  review_decision_ref : @contracts.RecordRef
+  reviewer_ref : @contracts.RecordRef
+  review_receipt_ref : @contracts.RecordRef
+  governed_subject : @contracts.RecordRef
+  governed_subject_digest : @contracts.ContentDigest
+  projection_digest : @contracts.ContentDigest
+  authoritative_replay_digest : @contracts.ContentDigest
+  binding_digest : @contracts.ContentDigest
+  canonical : Bytes
+}
+pub fn GovernanceBinding::authority_expires_at(Self) -> Int64?
+pub fn GovernanceBinding::authority_grant_ref(Self) -> @contracts.RecordRef
+pub fn GovernanceBinding::authority_ref(Self) -> @contracts.RecordRef
+pub fn GovernanceBinding::authority_request_ref(Self) -> @contracts.RecordRef
+pub fn GovernanceBinding::binding_digest(Self) -> @contracts.ContentDigest
+pub fn GovernanceBinding::canonical_bytes(Self) -> Bytes
+pub fn GovernanceBinding::governed_subject(Self) -> @contracts.RecordRef
+pub fn GovernanceBinding::governed_subject_digest(Self) -> @contracts.ContentDigest
+pub fn GovernanceBinding::new(@governance.GovernancePolicy, @storage.ReplayResult, @governance.AuthorityRequest, @governance.AuthorityDecision, @governance.ReviewRequest, @governance.ReviewDecision, @governance.ReviewReceipt) -> Self raise EffectsError
+pub fn GovernanceBinding::new_strict_v2(@governance.GovernancePolicy, @storage.ReplayResult, @governance.AuthorityRequest, @governance.AuthorityDecision, @governance.ReviewRequest, @governance.ReviewDecision, @governance.ReviewReceipt) -> Self raise EffectsError
+pub fn GovernanceBinding::policy_ref(Self) -> @contracts.RecordRef
+pub fn GovernanceBinding::review_receipt_ref(Self) -> @contracts.RecordRef
+pub fn GovernanceBinding::workflow(Self) -> @contracts.RecordRef
+
+pub struct PreparedEffectCommit {
+  record_version : @contracts.Version
+  effect_intent : EffectIntent
+  event : @storage.WorkflowEvent
+  outbox_intent : @storage.OutboxIntent
+  commit_request : @storage.CommitRequest
+}
+pub fn PreparedEffectCommit::commit_request(Self) -> @storage.CommitRequest
+pub fn PreparedEffectCommit::effect_intent(Self) -> EffectIntent
+pub fn PreparedEffectCommit::event(Self) -> @storage.WorkflowEvent
+pub fn PreparedEffectCommit::outbox_intent(Self) -> @storage.OutboxIntent
+
+pub struct ReconciliationRecord {
+  record_version : @contracts.Version
+  reconciliation_ref : @contracts.RecordRef
+  intent_ref : @contracts.RecordRef
+  request_ref : @contracts.RecordRef
+  external_idempotency_key : String
+  resolution : ReconciliationResolution
+  observation : @contracts.WireEnvelope
+  reconciled_at : Int64
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  canonical : Bytes
+}
+pub fn ReconciliationRecord::canonical_bytes(Self) -> Bytes
+pub fn ReconciliationRecord::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn ReconciliationRecord::external_idempotency_key(Self) -> String
+pub fn ReconciliationRecord::intent_ref(Self) -> @contracts.RecordRef
+pub fn ReconciliationRecord::new(String, EffectIntent, ReconciliationRequest, ReconciliationResolution, @contracts.WireEnvelope, Int64, Array[@contracts.EvidenceRef]) -> Self raise EffectsError
+pub fn ReconciliationRecord::reconciliation_ref(Self) -> @contracts.RecordRef
+pub fn ReconciliationRecord::resolution(Self) -> ReconciliationResolution
+
+pub struct ReconciliationRequest {
+  record_version : @contracts.Version
+  request_ref : @contracts.RecordRef
+  intent_ref : @contracts.RecordRef
+  unknown_receipt_ref : @contracts.RecordRef
+  external_idempotency_key : String
+  requested_at : Int64
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  canonical : Bytes
+}
+pub fn ReconciliationRequest::canonical_bytes(Self) -> Bytes
+pub fn ReconciliationRequest::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn ReconciliationRequest::external_idempotency_key(Self) -> String
+pub fn ReconciliationRequest::intent_ref(Self) -> @contracts.RecordRef
+pub fn ReconciliationRequest::new(String, EffectIntent, EffectReceipt, Int64, Array[@contracts.EvidenceRef]) -> Self raise EffectsError
+pub fn ReconciliationRequest::request_ref(Self) -> @contracts.RecordRef
+
+pub(all) enum ReconciliationResolution {
+  ReconciledSucceeded
+  ReconciledFailed
+  ReconciledNotApplied
+} derive(Eq, @debug.Debug)
+
+pub(all) enum ReconciliationState {
+  RegisteredNoIntent
+  DurableIntentDispatchEligible
+  DispatchObservationPending
+  KnownSuccess
+  KnownFailure
+  UnknownOutcomeRequiresReconciliation
+  ReconciliationRequestedState
+  ReconciledSuccessState
+  ReconciledFailureState
+  ReconciledNotAppliedRetryEligible
+} derive(Eq, @debug.Debug)
+
+pub struct ReplayCatalog {
+  registrations : ReadOnlyArray[AttemptRegistration]
+  intents : ReadOnlyArray[EffectIntent]
+  observations : ReadOnlyArray[DispatchObservation]
+  receipts : ReadOnlyArray[EffectReceipt]
+  reconciliation_requests : ReadOnlyArray[ReconciliationRequest]
+  reconciliations : ReadOnlyArray[ReconciliationRecord]
+}
+pub fn ReplayCatalog::new(Array[AttemptRegistration], Array[EffectIntent], Array[DispatchObservation], Array[EffectReceipt], Array[ReconciliationRequest], Array[ReconciliationRecord]) -> Self
+
+pub struct StrictAttemptTargetV2 {
+  attempt_ref : @contracts.RecordRef
+  requested_work : @contracts.WireEnvelope
+  idempotency_key : String
+  authoritative_replay_digest : @contracts.ContentDigest
+  attempt_canonical : Bytes
+}
+pub fn StrictAttemptTargetV2::attempt_canonical_bytes(Self) -> Bytes
+pub fn StrictAttemptTargetV2::attempt_ref(Self) -> @contracts.RecordRef
+pub fn StrictAttemptTargetV2::authoritative_replay_digest(Self) -> @contracts.ContentDigest
+pub fn StrictAttemptTargetV2::idempotency_key(Self) -> String
+pub fn StrictAttemptTargetV2::requested_work(Self) -> @contracts.WireEnvelope
+
+pub struct StrictDispatchTargetV2 {
+  intent_ref : @contracts.RecordRef
+  attempt_ref : @contracts.RecordRef
+  governed_subject : @contracts.RecordRef
+  effect_request : @contracts.WireEnvelope
+  external_idempotency_key : String
+  outbox_ref : @contracts.RecordRef
+  authoritative_replay_digest : @contracts.ContentDigest
+  intent_canonical : Bytes
+}
+pub fn StrictDispatchTargetV2::attempt_ref(Self) -> @contracts.RecordRef
+pub fn StrictDispatchTargetV2::authoritative_replay_digest(Self) -> @contracts.ContentDigest
+pub fn StrictDispatchTargetV2::effect_request(Self) -> @contracts.WireEnvelope
+pub fn StrictDispatchTargetV2::external_idempotency_key(Self) -> String
+pub fn StrictDispatchTargetV2::governed_subject(Self) -> @contracts.RecordRef
+pub fn StrictDispatchTargetV2::intent_canonical_bytes(Self) -> Bytes
+pub fn StrictDispatchTargetV2::intent_ref(Self) -> @contracts.RecordRef
+pub fn StrictDispatchTargetV2::outbox_ref(Self) -> @contracts.RecordRef
+
+pub struct StrictIntentStateV2 {
+  intent_ref : @contracts.RecordRef
+  attempt_ref : @contracts.RecordRef
+  governed_subject : @contracts.RecordRef
+  external_idempotency_key : String
+  outbox_ref : @contracts.RecordRef
+  state : ReconciliationState
+  authoritative_replay_digest : @contracts.ContentDigest
+  intent_canonical : Bytes
+}
+pub fn StrictIntentStateV2::attempt_ref(Self) -> @contracts.RecordRef
+pub fn StrictIntentStateV2::authoritative_replay_digest(Self) -> @contracts.ContentDigest
+pub fn StrictIntentStateV2::external_idempotency_key(Self) -> String
+pub fn StrictIntentStateV2::governed_subject(Self) -> @contracts.RecordRef
+pub fn StrictIntentStateV2::intent_canonical_bytes(Self) -> Bytes
+pub fn StrictIntentStateV2::intent_ref(Self) -> @contracts.RecordRef
+pub fn StrictIntentStateV2::outbox_ref(Self) -> @contracts.RecordRef
+pub fn StrictIntentStateV2::state(Self) -> ReconciliationState
+
+pub struct StrictLegacyTransitionIdentityV3 {
+  event_ref : @contracts.RecordRef
+  intent_ref : @contracts.RecordRef
+}
+pub fn StrictLegacyTransitionIdentityV3::event_ref(Self) -> @contracts.RecordRef
+pub fn StrictLegacyTransitionIdentityV3::intent_ref(Self) -> @contracts.RecordRef
+
+pub struct StrictRecoveryIntentIdentityV3 {
+  intent_ref : @contracts.RecordRef
+  attempt_ref : @contracts.RecordRef
+  governed_subject : @contracts.RecordRef
+  outbox_ref : @contracts.RecordRef
+  capability_ref : @contracts.RecordRef
+  capability_kind : String
+  authoritative_replay_digest : @contracts.ContentDigest
+  intent_canonical : Bytes
+}
+pub fn StrictRecoveryIntentIdentityV3::attempt_ref(Self) -> @contracts.RecordRef
+pub fn StrictRecoveryIntentIdentityV3::authoritative_replay_digest(Self) -> @contracts.ContentDigest
+pub fn StrictRecoveryIntentIdentityV3::capability_kind(Self) -> String
+pub fn StrictRecoveryIntentIdentityV3::capability_ref(Self) -> @contracts.RecordRef
+pub fn StrictRecoveryIntentIdentityV3::governed_subject(Self) -> @contracts.RecordRef
+pub fn StrictRecoveryIntentIdentityV3::intent_canonical_bytes(Self) -> Bytes
+pub fn StrictRecoveryIntentIdentityV3::intent_ref(Self) -> @contracts.RecordRef
+pub fn StrictRecoveryIntentIdentityV3::outbox_ref(Self) -> @contracts.RecordRef
+
+pub struct StrictRecoveryTargetV3 {
+  intent_ref : @contracts.RecordRef
+  attempt_ref : @contracts.RecordRef
+  governed_subject : @contracts.RecordRef
+  provider_operation : @contracts.WireEnvelope
+  external_idempotency_key : String
+  outbox_ref : @contracts.RecordRef
+  capability_ref : @contracts.RecordRef
+  capability_kind : String
+  permitted_evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  authoritative_replay_digest : @contracts.ContentDigest
+  intent_canonical : Bytes
+}
+pub fn StrictRecoveryTargetV3::attempt_ref(Self) -> @contracts.RecordRef
+pub fn StrictRecoveryTargetV3::authoritative_replay_digest(Self) -> @contracts.ContentDigest
+pub fn StrictRecoveryTargetV3::capability_kind(Self) -> String
+pub fn StrictRecoveryTargetV3::capability_ref(Self) -> @contracts.RecordRef
+pub fn StrictRecoveryTargetV3::external_idempotency_key(Self) -> String
+pub fn StrictRecoveryTargetV3::governed_subject(Self) -> @contracts.RecordRef
+pub fn StrictRecoveryTargetV3::intent_canonical_bytes(Self) -> Bytes
+pub fn StrictRecoveryTargetV3::intent_ref(Self) -> @contracts.RecordRef
+pub fn StrictRecoveryTargetV3::outbox_ref(Self) -> @contracts.RecordRef
+pub fn StrictRecoveryTargetV3::permitted_evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn StrictRecoveryTargetV3::provider_operation(Self) -> @contracts.WireEnvelope
+
+// Type aliases
+
+// Traits
+

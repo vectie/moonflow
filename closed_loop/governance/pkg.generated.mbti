@@ -1,0 +1,340 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/closed_loop/governance"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonflow/closed_loop/contracts",
+  "vectie/moonflow/closed_loop/storage",
+}
+
+// Values
+pub fn fold_replay(GovernancePolicy, @storage.ReplayResult) -> GovernanceProjection raise
+
+pub fn prepare_event(GovernanceProjection, String, GovernanceAction) -> @storage.WorkflowEvent raise
+
+pub fn prepare_governance_commit(GovernanceProjection, String, Array[@storage.WorkflowEvent], Array[@storage.OutboxIntent]) -> @storage.CommitRequest raise
+
+pub fn prepare_request_intent(@storage.WorkflowEvent, String, String, @contracts.WireEnvelope, Array[@contracts.EvidenceRef]) -> @storage.OutboxIntent raise
+
+// Errors
+pub(all) suberror GovernanceError {
+  InvalidState(field~ : String)
+  IdentityMismatch(field~ : String)
+  OrderingMismatch(field~ : String)
+  RevisionMismatch(field~ : String, expected~ : Int64, actual~ : Int64)
+  ExpiryViolation(field~ : String)
+  DigestMismatch(field~ : String)
+  EvidenceViolation(field~ : String)
+  CriteriaViolation(field~ : String)
+  IdempotencyConflict(key~ : String)
+  ReceiptBindingFailure(field~ : String)
+  UnsupportedVersion(field~ : String, version~ : String)
+  InvalidEventKind(String)
+  CausationMismatch(field~ : String)
+  MalformedPayload(field~ : String)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub struct AuthorityDecision {
+  policy_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  decision_ref : @contracts.RecordRef
+  request_ref : @contracts.RecordRef
+  outcome : AuthorityDecisionOutcome
+  attestation : @contracts.WireEnvelope
+  authority_ref : @contracts.RecordRef
+  decided_at : Int64
+  evidence_digest : @contracts.ContentDigest
+  criteria_digest : @contracts.ContentDigest
+  prior_revision : Int64
+  canonical : Bytes
+}
+pub fn AuthorityDecision::authority_ref(Self) -> @contracts.RecordRef
+pub fn AuthorityDecision::binding_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorityDecision::canonical_bytes(Self) -> Bytes
+pub fn AuthorityDecision::decided_at(Self) -> Int64
+pub fn AuthorityDecision::decision_ref(Self) -> @contracts.RecordRef
+pub fn AuthorityDecision::deny(GovernancePolicy, @contracts.RecordRef, String, String, AuthorityRequest, @contracts.WireEnvelope, @contracts.RecordRef, Int64, Int64) -> Self raise
+pub fn AuthorityDecision::grant(GovernancePolicy, @contracts.RecordRef, String, String, AuthorityRequest, @contracts.WireEnvelope, @contracts.RecordRef, Int64, Int64) -> Self raise
+pub fn AuthorityDecision::outcome(Self) -> AuthorityDecisionOutcome
+pub fn AuthorityDecision::request_ref(Self) -> @contracts.RecordRef
+
+pub(all) enum AuthorityDecisionOutcome {
+  Granted
+  Denied
+} derive(Eq, @debug.Debug)
+
+pub struct AuthorityExpiration {
+  policy_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  expiration_ref : @contracts.RecordRef
+  request_ref : @contracts.RecordRef
+  expires_at : Int64
+  asserted_at : Int64
+  prior_revision : Int64
+  canonical : Bytes
+}
+pub fn AuthorityExpiration::asserted_at(Self) -> Int64
+pub fn AuthorityExpiration::canonical_bytes(Self) -> Bytes
+pub fn AuthorityExpiration::expiration_ref(Self) -> @contracts.RecordRef
+pub fn AuthorityExpiration::new(GovernancePolicy, @contracts.RecordRef, String, String, AuthorityRequest, Int64, Int64) -> Self raise
+pub fn AuthorityExpiration::request_ref(Self) -> @contracts.RecordRef
+
+pub struct AuthorityRequest {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  policy_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  request_ref : @contracts.RecordRef
+  attachment_ref : @contracts.RecordRef
+  authority_subject : @contracts.WireEnvelope
+  criteria : ReadOnlyArray[@contracts.RecordRef]
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  requested_at : Int64
+  expires_at : Int64?
+  workflow_revision : Int64
+  evidence_digest : @contracts.ContentDigest
+  criteria_digest : @contracts.ContentDigest
+  idempotency_key : String
+  canonical : Bytes
+}
+pub fn AuthorityRequest::authority_subject(Self) -> @contracts.WireEnvelope
+pub fn AuthorityRequest::binding_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorityRequest::canonical_bytes(Self) -> Bytes
+pub fn AuthorityRequest::criteria(Self) -> ReadOnlyArray[@contracts.RecordRef]
+pub fn AuthorityRequest::criteria_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorityRequest::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn AuthorityRequest::evidence_digest(Self) -> @contracts.ContentDigest
+pub fn AuthorityRequest::expires_at(Self) -> Int64?
+pub fn AuthorityRequest::idempotency_key(Self) -> String
+pub fn AuthorityRequest::new(GovernancePolicy, @contracts.RecordRef, String, String, EvidenceAttachment, @contracts.WireEnvelope, Array[@contracts.RecordRef], Array[@contracts.EvidenceRef], Int64, Int64?, Int64, String) -> Self raise
+pub fn AuthorityRequest::request_ref(Self) -> @contracts.RecordRef
+pub fn AuthorityRequest::requested_at(Self) -> Int64
+pub fn AuthorityRequest::workflow(Self) -> @contracts.RecordRef
+pub fn AuthorityRequest::workflow_revision(Self) -> Int64
+
+pub(all) enum AuthorityStatus {
+  AuthorityNotRequested
+  AuthorityPending
+  AuthorityGrantedStatus
+  AuthorityDeniedStatus
+  AuthorityExpiredStatus
+} derive(Eq, @debug.Debug)
+
+pub(all) enum CriterionDisposition {
+  Satisfied
+  Unsatisfied
+  NeedsRevision
+} derive(Eq, @debug.Debug)
+
+pub struct CriterionFinding {
+  criterion : @contracts.RecordRef
+  disposition : CriterionDisposition
+}
+pub fn CriterionFinding::criterion(Self) -> @contracts.RecordRef
+pub fn CriterionFinding::disposition(Self) -> CriterionDisposition
+pub fn CriterionFinding::new(@contracts.RecordRef, CriterionDisposition) -> Self
+
+pub struct EvidenceAttachment {
+  policy_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  attachment_ref : @contracts.RecordRef
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  purpose : @contracts.RecordRef
+  attached_revision : Int64
+  evidence_digest : @contracts.ContentDigest
+  canonical : Bytes
+}
+pub fn EvidenceAttachment::attached_revision(Self) -> Int64
+pub fn EvidenceAttachment::attachment_ref(Self) -> @contracts.RecordRef
+pub fn EvidenceAttachment::binding_digest(Self) -> @contracts.ContentDigest
+pub fn EvidenceAttachment::canonical_bytes(Self) -> Bytes
+pub fn EvidenceAttachment::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn EvidenceAttachment::evidence_digest(Self) -> @contracts.ContentDigest
+pub fn EvidenceAttachment::new(GovernancePolicy, @contracts.RecordRef, String, String, Array[@contracts.EvidenceRef], @contracts.RecordRef, Int64) -> Self raise GovernanceError
+pub fn EvidenceAttachment::purpose(Self) -> @contracts.RecordRef
+pub fn EvidenceAttachment::workflow(Self) -> @contracts.RecordRef
+
+pub struct GovernanceAction {
+  event_kind : String
+  record_ref : @contracts.RecordRef
+  payload : Bytes
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  idempotency_key : String
+}
+pub fn GovernanceAction::authority_decided(AuthorityDecision, String) -> Self raise GovernanceError
+pub fn GovernanceAction::authority_expired(AuthorityExpiration, String) -> Self raise GovernanceError
+pub fn GovernanceAction::authority_requested(AuthorityRequest) -> Self raise GovernanceError
+pub fn GovernanceAction::event_kind(Self) -> String
+pub fn GovernanceAction::evidence_attached(EvidenceAttachment, String) -> Self raise GovernanceError
+pub fn GovernanceAction::review_decision_recorded(ReviewDecision, String) -> Self raise GovernanceError
+pub fn GovernanceAction::review_receipt_bound(ReviewReceipt, String) -> Self raise GovernanceError
+pub fn GovernanceAction::review_requested(ReviewRequest) -> Self raise GovernanceError
+
+pub struct GovernancePolicy {
+  policy_ref : @contracts.RecordRef
+  event_version : @contracts.Version
+  schema_version : @contracts.Version
+  authority_kinds : ReadOnlyArray[String]
+  reviewer_kinds : ReadOnlyArray[String]
+  minimum_evidence : Int
+  minimum_criteria : Int
+  receipt_outcomes : ReadOnlyArray[ReviewOutcome]
+  canonical : Bytes
+}
+pub fn GovernancePolicy::canonical_bytes(Self) -> Bytes
+pub fn GovernancePolicy::decode(@contracts.RecordRef, Bytes) -> Self raise
+pub fn GovernancePolicy::digest(Self) -> @contracts.ContentDigest
+pub fn GovernancePolicy::new(String, String, String, String, Array[String], Array[String], Int, Int, Array[ReviewOutcome]) -> Self raise
+pub fn GovernancePolicy::policy_ref(Self) -> @contracts.RecordRef
+
+pub struct GovernanceProjection {
+  projection_version : @contracts.Version
+  policy : GovernancePolicy
+  workflow : @contracts.RecordRef
+  sequence : Int64
+  revision : Int64
+  last_event_digest : @contracts.ContentDigest?
+  attachment : EvidenceAttachment?
+  authority_request : AuthorityRequest?
+  authority_decision : AuthorityDecision?
+  authority_expiration : AuthorityExpiration?
+  review_request : ReviewRequest?
+  review_decision : ReviewDecision?
+  receipt : ReviewReceipt?
+  accepted_events : ReadOnlyArray[@storage.WorkflowEvent]
+}
+pub fn GovernanceProjection::apply_event(Self, @storage.WorkflowEvent) -> Self raise
+pub fn GovernanceProjection::authority_decision_record(Self) -> AuthorityDecision?
+pub fn GovernanceProjection::authority_request_record(Self) -> AuthorityRequest?
+pub fn GovernanceProjection::authority_status(Self) -> AuthorityStatus
+pub fn GovernanceProjection::canonical_bytes(Self) -> Bytes
+pub fn GovernanceProjection::evidence_attachment_record(Self) -> EvidenceAttachment?
+pub fn GovernanceProjection::last_event_digest(Self) -> @contracts.ContentDigest?
+pub fn GovernanceProjection::new(GovernancePolicy, @contracts.RecordRef) -> Self
+pub fn GovernanceProjection::receipt(Self) -> ReviewReceipt?
+pub fn GovernanceProjection::review_decision_record(Self) -> ReviewDecision?
+pub fn GovernanceProjection::review_request_record(Self) -> ReviewRequest?
+pub fn GovernanceProjection::review_status(Self) -> ReviewStatus
+pub fn GovernanceProjection::revision(Self) -> Int64
+pub fn GovernanceProjection::sequence(Self) -> Int64
+pub fn GovernanceProjection::state_digest(Self) -> @contracts.ContentDigest
+pub fn GovernanceProjection::workflow(Self) -> @contracts.RecordRef
+
+pub struct ReviewDecision {
+  policy_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  decision_ref : @contracts.RecordRef
+  request_ref : @contracts.RecordRef
+  reviewer_ref : @contracts.RecordRef
+  reviewer_attestation : @contracts.WireEnvelope
+  outcome : ReviewOutcome
+  findings : ReadOnlyArray[CriterionFinding]
+  supporting_evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  contradictory_evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  decided_at : Int64
+  workflow_revision : Int64
+  criteria_digest : @contracts.ContentDigest
+  supporting_digest : @contracts.ContentDigest
+  contradictory_digest : @contracts.ContentDigest
+  canonical : Bytes
+}
+pub fn ReviewDecision::binding_digest(Self) -> @contracts.ContentDigest
+pub fn ReviewDecision::canonical_bytes(Self) -> Bytes
+pub fn ReviewDecision::contradictory_evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn ReviewDecision::decided_at(Self) -> Int64
+pub fn ReviewDecision::decision_ref(Self) -> @contracts.RecordRef
+pub fn ReviewDecision::findings(Self) -> ReadOnlyArray[CriterionFinding]
+pub fn ReviewDecision::new(GovernancePolicy, @contracts.RecordRef, String, String, ReviewRequest, @contracts.RecordRef, @contracts.WireEnvelope, ReviewOutcome, Array[CriterionFinding], Array[@contracts.EvidenceRef], Array[@contracts.EvidenceRef], Int64, Int64) -> Self raise
+pub fn ReviewDecision::outcome(Self) -> ReviewOutcome
+pub fn ReviewDecision::request_ref(Self) -> @contracts.RecordRef
+pub fn ReviewDecision::reviewer_ref(Self) -> @contracts.RecordRef
+pub fn ReviewDecision::supporting_evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+
+pub(all) enum ReviewOutcome {
+  Approved
+  Rejected
+  ChangesRequested
+} derive(Eq, @debug.Debug)
+
+pub struct ReviewReceipt {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  policy_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  receipt_ref : @contracts.RecordRef
+  authority_request_ref : @contracts.RecordRef
+  authority_grant_ref : @contracts.RecordRef
+  review_request_ref : @contracts.RecordRef
+  review_decision_ref : @contracts.RecordRef
+  subject_digest : @contracts.ContentDigest
+  authority_evidence_digest : @contracts.ContentDigest
+  authority_criteria_digest : @contracts.ContentDigest
+  review_evidence_digest : @contracts.ContentDigest
+  review_criteria_digest : @contracts.ContentDigest
+  supporting_digest : @contracts.ContentDigest
+  contradictory_digest : @contracts.ContentDigest
+  reviewer_ref : @contracts.RecordRef
+  authority_ref : @contracts.RecordRef
+  outcome : ReviewOutcome
+  bound_at : Int64
+  previous_event_digest : @contracts.ContentDigest
+  resulting_revision : Int64
+  canonical : Bytes
+}
+pub fn ReviewReceipt::authority_ref(Self) -> @contracts.RecordRef
+pub fn ReviewReceipt::bind(GovernanceProjection, String, String, Int64) -> Self raise
+pub fn ReviewReceipt::binding_digest(Self) -> @contracts.ContentDigest
+pub fn ReviewReceipt::bound_at(Self) -> Int64
+pub fn ReviewReceipt::canonical_bytes(Self) -> Bytes
+pub fn ReviewReceipt::is_terminal_approved(Self) -> Bool
+pub fn ReviewReceipt::outcome(Self) -> ReviewOutcome
+pub fn ReviewReceipt::receipt_ref(Self) -> @contracts.RecordRef
+pub fn ReviewReceipt::resulting_revision(Self) -> Int64
+pub fn ReviewReceipt::reviewer_ref(Self) -> @contracts.RecordRef
+
+pub struct ReviewRequest {
+  record_version : @contracts.Version
+  schema_version : @contracts.Version
+  policy_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  request_ref : @contracts.RecordRef
+  authority_request_ref : @contracts.RecordRef
+  authority_grant_ref : @contracts.RecordRef
+  authority_expires_at : Int64?
+  criteria : ReadOnlyArray[@contracts.RecordRef]
+  evidence : ReadOnlyArray[@contracts.EvidenceRef]
+  subject : @contracts.WireEnvelope
+  requested_at : Int64
+  requested_revision : Int64
+  authority_evidence_digest : @contracts.ContentDigest
+  authority_criteria_digest : @contracts.ContentDigest
+  evidence_digest : @contracts.ContentDigest
+  criteria_digest : @contracts.ContentDigest
+  idempotency_key : String
+  canonical : Bytes
+}
+pub fn ReviewRequest::binding_digest(Self) -> @contracts.ContentDigest
+pub fn ReviewRequest::canonical_bytes(Self) -> Bytes
+pub fn ReviewRequest::criteria(Self) -> ReadOnlyArray[@contracts.RecordRef]
+pub fn ReviewRequest::criteria_digest(Self) -> @contracts.ContentDigest
+pub fn ReviewRequest::evidence(Self) -> ReadOnlyArray[@contracts.EvidenceRef]
+pub fn ReviewRequest::evidence_digest(Self) -> @contracts.ContentDigest
+pub fn ReviewRequest::new(GovernancePolicy, @contracts.RecordRef, String, String, AuthorityRequest, AuthorityDecision, Array[@contracts.RecordRef], Array[@contracts.EvidenceRef], @contracts.WireEnvelope, Int64, Int64, String) -> Self raise
+pub fn ReviewRequest::request_ref(Self) -> @contracts.RecordRef
+pub fn ReviewRequest::requested_at(Self) -> Int64
+pub fn ReviewRequest::subject(Self) -> @contracts.WireEnvelope
+
+pub(all) enum ReviewStatus {
+  ReviewNotRequested
+  ReviewPending
+  ReviewApprovedStatus
+  ReviewRejectedStatus
+  ReviewChangesRequestedStatus
+  ReviewReceiptBoundStatus(ReviewOutcome)
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+
