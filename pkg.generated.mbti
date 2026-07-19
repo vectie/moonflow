@@ -17,6 +17,8 @@ pub fn adapter_submission_event(RunProjection, AdapterRequest) -> RuntimeEvent r
 
 pub fn artifact_ref_is_workspace_relative(String) -> Bool
 
+pub fn attest_moonmold_result(MoonMoldDispatch, MoonMoldResult) -> MoonMoldEvidenceMapping
+
 pub fn authority_class_is_canonical(String) -> Bool
 
 pub fn claim_class_rank(String) -> Int?
@@ -61,9 +63,15 @@ pub fn events_from_work_graph(Json) -> Array[RuntimeEvent] raise
 
 pub fn evidence_bundle_manifest(EvidenceBundleSpec, Array[EvidenceBundleEntry], String, String) -> EvidenceBundleManifest raise
 
+pub fn moonmold_capability() -> AdapterCapability
+
+pub fn moonmold_checkpoint_decision(MoonMoldEvidenceMapping, MoonMoldDispatch) -> MoonMoldCheckpointDecision
+
 pub fn normalize_workspace_path(String) -> String
 
 pub fn path_is_within_workspace(String, String) -> Bool
+
+pub fn product_attestation_issues(Json, UnattendedDriver, AdapterRequest, AdapterResult) -> Array[String]
 
 pub fn product_id() -> String
 
@@ -76,6 +84,8 @@ pub fn ready_events(RunProjection, String) -> Array[RuntimeEvent]
 pub fn reconcile_adapter_result(AdapterRequest, AdapterResult) -> ReconciliationDecision raise AdapterContractError
 
 pub fn render_unattended_arguments(Array[String], String, String, String, String, String) -> Array[String]
+
+pub fn render_unattended_attestor_arguments(Array[String], String, String, String, String, String, String) -> Array[String]
 
 pub fn render_unattended_observer_arguments(Array[String], String, String, String, String, String) -> Array[String]
 
@@ -188,6 +198,7 @@ pub fn AdapterCapability::quality_issues(Self) -> Array[String]
 pub(all) struct AdapterRequest {
   request_id : String
   run_id : String
+  book_id : String
   work_item_id : String
   declaration_id : String
   attempt_id : String
@@ -326,6 +337,60 @@ pub(all) struct EvidenceSourceSpec {
   result_id : String
 } derive(Eq, ToJson, @debug.Debug)
 
+pub(all) struct MoonMoldCheckpointDecision {
+  decision : String
+  reason : String
+  invalidated_artifact_refs : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct MoonMoldDispatch {
+  request : AdapterRequest
+  declaration_revision : String
+  source_digest : String
+  expected_parent_digest : String
+  expected_parent_representation : String
+  expected_child_representation : String
+  expected_lineage_relation : String
+  authority_envelope_id : String
+} derive(Eq, ToJson, @debug.Debug)
+pub fn MoonMoldDispatch::quality_issues(Self) -> Array[String]
+
+pub(all) struct MoonMoldEvidenceMapping {
+  mapping_id : String
+  request_id : String
+  declaration_revision : String
+  source_digest : String
+  input_digest : String
+  expected_parent_digest : String
+  artifact_id : String
+  artifact_digest : String
+  representation : String
+  lineage_relation : String
+  claim_ceiling : String
+  authority_envelope_id : String
+  accepted : Bool
+  issues : Array[String]
+  checkpoint_artifact_refs : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct MoonMoldResult {
+  request_id : String
+  attempt_id : String
+  idempotency_key : String
+  status : String
+  artifact_id : String
+  artifact_digest : String
+  parent_digest : String
+  parent_representation : String
+  representation : String
+  lineage_relation : String
+  claim_ceiling : String
+  authority_envelope_id : String
+  portable_artifact_ref : String
+  evidence_refs : Array[String]
+  physical_effects : Bool
+} derive(Eq, ToJson, @debug.Debug)
+
 pub(all) enum ReconciliationDecision {
   Pending
   ImportSuccess
@@ -461,7 +526,11 @@ pub(all) struct UnattendedDriver {
   adapter_id : String
   executable : String
   arguments : Array[String]
+  draft_output_artifacts : Array[String]
   expected_output_artifacts : Array[String]
+  attestor_id : String
+  attestor_executable : String
+  attestor_arguments : Array[String]
   reviewer_id : String
   reviewer_executable : String
   reviewer_arguments : Array[String]
