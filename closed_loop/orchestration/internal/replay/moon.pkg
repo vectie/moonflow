@@ -1,0 +1,5 @@
+// Durable event classification and contested-batch replay ownership.
+import {
+  "vectie/moonflow/closed_loop/contracts",
+  "vectie/moonflow/closed_loop/storage",
+}

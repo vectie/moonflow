@@ -1,0 +1,81 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/closed_loop/orchestration/internal/decision"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn classify_lifecycle_batch(ArrayView[String], String?) -> LifecycleBatchKind
+
+pub fn hash_mod(Bytes, Int64) -> Int64?
+
+pub fn is_authorized_at(Int64, Int64, Int64?) -> Bool
+
+pub fn loss_for_winner(LifecycleBatchKind) -> LifecycleLossKind
+
+pub fn recorded_order_key(Int64, Int) -> Int64
+
+pub fn recovery_deadline(Int64, Int64) -> RecoveryTimingResult
+
+pub fn recovery_due_at(Int64, Int64, Int64, Int64, Int64, Int64, Int64, Bytes) -> RecoveryTimingResult
+
+pub fn retry_nominal_delay(Int64, Int64, Int64, Int64, Int64) -> RetryBackoffResult
+
+// Errors
+
+// Types and methods
+pub(all) enum LifecycleBatchKind {
+  CancellationRequest
+  LeaseClaim
+  SucceededTerminal
+  FailedNonRetryableTerminal
+  FailedRetryExhaustedTerminal
+  FailedCancellationStoppedRetryTerminal
+  CancelledBeforeEffectIntentTerminal
+  CancelledAfterReconciledNotAppliedTerminal
+  ReconciliationRequest
+  ReconciliationResolution
+  AtomicRetryCommit
+  LeaseExpiry
+  LeaseReclaim
+  OtherDurableAdvance
+} derive(Eq, @debug.Debug)
+
+pub(all) enum LifecycleLossKind {
+  CancellationCommitted
+  ClaimCommitted
+  SucceededTerminalCommitted
+  FailedNonRetryableTerminalCommitted
+  FailedRetryExhaustedTerminalCommitted
+  FailedCancellationStoppedRetryTerminalCommitted
+  CancelledBeforeEffectIntentTerminalCommitted
+  CancelledAfterReconciledNotAppliedTerminalCommitted
+  ReconciliationRequestCommitted
+  ReconciliationResolutionCommitted
+  RetryCommitted
+  LeaseExpiryCommitted
+  LeaseReclaimCommitted
+  OtherDurableAdvanceCommitted
+} derive(Eq, @debug.Debug)
+
+pub(all) enum RecoveryTimingResult {
+  RecoveryDueAt(Int64)
+  RecoveryTimingInvalidInput
+  RecoveryTimingDelayOverflow
+  RecoveryTimingJitterOverflow
+  RecoveryTimingInstantOverflow
+} derive(Eq, @debug.Debug)
+
+pub(all) enum RetryBackoffResult {
+  NominalDelay(Int64)
+  InvalidInput
+  NumeratorOverflow
+  DenominatorOverflow
+  OrdinalOverflow
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+

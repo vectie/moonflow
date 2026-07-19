@@ -1,0 +1,28 @@
+import {
+  "vectie/moonflow/closed_loop/contracts",
+  "vectie/moonflow/closed_loop/storage",
+  "vectie/moonflow/closed_loop/governance",
+  "vectie/moonflow/closed_loop/effects",
+  "vectie/moonflow/closed_loop/effects_authorization",
+  "vectie/moonflow/closed_loop/retry_authority",
+  "vectie/moonflow/closed_loop/orchestration/internal/base",
+  "vectie/moonflow/closed_loop/orchestration/internal/decision",
+  "vectie/moonflow/closed_loop/orchestration/internal/replay",
+  "moonbitlang/core/buffer",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/json",
+  "moonbitlang/core/string",
+}
+
+options(
+  targets: {
+    "orchestration_native_wbtest.mbt": [ "native" ],
+    "phase1b_lineage_native_wbtest.mbt": [ "native" ],
+    "phase1b3_e_native_wbtest.mbt": [ "native" ],
+    "phase1c_b_native_wbtest.mbt": [ "native" ],
+    "phase2_dispatch_claim_v3_native_wbtest.mbt": [ "native" ],
+    "phase1b_native_wbtest.mbt": [ "native" ],
+    "v2_durable_native_wbtest.mbt": [ "native" ],
+    "phase3_bootstrap_filesystem_native_v3.mbt": [ "native" ],
+  },
+)
