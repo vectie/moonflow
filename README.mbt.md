@@ -158,8 +158,8 @@ The configuration contract is `moonflow.ordered_http_json.v2`:
   "max_attempts": 3,
   "retry_delay_ms": 250,
   "steps": [
-    {"field": "record", "destination_url": "http://127.0.0.1:4200/api/bookkeeper/records"},
-    {"field": "envelope", "destination_url": "http://127.0.0.1:4200/api/bookkeeper/envelopes/ingress"}
+    {"field": "record", "destination_url": "http://127.0.0.1:4200/api/ingress/records"},
+    {"field": "envelope", "destination_url": "http://127.0.0.1:4200/api/ingress/envelopes"}
   ]
 }
 ```

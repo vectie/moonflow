@@ -9,11 +9,11 @@
   "steps": [
     {
       "field": "record",
-      "destination_url": "http://127.0.0.1:4200/api/bookkeeper/records"
+      "destination_url": "http://127.0.0.1:4200/api/ingress/records"
     },
     {
       "field": "envelope",
-      "destination_url": "http://127.0.0.1:4200/api/bookkeeper/envelopes/ingress"
+      "destination_url": "http://127.0.0.1:4200/api/ingress/envelopes"
     }
   ]
 }
