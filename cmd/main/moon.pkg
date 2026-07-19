@@ -9,6 +9,9 @@ import {
   "moonbitlang/x/crypto",
   "vectie/moonflow",
   "vectie/moonlib/pipeline",
+  "vectie/moonflow/closed_loop/orchestration",
+  "vectie/moonflow/closed_loop/host" @flow_host,
+  "vectie/moonflow/ordered_http_json",
 }
 
 supported_targets = "native"

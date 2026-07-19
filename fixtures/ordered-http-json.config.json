@@ -1,0 +1,19 @@
+{
+  "contract_version": "moonflow.ordered_http_json.v2",
+  "transfer_id": "example-ordered-transfer-v1",
+  "source_url": "http://127.0.0.1:4100/api/bundles/example",
+  "expected_source_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "max_response_bytes": 1048576,
+  "max_attempts": 3,
+  "retry_delay_ms": 250,
+  "steps": [
+    {
+      "field": "record",
+      "destination_url": "http://127.0.0.1:4200/api/bookkeeper/records"
+    },
+    {
+      "field": "envelope",
+      "destination_url": "http://127.0.0.1:4200/api/bookkeeper/envelopes/ingress"
+    }
+  ]
+}

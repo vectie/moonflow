@@ -23,7 +23,7 @@ keywords = [ ]
 
 preferred_target = "native"
 
-description = "Durable declared-goal execution runtime for Moon Suite"
+description = "Generic durable orchestration engine for Moon Suite"
 
 import {
   "moonbitlang/async@0.16.6",
