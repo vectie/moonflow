@@ -1,0 +1,7 @@
+fn illegal_inflight_dispatch_misuse(
+  port : Dynamic,
+  current : @orchestration.CurrentGovernedClosedLoopProjectionV2,
+  inflight : @orchestration.InFlightResolutionAuthorityV2,
+) -> Unit {
+  ignore(@orchestration.dispatch_guarded_effect_v2(port, current, inflight))
+}

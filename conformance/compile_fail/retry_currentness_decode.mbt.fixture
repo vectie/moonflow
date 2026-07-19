@@ -1,0 +1,5 @@
+fn illegal_retry_currentness_decode() -> Unit {
+  ignore(
+    @orchestration.RetryPreparationCurrentnessV2::decode("forged", b"forged"),
+  )
+}

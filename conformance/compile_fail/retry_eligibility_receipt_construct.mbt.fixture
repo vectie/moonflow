@@ -1,0 +1,4 @@
+fn illegal_retry_eligibility_receipt_construction(
+) -> @effects.CommittedRetryEligibilityReceiptV2 {
+  { receipt_ref: () }
+}

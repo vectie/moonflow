@@ -1,0 +1,4 @@
+fn illegal_open_operation_construction(
+) -> @orchestration.OpenWorkOperationAuthorizationV2 {
+  { workflow: () }
+}

@@ -1,0 +1,3 @@
+struct SchedulerDaemon {
+  state : Int
+}

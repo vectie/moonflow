@@ -1,0 +1,3 @@
+fn illegal_unrestricted_commit() -> Unit {
+  ignore(@orchestration.commit_orchestration_v2())
+}

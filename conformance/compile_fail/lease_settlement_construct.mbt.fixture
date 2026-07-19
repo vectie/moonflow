@@ -1,0 +1,4 @@
+fn illegal_lease_settlement_construction(
+) -> @orchestration.LeaseSettlementAuthorizationV2 {
+  { workflow: () }
+}

@@ -1,0 +1,4 @@
+fn illegal_retry_currentness_construction(
+) -> @orchestration.RetryPreparationCurrentnessV2 {
+  { request_ref: () }
+}

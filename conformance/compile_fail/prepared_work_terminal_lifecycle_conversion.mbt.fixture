@@ -1,0 +1,6 @@
+fn illegal_prepared_work_terminal_lifecycle_conversion(
+  prepared : @orchestration.PreparedWorkTerminalV2,
+  current : @orchestration.CurrentGovernedClosedLoopProjectionV2,
+) -> Unit {
+  ignore(prepared.lifecycle_candidate(current))
+}

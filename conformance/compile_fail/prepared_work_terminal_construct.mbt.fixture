@@ -1,0 +1,4 @@
+fn illegal_prepared_work_terminal_construction(
+) -> @orchestration.PreparedWorkTerminalV2 {
+  { terminal_record: () }
+}

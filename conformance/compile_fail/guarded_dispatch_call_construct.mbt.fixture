@@ -1,0 +1,4 @@
+fn illegal_guarded_dispatch_call_construction(
+) -> @orchestration.GuardedDispatchCallV2 {
+  { authorization_ref: () }
+}

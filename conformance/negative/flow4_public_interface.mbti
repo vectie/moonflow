@@ -1,0 +1,5 @@
+package "negative/flow4-interface"
+
+pub struct EventStore {
+  record_version : String
+}

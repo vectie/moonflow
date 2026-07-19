@@ -1,0 +1,15 @@
+{
+  "request_id": "request-observe-1",
+  "run_id": "flow2-golden-v2",
+  "work_item_id": "work-observe",
+  "declaration_id": "observe-declaration",
+  "attempt_id": "attempt-observe-1",
+  "idempotency_key": "flow2-golden-v2/work-observe/1/sha256:observe-input",
+  "product_id": "synthetic-observer",
+  "operation": "collect-declared-evidence",
+  "requested_authority": "observe",
+  "input_digest": "sha256:observe-input",
+  "input_artifacts": [],
+  "timeout_ms": 1000,
+  "created_at": "2026-07-16T00:00:01Z"
+}

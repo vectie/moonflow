@@ -1,0 +1,3 @@
+fn illegal_guarded_activation_receipt_decode() -> Unit {
+  ignore(@storage.GuardedWorkflowActivationReceipt::decode(b"forged"))
+}

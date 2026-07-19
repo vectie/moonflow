@@ -1,0 +1,3 @@
+fn claim_anyway {
+  ()
+}

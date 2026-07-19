@@ -1,0 +1,5 @@
+fn illegal_receipt_decode() -> Unit {
+  ignore(
+    @orchestration.CommittedCancellationGovernanceReceiptV2::decode(),
+  )
+}

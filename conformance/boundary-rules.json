@@ -1,0 +1,811 @@
+{
+  "inventory_id": "moonflow.flow2-supported-current-contract.v1",
+  "non_durable_records": {
+    "closed_loop/storage/filesystem_native.mbt": [
+      "FileSystemGuardedStore",
+      "RegistryBoundFileSystemStore"
+    ],
+    "closed_loop/storage/guarded.mbt": [
+      "GuardConflictReceipt",
+      "GuardedCommitRequest"
+    ],
+    "closed_loop/storage/memory.mbt": [
+      "GuardedMemoryStore"
+    ],
+    "closed_loop/storage/pkg.generated.mbti": [
+      "FileSystemGuardedStore",
+      "GuardConflictReceipt",
+      "GuardedCommitRequest",
+      "GuardedMemoryStore",
+      "RegistryBoundFileSystemStore"
+    ]
+  },
+  "flow3_contract": {
+    "package": "closed_loop/contracts",
+    "production_files": {
+      "closed_loop/contracts/canonical.mbt": "3f0971d757e8ccb477b06983a0a35c287b51ecc6440ae2c4d983c0b40b4307ef",
+      "closed_loop/contracts/digest.mbt": "d282ba64fe5b6fe05718296c3c2d76e6e34dd3bc10f061d087c04f3be0804be0",
+      "closed_loop/contracts/envelope.mbt": "e7ef0995f21cd998b3fedf376e6e93a5aba050345a929c96e5284b578c9244bc",
+      "closed_loop/contracts/errors.mbt": "cd1b1a2c64486539ba103fe40241bae34d540626b95d08d97287c73599312d26",
+      "closed_loop/contracts/ports.mbt": "95c44e4f1c47697bd0a709417943b708b7fcddfa46303d6503d2109b766213c0",
+      "closed_loop/contracts/references.mbt": "d3e9f0d92b3adbd65757c250eec7d5346a2391720a63cfcf9142d1c7d4a4eb7e",
+      "closed_loop/contracts/validation.mbt": "bcd372575b6650d27e258c8053d82a033092220d602de2a0d46ffe4470cb22fb",
+      "closed_loop/contracts/version.mbt": "997881e8b04c27d7fa2f0823b81a9f350dd0b6e2c9f09aca7692adf26fcf5ab2"
+    },
+    "test_files": {
+      "closed_loop/contracts/contracts_test.mbt": "17227b33cec41e88fe0703cbb0a8c31414911e6837a87f2441b84c8ed8c0ce4a",
+      "closed_loop/contracts/canonical_wbtest.mbt": "cd5ceea3f173e0d66c9f3e461ad50a413625bc3b0e1597604c0a4b3651158ad6"
+    },
+    "manifest_files": {
+      "closed_loop/contracts/moon.pkg": "0bcebb928a1da714658562813f5935cea7a76e892a09364491d9fc50035842b4"
+    },
+    "interface_files": {
+      "closed_loop/contracts/pkg.generated.mbti": "ad6d9bc984109b9616e9a24447667dafaca00f78e73a05ac8221335ef0dfba97"
+    }
+  },
+  "flow6c_v2_authorization": {
+    "boundary_id": "moonflow.flow6c-v2-authorization-surface.v2",
+    "package": "closed_loop/effects_authorization",
+    "non_durable_records": {
+      "closed_loop/effects_authorization/model.mbt": [
+        "AuthorizedDispatchEnvelope"
+      ],
+      "closed_loop/effects_authorization/pkg.generated.mbti": [
+        "AuthorizedDispatchEnvelope"
+      ]
+    },
+    "production_files": {
+      "closed_loop/effects_authorization/canonical.mbt": "e38915d7b96a61e30f59a8ed6f0ae4e3b6badb40916e64dd26d8fd8f8ea51599",
+      "closed_loop/effects_authorization/errors.mbt": "190e732b3ad1ba069800e0eb319a9e83f39cf1a37c59f04b4939ee96783293d5",
+      "closed_loop/effects_authorization/model.mbt": "2aa2b7d6b5515f3fa9cf8b1c8c477e5baca9dbf989c1364a72340efe1326daa4",
+      "closed_loop/effects_authorization/version.mbt": "6fa12fc5112dc44eae3d0b54d882372f38476bbc204da968a4d80644617786c2",
+      "closed_loop/effects_authorization/v2_event_decode.mbt": "11cef92ccfcea51c5be98f43a7fcba22958b478119ee05a2010240ae48dd2690",
+      "closed_loop/effects_authorization/v2_events.mbt": "ccc40ad74d08093df1741f0b82e22b28d58cf66d7ab0d992c6118c3a843ba6ff",
+      "closed_loop/effects_authorization/v2_proof.mbt": "befb4e49d5c57763628fa0eea26ab32af68d9ce8924aaf859d6137e490840bd9"
+    },
+    "test_files": {
+      "conformance/negative/flow6c_v2_scope_escape.mbt": "22d9b27aac52cc252cade7662f1e7e68ad42dac3fa6ad2680db0fd0f16c92356",
+      "closed_loop/effects_authorization/slice_a_test.mbt": "c5a7c7ba6d9684d1151fe6ac966ad8a41b2c554d7921a8e547b590fdbbc68d5e",
+      "closed_loop/effects_authorization/v2_events_wbtest.mbt": "91febdff7e91cc67a6503c857da8a44bd89df6b26b3dd25c6175dd275fa88d7b",
+      "closed_loop/effects_authorization/v2_proof_wbtest.mbt": "e71b3ff24b9474a4a8ae5e81daccdaf4cc485fbd1ce0f269253760b7634a796b"
+    },
+    "manifest_files": {
+      "closed_loop/effects_authorization/moon.pkg": "fbb3b379d16e2547e72d34d98a904710116213fd6801c3078fb9986aba017188"
+    },
+    "interface_files": {
+      "closed_loop/effects_authorization/pkg.generated.mbti": "b7f50cb94d9ad900128924d1bd572866811cf20b0f0c3beaa87e7e9bc65ace9e"
+    }
+  },
+  "flow4a_storage": {
+    "boundary_id": "moonflow.flow4a-storage-surface.v2",
+    "package": "closed_loop/storage",
+    "trusted_registry_identifiers": [
+      "FileSystemStore::activate_guarded_workflow",
+      "GuardedWorkflowActivationReceipt",
+      "GuardedWorkflowActivationReceipt::activation_revision",
+      "GuardedWorkflowActivationReceipt::canonical_bytes",
+      "GuardedWorkflowActivationReceipt::digest",
+      "GuardedWorkflowActivationReceipt::registry_digest",
+      "GuardedWorkflowActivationReceipt::registry_version",
+      "GuardedWorkflowBinding::activation_revision",
+      "MemoryStore::activate_guarded_workflow",
+      "make_guarded_activation_receipt",
+      "require_binding_activation_prefix",
+      "require_filesystem_activation_receipt",
+      "require_memory_activation_receipt"
+    ],
+    "production_files": {
+      "closed_loop/storage/canonical.mbt": "3afc35994d9289ec9c057cf4c8f630b5383423099b8c1be9271d9d5e47b13905",
+      "closed_loop/storage/commit.mbt": "effd10129525730ab019b269470bc4fb880b676f0310ed393d07cd906cc719ef",
+      "closed_loop/storage/errors.mbt": "3df0da8f92aeccb062a923199454ffdc0c241fd27edeba71e2e23381ef2f794d",
+      "closed_loop/storage/filesystem_native.mbt": "807caa65b6d1facd24d46c808469372ede5fb24c028ee370b8aaafce8b5cd8bd",
+      "closed_loop/storage/guarded.mbt": "39d2935c7515ebf1f41cf71cf89d8581cecc0088edb073759c7422c0e090c459",
+      "closed_loop/storage/memory.mbt": "e90b46fe85bd9b06128f49a5a68a977bc41465f8c965ab9b1acebd1aa702cd90",
+      "closed_loop/storage/native_ffi.mbt": "e201cc31bdd7b1bf768f206536b31c34c743970ad8a9da33f6cd629eda4d3493",
+      "closed_loop/storage/native_stub.c": "b81e6f39ae9ffa91d8ef9823be4aca3e48bd676e8371020c708d0699c2ec46ae",
+      "closed_loop/storage/port.mbt": "64a2cd3b03d92e9ee7e48d4976761b62b009867414201f0b1c5e85b3ab411619",
+      "closed_loop/storage/records.mbt": "69774b0a4d07425adfd3af19e3a49a22f6f542c9adfab0e71ba9468b41eafaad",
+      "closed_loop/storage/registry.mbt": "373245f363e74a2d84f713f65263bde91affc1912cfa60d4178eeb78391322e7",
+      "closed_loop/storage/state.mbt": "f4dc2b9eb21c09a4d4378a3c33a7f21746a608854f3634ff9e96888cf84ecb95"
+    },
+    "test_files": {
+      "closed_loop/storage/filesystem_native_wbtest.mbt": "159fc62d1214bd0307127a30b3e389e34283545fdc68ea91acd7a8dd25420007",
+      "closed_loop/storage/framing_wbtest.mbt": "3797865faf46a01f0721b7a41b7d2544f57d20b9c9da58d01c5354f92f271f5e",
+      "closed_loop/storage/guarded_test.mbt": "e4c9fb6df18d9b94a74ebc24a8f563be204aba99c65dfe1e91aaac2294835838",
+      "closed_loop/storage/registry_wbtest.mbt": "def0d4ab398209d2c18945975daac5b291fefa6576dff17e24af83f5a65085e7",
+      "closed_loop/storage/storage_test.mbt": "09e9c405687d225805b9608051628a859b47502be17efab8b8f0ca7f1166d47d"
+    },
+    "manifest_files": {
+      "closed_loop/storage/moon.pkg": "10de9cd0bf33f0f4c3c863da0a8f30aece479517526ab635dc123dbce09971e7"
+    },
+    "interface_files": {
+      "closed_loop/storage/pkg.generated.mbti": "e02f79c3351c6bc3a970be5ae570cf6d6329fe9e427800b6845258d6779e0522"
+    }
+  },
+  "flow5a_governance": {
+    "boundary_id": "moonflow.flow5a-governance-surface.v1",
+    "package": "closed_loop/governance",
+    "production_files": {
+      "closed_loop/governance/authority.mbt": "180766f1892c8f35800a851919db9624c09274babc711ee68719715bf0b96883",
+      "closed_loop/governance/canonical.mbt": "ab8d1bb180acad5e542d69bdc3581ca9cd15b7c9869cbb492ad00933804785c0",
+      "closed_loop/governance/commit.mbt": "e47f8ae16805ac9fa73e29ceb99224384387615f885714e198083229703845db",
+      "closed_loop/governance/errors.mbt": "7e40a012cbaf3cf2dcfb8ef21ae55eddf5ee67277161cde30f29824e40aca3eb",
+      "closed_loop/governance/evidence.mbt": "7c1f0075dd02ef01c458499e2b501f390bbf52c6d58b5b103553a98f678f3084",
+      "closed_loop/governance/kinds.mbt": "4956d7ec3367d4dd18fab51a6a760eed49a0824bbebc12187835b228af3da80b",
+      "closed_loop/governance/policy.mbt": "da5d25af2b2a4c29cd2f6983c66805a170248070b118443ce48582d8aa1c1713",
+      "closed_loop/governance/projection.mbt": "44dcfc9571b26aa37f01692915fa857fb84cdeb137fd80f0282b8f865703e5da",
+      "closed_loop/governance/receipt.mbt": "25fdb5b3dd3d7d13582ae299c38ab2dae5434bdd038d7cd266b216bb4e6f53fa",
+      "closed_loop/governance/review.mbt": "b325957818a41840a29ec1b4176e2ac5b4f84b854d0f99b1414caa95462e5faf",
+      "closed_loop/governance/transition.mbt": "bea4dc2839d175da7e3cffb726a209cbab6b875fb42e181cb0e0e4c8feb888e9"
+    },
+    "test_files": {
+      "closed_loop/governance/governance_native_test.mbt": "de83092fce0bafb129773b5a7129e766b0014033e5047796f3d99810cb0f003a",
+      "closed_loop/governance/governance_test.mbt": "f0cd5000a2537874f9c1e976d994e1d12d81f2dd90d6e59bd6dd86710b90177b",
+      "conformance/negative/flow5a_authority_bypass.mbt": "209fae9312ce6af21c1cc863a6bc430d316883d4551a2d709420bcd583048037",
+      "conformance/negative/flow5a_bare_acceptance.mbt": "a4614ced4093468680f91fbe4ead309922e71c5f2868f55e204d2be98f8cbcc9",
+      "conformance/negative/flow5a_codec_duplication.mbt": "c939d603a9dac634dc36d1a7ad094f0a11231348bfae197fb2c20f2395bb2bec",
+      "conformance/negative/flow5a_domain_vocabulary.mbt": "f42d36a699623c0d006a0ff4b0742f23ba09497b2a8a9af8bb667d73f71b3975",
+      "conformance/negative/flow5a_effect_dispatch_provider_api.mbt": "bb7900dc29857ffb3a47b72f205c2e96f44d79dc9fb03e1a34b84757934b5771",
+      "conformance/negative/flow5a_review_bypass.mbt": "5be00dd4ef77538ab2e0952e3d238c45a51a2e5ead0b1c8f5612c9ba5d0d8382",
+      "conformance/negative/flow5a_scheduling_worker_api.mbt": "645f806025259cf5a13a5c979d0e81b44b93f6fb610c85b0faa9e4170e63ada0",
+      "conformance/negative/flow5a_storage_duplication.mbt": "9a48bdd061dfe3c786d3b57c9171d22b9d68f280a56ef01e74424f3e8788586a",
+      "conformance/positive/approved_flow5a_governance_surface_test.mbt": "7be83335612cabad09cd936c83e7d2bb6d6ad44b515c13a1264c5512a6710ae2"
+    },
+    "manifest_files": {
+      "closed_loop/governance/moon.pkg": "db0b3ab390fbbab93aa8428dc5909f56d28593c1f60c857ef9d795b33a22eefb"
+    },
+    "interface_files": {
+      "closed_loop/governance/pkg.generated.mbti": "6892dd6591511bf631ee80de2644cde5da5e1d2f4aefe4c15418fc463a6a2184"
+    }
+  },
+  "flow6a_effects": {
+    "boundary_id": "moonflow.flow6a-effects-surface.v1",
+    "package": "closed_loop/effects",
+    "production_files": {
+      "closed_loop/effects/attempt.mbt": "025b3ad79e4f976664336451d8515639718c4596dde2fc5ae00b8ce36cc0b2ae",
+      "closed_loop/effects/canonical.mbt": "925191089c22f8ce7c1c10a6a246dfa4d71aed2439db81865ece2cd14a40e679",
+      "closed_loop/effects/decode.mbt": "9f0bb173b424069325885532960e4ea9e0ac0c197858a452901e2b3dafc57d14",
+      "closed_loop/effects/decode_facts.mbt": "17560c90c183390290a8928fd0dbb21c3449a961fc64c7e0e6d4cbf8be619c8a",
+      "closed_loop/effects/errors.mbt": "0e9b36da090819b43676da67d804f8543d1cd5bbb7f8785defee2036a281e28a",
+      "closed_loop/effects/governance_binding.mbt": "38ca2e8266a93b9bc9adbdc91e371142424aaec36cf73235e37be348b832ee07",
+      "closed_loop/effects/intent.mbt": "06c6a3db6ed6aee2754ba4496245ce5a646e8f910c0f84055717712eae78db9a",
+      "closed_loop/effects/observations.mbt": "eb59a8b34d8c339aca3800d7ddcf9ba1b4205af07524856544695d8b917107a6",
+      "closed_loop/effects/ports.mbt": "d55d1df7f10e8e5abcb290f4e85703ce39e8c2889b960756ad64cc64651c6169",
+      "closed_loop/effects/projection.mbt": "17adc90e781382fe65a0c93add049a5e7a51fb17b5c5e130054adb65ff67e008",
+      "closed_loop/effects/records.mbt": "5443e2f1bd75f1382dc4f6a582200dc07b51e21edecebc31bb3a44633b90a916",
+      "closed_loop/effects/strict_fold.mbt": "8a719b4ad1a211afaba0618b3edbf2a665959b28c04e797dfee53f4472c1b2c0",
+      "closed_loop/effects/strict_replay.mbt": "cf64b5fa60ddef0b3b22901c60ff84dfd66386f9709184ccfcbf416d1b6da6da",
+      "closed_loop/effects/transitions.mbt": "46b1821049de4a0ffe75c3885ab87e2b35d3c2b9b28dec4da4f7a48bdc96a558",
+      "closed_loop/effects/v2_retry_receipt.mbt": "e4633d3d8955247b113e361153cc3d58d8027d2a9ba97b2c6336d812e3659179",
+      "closed_loop/effects/v2_terminal_source.mbt": "dc262c053f93ea49c30fa4e9561bcc9ebdb5999b42231348578b908d0712d83d"
+    },
+    "test_files": {
+      "closed_loop/effects/effects_legacy_wbtest.mbt": "bbf67700acc926ecfaf816e0fb32de6f74adc646d61ba51f3bede6d8cb589e1f",
+      "closed_loop/effects/effects_native_wbtest.mbt": "6831906d64464e6d6ea189096a9664161c192ad6d05e6f47d0a5e2fcc6027fd5",
+      "closed_loop/effects/effects_wbtest.mbt": "0bd4bc0edaec93a12b299cb9eaf02fef6d9c94864e3d6eea39dc8fc2bfeef6f4",
+      "closed_loop/effects/semantic_governance_wbtest.mbt": "6e7efcc498b80da6caa6b4e143ffcc1eed202634d6dd76d7557d919c0ab28b90",
+      "conformance/negative/flow6a_bare_acceptance_capability_apply.mbt": "00b5cb3bc6c7706a980057ecce5c8b1ee44437097afce3bf2377e1181ede752d",
+      "conformance/negative/flow6a_concrete_dispatcher_provider_api.mbt": "38d6266469849fae3c9a540a9123a070f5c4d221583fbb0e3277b5e866603fff",
+      "conformance/negative/flow6a_domain_vocabulary.mbt": "ade1a3068c7d7e43ec454f77c03c278f0872a419b1b4079cd3221c31c1fa5f1f",
+      "conformance/negative/flow6a_effect_invocation.mbt": "29d6cbd6157d040458a4c42c1fe8d388e5db449c8adde67e8db7494d6660aa56",
+      "conformance/negative/flow6a_later_flow7_concepts.mbt": "003d29ebe78da7fea2731120479e1362cfd7e8329076a4f24bf9e273f5e4bdec",
+      "conformance/negative/flow6a_scheduling_worker_api.mbt": "bde6016b9a4528c9fe0ece940ac3644b9d0602f2fcf92c5155b823092c42eefd",
+      "conformance/negative/flow6a_secret_persistence.mbt": "5d0c2a3b0747b686f51c9976aafbf13aec88cba6ac1d72061fedd1351c179da2",
+      "conformance/negative/flow6a_storage_codec_governance_duplication.mbt": "1360d36b3c7ff3e6c62df7ab3df504b08eaa9cf587c1520511769ce5d6650046",
+      "conformance/negative/flow6a_unknown_retry_bypass.mbt": "ab405917f029c9e0808a054ecc09c88b1c4afc1b8bbe54b2dfcdaac669edae59"
+    },
+    "manifest_files": {
+      "closed_loop/effects/moon.pkg": "7397bdc51ec00badcf8dcbe8de445f4618781dc6d6924c4c5341480b2d761f71"
+    },
+    "interface_files": {
+      "closed_loop/effects/pkg.generated.mbti": "330ff211c8bc66670c14d0e413d8312bba02a6ddc718f314972c857b31400cb8"
+    }
+  },
+  "runtime_files": {
+    "acceptance_review.mbt": "cdfcf8a6f2b38c10bf34cee588eb5148ab908be8eae49d012c96e4a47f6f8cab",
+    "adapter.mbt": "d70fc580a8df72826d5bd64f1aff1a8b83f76b8e554f59f8e6a7bf8692abbc53",
+    "boundary.mbt": "406ab4ab8845ffd3e1b9eedcbfa846258811ed07eecc44360219e50453309207",
+    "cmd/main/main.mbt": "152215610f2b62fcc29c0933769a74efc173b996636593bd5673fbdac78a1171",
+    "engine.mbt": "1e14ecbb113747ed5ef820ec78e1a2bea6ceec72ec993059801b496383706845",
+    "moonflow.mbt": "29af7c0f548fe6f5af05d196a3aad29faa243708eca430c397a2936cfd104dbb",
+    "types.mbt": "9246f61718c0777333b2b155d42ed5093187d7b2f82e53bab819fd029a787dc2",
+    "wire.mbt": "ef7c34fb783da4fa007e90e65e55e7527147071487c183acc37929da95a0ceab"
+  },
+  "manifest_files": {
+    "moon.mod": "6b4c8761af49bdff1c514db6f375d6626a9a3b3fb60f9b17bdcd24a02e4beb2c",
+    "moon.pkg": "5b1735a391805f1a46752812c1103a2015960cc05e502a3697c165552b2ea958",
+    "cmd/main/moon.pkg": "961f9b55087fe002a77ba4b926d8057de802f5da28559da9967bb551518b82b8"
+  },
+  "interface_files": {
+    "pkg.generated.mbti": "5bae5ec3be94548b89dc07736870cd0fa5d68f457b63638ccb42240f8c25c228",
+    "cmd/main/pkg.generated.mbti": "5b878150adb30f6448e652949cf7673df9ce05c2d3e62a3b8ceff2b94f91c975"
+  },
+  "fixture_files": {
+    "fixtures/source-linked-work-graph.json": "519ffeb91e4869ec4ae605847feb52a175d7df17ece81b0ca7eeecbe74d17863",
+    "conformance/golden/v2/acceptance-review-observe.json": "d003bdad4c79791b1f8efae6c4d92f84bf4c4fbb59d45284660e21a42a27d977",
+    "conformance/golden/v2/adapter-request-observe.json": "4fd8b31ba8596d9ddca761cf67abcfe5cc847142c54aeea43f8fc7f11c63e910",
+    "conformance/golden/v2/adapter-request-validate.json": "69c6079029aeda8afb63559fa6f93b33169697314028f129738d6a38c47f8f1f",
+    "conformance/golden/v2/adapter-result-observe.json": "f1974fdea634b0b976f89c8a4a7655ca327e195ce1e79c357d23f5ecb01436fc",
+    "conformance/golden/v2/adapter-result-validate.json": "a3c9aff2744af939121d2be8ad394d3ca8b956f1803444c5bd768ab401a1c16c",
+    "conformance/golden/v2/event-stream.json": "6a2f5be8ba2bcfad91042c60febd22aad197ac0a2237c8858e0fcf27cbafe775",
+    "conformance/golden/v2/projection.json": "eb3ec3759b2dcf4cb17c9d068f34ac97f4e4a866d3211c6eb43ae9044099c4c5",
+    "conformance/golden/v2/source-linked-events.json": "54cf72fb1bd97565465c073e255d4eef85e54b1e7513ee20cd6adeca7754c145",
+    "conformance/golden/v2/source-linked-projection.json": "3319ec0e8a1f1c204b63322ecd052a122fbe87bd7df10d5141054b1f30189268",
+    "conformance/golden/v2/work-graph.json": "3b23dc460306dda6f69b8c5b74d6f5453cf576ff7cbba7d0cc60a15e3592d802",
+    "conformance/positive/approved_flow4a_storage_surface_test.mbt": "afff42769a343d11021c865cc44ed278e9d453f581a93884c5ca0f167f4560cd"
+  },
+  "flow7a_orchestration": {
+    "boundary_id": "moonflow.flow7a-orchestration-surface.v1",
+    "inventory_digest": "6e56897ff004cff2ab2b813fb419a1d26de1c963fc95c742ba01f60d33995528",
+    "package": "closed_loop/orchestration",
+    "production_files": {
+      "closed_loop/orchestration/cancellation.mbt": "3be58ef6e66e071a11b60004796f7b8c9c03d6a84ad52e7de058f3bf7843cc35",
+      "closed_loop/orchestration/canonical.mbt": "5f1cc861cfed6a075d86a7cad6c27222d3a2eca50d0d94a681620514ab960e4f",
+      "closed_loop/orchestration/clock.mbt": "91f20702082d50a4dc06e607dc9621657dc0b00ac94b2329f1673b69143df858",
+      "closed_loop/orchestration/errors.mbt": "51a88978674b85810822b2302cd6660c243e2726dd59aab9908fb358cf375711",
+      "closed_loop/orchestration/lease.mbt": "600750b105263b1d4f4b4b287d45fb99104dd0d905d22a7ebf70ee0617a56128",
+      "closed_loop/orchestration/phase1a_bindings.mbt": "a13f29501ea65f03509e08660388e019014fb978d5a4f76e646c9954b3bd3aa8",
+      "closed_loop/orchestration/phase1a_lifecycle.mbt": "685274fbf796591ed16f674f43e0b5fc38f9794b04e14962f6cc472ecce06c4a",
+      "closed_loop/orchestration/phase1b_authorization.mbt": "6dbae8063a6b5fde2778d0c19bd8805c36e4ad8129fff55ccd6ef9ad85d553c3",
+      "closed_loop/orchestration/phase1b_governed.mbt": "7812ff4ddab00bbbe99d72fa2b3eeb497b15eeea647b67e35b50a07f1b284074",
+      "closed_loop/orchestration/phase1b_authority_guards.mbt": "43b62e14d841e056deeb99b29be47c5901a2d97f1d4b41ea37af79d3aaf09e1d",
+      "closed_loop/orchestration/phase1b_cancellation_commit.mbt": "e9e90f5eec3fc265245f797fb6d78e3825014e1bbbd903afe6138ce09f7da103",
+      "closed_loop/orchestration/phase1b_effect_fact_guards.mbt": "ba18986a50825a1889c4bb12284f7d9e9618ac817dfb0351946f4a2defda797c",
+      "closed_loop/orchestration/phase1b_lease_guards.mbt": "b1183ca179d324bc98f5d70a325a00d604bf16030837df18926bd4ef5ec304f3",
+      "closed_loop/orchestration/phase1b_new_work_guards.mbt": "11e5e146883bd40248d0be519138d7904ad5872de3cb25fa2af34fae1261fc33",
+      "closed_loop/orchestration/phase1b_retry_guards.mbt": "1228bfcbd8cdd4d3fe03ed05c737c6a3d55818feda48e7b094f688d07fa51f05",
+      "closed_loop/orchestration/phase1b_proposal.mbt": "d40a96cb03409569e067a77f8e1f56b4ecbe838386b49869835ab0de3b07d112",
+      "closed_loop/orchestration/ports.mbt": "622b2a8f7c6dc88693be190972664865103c73c416f3515ba45b1f408eba0627",
+      "closed_loop/orchestration/projection.mbt": "3e734746ad3a9e0f0cb327c8bd847ae7052d4e6666086732c91084aeb09c97d5",
+      "closed_loop/orchestration/retry.mbt": "9b10a6220dd42d4c55d5e49afab745f3111d8c0175510b7f7652691283a76466",
+      "closed_loop/orchestration/retry_link.mbt": "1cb89f5f8dfa2a98a1edb648b0590f6f8fb57213ad55e7f1c5f7d4a021c041ec",
+      "closed_loop/orchestration/schedule.mbt": "ced96b17e0b5eecea2dba76a9be399fcec1438e2b55124647aef2f3c70a1b51e",
+      "closed_loop/orchestration/transitions.mbt": "1baf6d4ab52dd0d627cd2645979d59351b2c2f69a3b1830e0ad995e9b4fcd3b7",
+      "closed_loop/orchestration/v2_admission.mbt": "e2324155ed69a6e08e6d69ed8004b5a501694c39716ae3982847d25aa94c1a01",
+      "closed_loop/orchestration/v2_aggregate.mbt": "b5a55071af7a12c041497b367a6620593054ce03665fca988c087b9d507a49ca",
+      "closed_loop/orchestration/v2_authority_receipt.mbt": "93fe415329f12ea8ed6c9fa14af270d3799a6571dd6c17fff6f9c416242fdebe",
+      "closed_loop/orchestration/v2_durable.mbt": "9f412e98a5f804578cd7329638c34503cc6b91c34c4118d902d916723e705a2b",
+      "closed_loop/orchestration/v2_lease.mbt": "983dca0a16ddba7b8ae3e6cd24fbc40f23ab6cc9b4405412aa22e66a72a6b56f",
+      "closed_loop/orchestration/v2_lease_lifecycle.mbt": "b6ba2026618c3b3b6478ed25635b7cdd889dedca07bfaadb027cc55e3adbd229",
+      "closed_loop/orchestration/v2_lease_lifecycle_request.mbt": "0a2267551eeacdfecb871165310d461a3406289ac83ac40d4014bf4003d9066a",
+      "closed_loop/orchestration/v2_retry.mbt": "577e42eb030413025123c93784006d04778e177480d5ca1366a4afc60685047f",
+      "closed_loop/orchestration/v2_terminal_receipt.mbt": "dbb72a43618ea8e1e633a8f81fa78931d7d7a504eaacd0ecf097973745e50a7f",
+      "closed_loop/retry_authority/canonical.mbt": "fcbd988c0c60a9793dff8cc1051c9e311d380ef27ac65f9114ef0cb5108ef6df",
+      "closed_loop/retry_authority/errors.mbt": "533c1377f5549b6d591fc878ade9f5cb82cf56bff4d372291d6a97b2beb3233b",
+      "closed_loop/retry_authority/plan.mbt": "9264eb341fc10cd345cd2d4d08cd2789beaa340712ffdc54d4bb421a8bf640c0",
+      "closed_loop/retry_authority/retry_schedule_request.mbt": "e20018d66030c361cc470cf7ea2d18f382a47406ce891222774194ad3030701e",
+      "closed_loop/orchestration/internal/base/validation.mbt": "49a29d5bb932896210c44c70e97d113d32407d8f58fea083b6ba22131a08de24",
+      "closed_loop/orchestration/internal/decision/retry_timing.mbt": "c4dc1c88aea72ed83dc678a80e8dfdca374e2006f7169e7e272275c7bba87675",
+      "closed_loop/orchestration/internal/decision/lifecycle_race.mbt": "bd5c64097ba5b00954a9092364f4b0ef2a18ddbfa40a10341f40cc78229eb3a3",
+      "closed_loop/orchestration/internal/replay/classification.mbt": "c66486aaa552e16f84888c9fd25992e249da230d791df229bd38f8060474d4a8",
+      "closed_loop/orchestration/phase1c_lifecycle_race.mbt": "669c9f3cdc68b707041241d77701fe959516b7761734c496e4fe32e94aeb9f47"
+    },
+    "test_files": {
+      "closed_loop/orchestration/orchestration_native_wbtest.mbt": "f80d2f25eff6856dae421571c540cee0848a8b854dc304633a4310c6b1f96f46",
+      "closed_loop/orchestration/orchestration_v2_wbtest.mbt": "af0ef6b7d3bed64304a86752cf7d3cb2dca33bc45d334b21cea87650637060da",
+      "closed_loop/orchestration/orchestration_wbtest.mbt": "135803f9288583e513fc21e4f8a2ed4fbc43680aaeba2e3b5393542f240f602c",
+      "closed_loop/orchestration/phase1a_commit_wbtest.mbt": "33accc1cb539dd535896194c4ed98cfcb6073026afaa048fc6832f391dfb7569",
+      "closed_loop/orchestration/phase1a_wbtest.mbt": "a64871c194680a66fbf7154da36a2ba8bc0662b5da9a3476102d7e30ce437fb5",
+      "closed_loop/orchestration/phase1b_native_wbtest.mbt": "ac28a118f4481759b054b0c3f84bb177c8e30d21592a942ba57d8ecf27be61cc",
+      "closed_loop/orchestration/phase1b_lineage_native_wbtest.mbt": "2bb1fdb89a8dce595b69bfe94b505611dfd4766fc9bd80dc69cd3dabb9be496f",
+      "closed_loop/orchestration/phase1b_lineage_wbtest.mbt": "8aa68406a2e5f959f89dc609ec4fbe7698f86600e6930f47cf1f747fd198a622",
+      "closed_loop/orchestration/phase1b_wbtest.mbt": "20941321292de6ad3b4df2c9fe73fa1f09d15863e03088ca6021db11c39a6ef6",
+      "closed_loop/orchestration/phase1b3_c_wbtest.mbt": "4072c90df2304fc5f30a341cbc0ec4d4dd403fcaf28a1fdd482aa1e90f497579",
+      "closed_loop/orchestration/phase1b3_de_wbtest.mbt": "3bd7f7fe50baae2b7c0874bc3f6a0fca7cf8d8c4a4e06b70516772f4daabb20b",
+      "closed_loop/orchestration/phase1b3_e_native_wbtest.mbt": "16c56edaea7e3c379c37bee074279c098075e62f0d0e9300ec7e402b6259916c",
+      "closed_loop/orchestration/v2_aggregate_wbtest.mbt": "0a1befe1882dc7c7d063aaf6f8344acf94379418beddaa62e1558e24955c3a04",
+      "closed_loop/orchestration/v2_authority_receipt_wbtest.mbt": "976092d3e8a9ae97e5a80c653efaf846da137e77f0ad5cb7908a5d334384b317",
+      "closed_loop/orchestration/v2_durable_native_wbtest.mbt": "035b7bc3583f60c88055fb02c5fd70aa7163ae2b7a0107d3873ead98566a9913",
+      "closed_loop/orchestration/v2_durable_wbtest.mbt": "002c1a0c2cf25b5e226b1d6a0b8206c3077a4db4ecf784eb21b79837d86f0251",
+      "closed_loop/orchestration/v2_lease_lifecycle_wbtest.mbt": "98bed4128cb8bd739418db8bdd74c9023b1f085b2f23d097f916fa2d7711e3e3",
+      "conformance/boundary_scan.py": "70654472cbbab42b9dba6729e372b2174137a5690d714026e1f24127af8f6ec2",
+      "conformance/check_phase1a_surface.sh": "09110c5a82f2f1c7f0808b14ac89ce55ab38d556367b90d38849dd788744eb22",
+      "conformance/check_phase1b_compile_fail.sh": "fb6a3f5fc8c490ea5779caf1e9d11400a888b237bbb0f433f9171f71ac565b58",
+      "conformance/check_phase1b_surface.sh": "684c4604ef6b20ba66f8cd5ad05957c5f238f65646fd17a9f588df9d62d7b24d",
+      "conformance/compile_fail/attempt_authorization_construct.mbt.fixture": "441ec934cd61a83a093de5e31449d225f0fa161abf2e19fd80e024f78010de88",
+      "conformance/compile_fail/attempt_authorization_decode.mbt.fixture": "2501ada2d59ea72f8b3f21c565c2d656ceb3942b136a8b125e4a9cae15ef9c7c",
+      "conformance/compile_fail/current_governed_construct.mbt.fixture": "2ab17fc1cc14768d45fe947f01b0a1a455a9e90f314e77333c2e6671cbd36878",
+      "conformance/compile_fail/current_governed_decode.mbt.fixture": "9e613f9832e11ce01247442c1cb773b6d11257dac7bbaac5925805c136c8cf98",
+      "conformance/compile_fail/current_governed_mutate.mbt.fixture": "55b0aae09f2fa59f827748e830c67522ed359253484d995a9c3286f75e28c3e3",
+      "conformance/compile_fail/dispatch_authorization_construct.mbt.fixture": "d2f60147a6e77b33fbed7661f7f6e81c49657309b680a8db8482c7550ff3b559",
+      "conformance/compile_fail/dispatch_authorization_decode.mbt.fixture": "5d85268af916f98c6e49e27279a937251602f0213e60f4c9f4d99b5431a7e1f0",
+      "conformance/compile_fail/dispatch_observation_construct.mbt.fixture": "1ff7291a78102b4b7ccb73042be66ac638503169962f18f6ec199d00afcbf52c",
+      "conformance/compile_fail/dispatch_observation_decode.mbt.fixture": "384c4e3e0c212813fbfbbea30b896fa01b2b80316838b9874dc637b5879e5d50",
+      "conformance/compile_fail/effect_terminal_source_construct.mbt.fixture": "a27a49fbec93168e5207cb527d2a42913f6dc672091c25a985fe13b07c5199fd",
+      "conformance/compile_fail/effect_terminal_source_decode.mbt.fixture": "84c56b942b083c67d3368993f548d4c64d1f53c6bb4975cafec1c10a6da86960",
+      "conformance/compile_fail/generic_work_terminal_prepare.mbt.fixture": "89d54e07ff8ba60352fa43bae7cb0b4b42e7e87ec537e4359c911a53fa4e0a32",
+      "conformance/compile_fail/guard_conflict_receipt_construct.mbt.fixture": "609dd54db15696ced3ae1a4ce12c63ff2d1144841848a9772faf8c486319833f",
+      "conformance/compile_fail/guard_conflict_receipt_decode.mbt.fixture": "d4a3905ab5987b0f08ea5668a096a021fcd7fa8c15ff7690c6e2b420411a14a4",
+      "conformance/compile_fail/guarded_atomic_retry_construct.mbt.fixture": "9b7c18ee42088f13645404d0c7ffa1b1772a0ddb837b2cb17502bc49ef496fe2",
+      "conformance/compile_fail/guarded_atomic_retry_decode.mbt.fixture": "fbfda28b09c4bf3d9b1e11d0a804c388d970af960df2c07ca85365630a992bc0",
+      "conformance/compile_fail/guarded_atomic_retry_lifecycle_conversion.mbt.fixture": "58e50dbf0e829b7e63c57b1555a38739fa3c9d04617848c48ac3b0d19ac0bcbb",
+      "conformance/compile_fail/guarded_attempt_call_construct.mbt.fixture": "c817705efa8d110343a0817dc39522c527a5554e272bc605e2cdc0390f44e653",
+      "conformance/compile_fail/guarded_attempt_call_decode.mbt.fixture": "109a531ce2ff07fa976a37a3b1fccb330d3c05658ea98cba8232a1dfb907da27",
+      "conformance/compile_fail/guarded_commit_request_construct.mbt.fixture": "3e44202a4cb52ca6e3cc44f843f525e5220242e8cc9612fcc02314f3013a3eb2",
+      "conformance/compile_fail/guarded_commit_request_decode.mbt.fixture": "8bde7c20405893ed006aa6db2255d367a63f1544002ef5c4698c239da835eeba",
+      "conformance/compile_fail/guarded_dispatch_call_construct.mbt.fixture": "60af530aad43eab0cd19ed9edef40ee3e7e9d7a234c5a4bc2eb433ac9692b98b",
+      "conformance/compile_fail/guarded_dispatch_call_decode.mbt.fixture": "950e00a355dfb144415893a161e1adb3fa06c100c090782d405d46fa3d2c8d84",
+      "conformance/compile_fail/guarded_retry_request_construct.mbt.fixture": "9d68479dd0b5a7970f4a9c54e5c8d3ef48b3b7cfc28dba8877be996cb382472d",
+      "conformance/compile_fail/guarded_retry_request_decode.mbt.fixture": "5f199573c763f3815742024e4ccf7260652a9bcdb7c0a3796283906d6e8a7264",
+      "conformance/compile_fail/inflight_authority_construct.mbt.fixture": "ebe57709b709bcab1970d569c8b871df8981ea4145fe57ae015d1345742cb087",
+      "conformance/compile_fail/inflight_authority_decode.mbt.fixture": "e1c068039f7e75a2ee5a0d16d8317df66a39a20f7562e1272e6a6e6c59d288c4",
+      "conformance/compile_fail/inflight_dispatch_misuse.mbt.fixture": "098737328569130bf1efd848109fd558f0219ec751d63a53a768e30aaec9dce0",
+      "conformance/compile_fail/inflight_new_work_misuse.mbt.fixture": "c1a658a9d7244a8f841d2079f11eb7e6362e002f2ac252fafddb66c0f3087f64",
+      "conformance/compile_fail/lease_settlement_construct.mbt.fixture": "02628b54742b6608a3cd02c852ef1984c438ffa319697fa420b094d97b238c75",
+      "conformance/compile_fail/lease_settlement_decode.mbt.fixture": "359bfe7a3e7562724357cbde4511aad201efec4288a475d501501b645ac01b6c",
+      "conformance/compile_fail/lifecycle_candidate_construct.mbt.fixture": "56bc75d0e1d591966d92bb7971a54f81dbb593b79c7bc3d44204099f44ecbd88",
+      "conformance/compile_fail/lifecycle_candidate_decode.mbt.fixture": "d318c095b99bded12e8f4e83c2b9b30770457a04b22d7362b78cd044903bd274",
+      "conformance/compile_fail/lifecycle_committed_receipt_construct.mbt.fixture": "745c4b33e22414794cb861d053b0bbdb0d3024eb2b539a616b511df0653b856b",
+      "conformance/compile_fail/lifecycle_committed_receipt_decode.mbt.fixture": "00ca2027fc38234569cda2d9f345b8a9fcc2657af6a264dea639d8979022a397",
+      "conformance/compile_fail/lifecycle_loss_receipt_construct.mbt.fixture": "ac0fa7070f50fb4a29b6edf0197da71b3b492a4f82dc3cafa85de728c4e34488",
+      "conformance/compile_fail/lifecycle_loss_receipt_decode.mbt.fixture": "12e6638c372fe21a779379fb3da9cb55261a3c11e01ea175cb8e2feea21068ff",
+      "conformance/compile_fail/moon.pkg.fixture": "fb6f634e4f5d8c2d628d303e70e6abc9c5dcf4fe553c3a4b1e7bcc43f0ca95f4",
+      "conformance/compile_fail/open_authority_construct.mbt.fixture": "f4a164c60d509846416db50b202f1e5184827442be3c46c8bcb95dfc11d72c55",
+      "conformance/compile_fail/open_authority_decode.mbt.fixture": "2c5c4562ee117a6403d651e6716b442fff8bf614684ca723c2263c1b50baeed3",
+      "conformance/compile_fail/open_fact_commit_misuse.mbt.fixture": "dafcb10b7edfe9eebe1d277427ce485ffdc625896f85c78aa04d1f65b0f85998",
+      "conformance/compile_fail/open_operation_construct.mbt.fixture": "7825869ed5d2a9a18955e283d4a14eb9c26f1011341ed53d4cd33f7c48c1dfd8",
+      "conformance/compile_fail/open_operation_decode.mbt.fixture": "ff1f77837085f1f6f823b8460cb318781a72909b11f0d265f56a572f6c67337c",
+      "conformance/compile_fail/prepared_cancellation_construct.mbt.fixture": "9fa1c16fb0116feee57f114413c95d23d4bce517840e10f8e1d468082d1c4e65",
+      "conformance/compile_fail/prepared_cancellation_decode.mbt.fixture": "200ee1fa9a488ce587f18c4d61095de89f53d5f6dd359e32af6b89b87ba4fb63",
+      "conformance/compile_fail/prepared_cancellation_lifecycle_conversion.mbt.fixture": "59ed732fb593f7cfb86d6b1df65faf4b6b300b469ac797b39c68b3e7684f6722",
+      "conformance/compile_fail/prepared_work_terminal_construct.mbt.fixture": "188ccf446ed0840d121bbd05bfac626dac6f0010215ef8614782136a31409b70",
+      "conformance/compile_fail/prepared_work_terminal_decode.mbt.fixture": "02a4db2c5493a2c679425449c119f343297735205851eb774604b67735b53a90",
+      "conformance/compile_fail/prepared_work_terminal_lifecycle_conversion.mbt.fixture": "0c28a101a9bbc347587bec8b8452ea156f6d7a798d4147115e3df83054b4f4ae",
+      "conformance/compile_fail/private_internal_import.moon.pkg.fixture": "0fff10205b8b21f9986136a273fd110112d70e05e6a78736fe21585b57a2b725",
+      "conformance/compile_fail/raw_dispatch_listing.mbt.fixture": "48454ae543e321b3640993d62d9fe1f5aabefdf77d62aea8968a7f52c2fffb37",
+      "conformance/compile_fail/raw_effect_prepare.mbt.fixture": "a4968927c945754b5d493edee204c8ab1d9a7cdf678e3c7006e53fca50bd2a96",
+      "conformance/compile_fail/raw_lease_prepare.mbt.fixture": "981dcbbfd0f8cd3c4329e75cdf487fe74bc56ee177095c4f3498896b534099d0",
+      "conformance/compile_fail/raw_lifecycle_seal.mbt.fixture": "184b6b921aed5169a5241bdf9ff245a3c6d133658c558c507a78be620f42abd5",
+      "conformance/compile_fail/raw_retry_prepare.mbt.fixture": "14f38eeebc5fc351409666c765096d8a55fab5aaa2d2218615d5fa552019fd11",
+      "conformance/compile_fail/raw_v1_prepare.mbt.fixture": "b3f6feb830d5ff81770aa71448393837a3f85ad106b97ba95be4f606aeac9d35",
+      "conformance/compile_fail/receipt_construct.mbt.fixture": "e6398e1a4200d55d66c6b9c690d76c48f47d4d295c32f169a4b44aa199284550",
+      "conformance/compile_fail/receipt_decode.mbt.fixture": "3b8cc5f6af35831ddbad63a790425df4f402ee1ea7a796a929ba644e19d8077e",
+      "conformance/compile_fail/retry_eligibility_receipt_construct.mbt.fixture": "c0d77472d910937c96e634ad00b432a83754d4dada3b61445d6ec7b8b6b8cb4c",
+      "conformance/compile_fail/retry_eligibility_receipt_decode.mbt.fixture": "0f60d13cb7c43e332f6067312f4665b9bc5de3fa7bf930fc78572a3922e97110",
+      "conformance/compile_fail/retry_currentness_construct.mbt.fixture": "05d0a8ef3f71f3b395fbddd0e88f0db2fd22365b207bf66333c6492b241c8eaf",
+      "conformance/compile_fail/retry_currentness_decode.mbt.fixture": "f2861fd516a74efe5bc042c1463663ac36e65583d7bd92a392059db379c8634e",
+      "conformance/compile_fail/stale_governance_lifecycle_receipt_construct.mbt.fixture": "a1ae048d45ecf9735f4a8835de235f1956c1b527ea61f77a1aa616d28484e0fb",
+      "conformance/compile_fail/stale_governance_lifecycle_receipt_decode.mbt.fixture": "2963c82bbc5d959b7c458cea57093d552265ea23319b82980c1a6d98a43e329a",
+      "conformance/compile_fail/terminal_receipt_construct.mbt.fixture": "fd61351c715d39fd192c6b7bde2707c74fa88e85289e0783d4805e6c8fbdb119",
+      "conformance/compile_fail/terminal_receipt_decode.mbt.fixture": "fc208467a1ee340cc48e5b276bf1d0e4bd8a11b543d377d1e93eee7ddc6d537a",
+      "conformance/compile_fail/unrestricted_commit.mbt.fixture": "4d3e87b824081c5ba79b633fddf5279bc3cb325a8669888670ff80a2c8b44d11",
+      "conformance/compile_fail/work_terminal_record_construct.mbt.fixture": "ea90e0723fa0dc366c5bd7981d53b7327e27497fead5f79ae3163bca216316a4",
+      "conformance/compile_fail/work_terminal_record_decode.mbt.fixture": "8b10e30b5c625036ec0cda910127c3b6861882c849c8565d5dd99dc88e7f3555",
+      "conformance/compile_fail/workflow_head_guard_construct.mbt.fixture": "e8319dd1243cd678c31897788b2666ad3248bb1ce750a39f2d67dedcdf509494",
+      "conformance/compile_fail/workflow_head_guard_decode.mbt.fixture": "b87fe4f0b2a33df40babaed3dfc76f2193b9ae837f995e04597dc2d760d0fdcf",
+      "conformance/run.sh": "156916b5ccb35cd34d622f3419bcdeb82e4f95d6ac593ef6e9e4be7af6c7d0dc",
+      "conformance/negative/flow7a_acceptance_fabrication.mbt": "d5f1f583f01bed32baf9144b321aa525defcdeabae177f6e6b88224888611875",
+      "conformance/negative/flow7a_ambient_time_random.mbt": "ed3a38f797057504b953649f1d4ce0529fd5f2183a24a6a29c0ed781631b8e11",
+      "conformance/negative/flow7a_concrete_runtime.mbt": "535ddcc2418e75969559952dcf8bf43bb68449388f9505097f1c7f4812683a4e",
+      "conformance/negative/flow7a_domain_vocabulary.mbt": "63a7789d725d46f87fd219eb2c48ef657ddd1a09641346ab994c2acd9967d02e",
+      "conformance/negative/flow7a_effect_invocation.mbt": "7410e69e0390d11fa0da3cc147fd581d0a0cd2ed031d14c1caf0fa67b9d70087",
+      "conformance/negative/flow7a_later_ui_cli_v2.mbt": "56b039c4cbf414d788adedb8dfcd2cb46077bf382d3787f1fa083f64a51b3203",
+      "conformance/negative/flow7a_lease_bypass.mbt": "625a5b9986a216fa150cff22ab40726fd6b73241b470bd0c58ec2898563dff2d",
+      "conformance/negative/flow7a_retry_bypass.mbt": "9ccddbbb8e077a77fa4e8cf1be2ffbada32b11ed2092b35c3680bf85ac6eff11",
+      "conformance/negative/flow7a_secret_destination.mbt": "8a8b1d471f5c2aee88ba3ff416c108890d6ac7bc6fd6040d8788cefc48f3a8eb",
+      "conformance/negative/flow7a_storage_duplication.mbt": "0e1d3e8b757d6b21583d1803b1ef2d81b61dfb997936c037c5799e9e3c7ca491",
+      "closed_loop/orchestration/internal/base/validation_wbtest.mbt": "99d1b1b100a3c5dd2337c7ebc04376518f27931a1d89daab174b4123517c2c0a",
+      "closed_loop/orchestration/internal/decision/lifecycle_race_wbtest.mbt": "c60db5ab3ab885f5790d0ed90a1dd0043fa62d83ad44d6d7f07c877177c5ddfa",
+      "closed_loop/orchestration/internal/decision/retry_timing_wbtest.mbt": "05eefd5b3401d3d6fe84eafa1396511000dbd510550ad7ea0a27943e113d4c31",
+      "closed_loop/orchestration/internal/replay/classification_wbtest.mbt": "a0c010db8b14ff6b2ff6c9951590725c189e57b450503b11b3d874d46b98d3ad",
+      "closed_loop/orchestration/phase1c_b_native_wbtest.mbt": "c300a8478e4ce6dfb21f6b8c92b57ca685ddb6d37cdd1a14803c1bfc6b051fed",
+      "closed_loop/orchestration/phase1c_b_races_wbtest.mbt": "0a23b8b794df0e94274467fd1c014845f68e9687ca91930c5656afc09809e9f2",
+      "conformance/check_phase1c_package_graph.py": "be598bdce3a656a559659e3740f1c74954193d3a4feeccc5705acda63ce3c8b5",
+      "conformance/phase1c-a-package-graph.json": "5fa91aefad1a6033ceb84fd570235e1b943b59708bc65e065a9f3b5803e8bc65"
+    },
+    "manifest_files": {
+      "closed_loop/orchestration/moon.pkg": "83bd9f947554d075878fd48dc8e0ad803b50ed72ffb27b1f85772f04baabfd9b",
+      "closed_loop/retry_authority/moon.pkg": "be2980c99b9d316a26ec4ec8c56b42d2af49703a0c66d7765dede2bf23eff6ac",
+      "closed_loop/orchestration/internal/base/moon.pkg": "22554c781dcaaa90d03245c215988ef57ca895d345dcc065e25496d1f33df0b8",
+      "closed_loop/orchestration/internal/decision/moon.pkg": "c7d0bd2962efbbc8f2bb9716e1bebbce1d836be3b1241b6704792bbb813554b0",
+      "closed_loop/orchestration/internal/replay/moon.pkg": "dffa618df6fcebcfe1c72ae0b61d7f1aa4c0bc3cffd9f3e002b5c28842892668"
+    },
+    "interface_files": {
+      "closed_loop/orchestration/pkg.generated.mbti": "685845865d5897704dd2025284f52067ba6b9c1299de3b21b24245f7f8bd8a5b",
+      "closed_loop/retry_authority/pkg.generated.mbti": "5c59cffb9c9ad56b4223252c6fb7dfb5093a695243a7e801a9f9d00f1af8b100",
+      "closed_loop/orchestration/internal/base/pkg.generated.mbti": "18827254be6b6c83169340ac0ec340c1ee20cdaa113940d9879d42b94d00f7ca",
+      "closed_loop/orchestration/internal/decision/pkg.generated.mbti": "c17b136037d9553a981c44c3b17301f1b7d35e32ba3a325170c54584a42f8c62",
+      "closed_loop/orchestration/internal/replay/pkg.generated.mbti": "325270afb2b0153b7e1916f3db5e06fc8a7c5b01c140b6415d119b3ded47195c"
+    }
+  },
+  "legacy_unversioned_records": {
+    "acceptance_review.mbt": [
+      "AcceptanceCriterionReview",
+      "AcceptanceReviewReceipt"
+    ],
+    "adapter.mbt": [
+      "AdapterCapability",
+      "AdapterRequest",
+      "AdapterResult"
+    ],
+    "types.mbt": [
+      "RunProjection",
+      "RuntimeEvent",
+      "RuntimeItem"
+    ]
+  },
+  "accepted_status_assignment": {
+    "path": "engine.mbt",
+    "count": 1
+  },
+  "term_path_allowlist": [
+    "conformance/FLOW2_SUPPORTED_CURRENT_CONTRACT_V1.md",
+    "conformance/boundary-rules.json",
+    "conformance/boundary_scan.py",
+    "conformance/negative/domain_identifier.mbt",
+    "conformance/negative/domain_finance_vocabulary.mbt",
+    "conformance/negative/domain_media_vocabulary.mbt",
+    "conformance/negative/pack_vocabulary.mbt",
+    "conformance/negative/product_branch.mbt"
+  ],
+  "self_tests": [
+    {
+      "fixture": "conformance/negative/forbidden_dependency.moon.pkg",
+      "virtual_path": "moon.pkg",
+      "rule": "DEP001"
+    },
+    {
+      "fixture": "conformance/negative/domain_identifier.mbt",
+      "virtual_path": "domain.mbt",
+      "rule": "DOM001"
+    },
+    {
+      "fixture": "conformance/negative/pack_vocabulary.mbt",
+      "virtual_path": "domain.mbt",
+      "rule": "DOM002"
+    },
+    {
+      "fixture": "conformance/negative/product_branch.mbt",
+      "virtual_path": "domain.mbt",
+      "rule": "DOM003"
+    },
+    {
+      "fixture": "conformance/negative/domain_finance_vocabulary.mbt",
+      "virtual_path": "finance.mbt",
+      "rule": "DOM004"
+    },
+    {
+      "fixture": "conformance/negative/domain_media_vocabulary.mbt",
+      "virtual_path": "media.mbt",
+      "rule": "DOM004"
+    },
+    {
+      "fixture": "conformance/negative/secret_source.mbt",
+      "virtual_path": "secret.mbt",
+      "rule": "SEC001"
+    },
+    {
+      "fixture": "conformance/negative/secret_fixture.json",
+      "virtual_path": "fixtures/secret.json",
+      "rule": "SEC002"
+    },
+    {
+      "fixture": "conformance/negative/unversioned_durable.mbt",
+      "virtual_path": "records.mbt",
+      "rule": "DUR001"
+    },
+    {
+      "fixture": "conformance/negative/adapter_accept_bypass.mbt",
+      "virtual_path": "adapter.mbt",
+      "rule": "REV001"
+    },
+    {
+      "fixture": "conformance/negative/review_skip.mbt",
+      "virtual_path": "engine.mbt",
+      "rule": "REV002"
+    },
+    {
+      "fixture": "conformance/negative/evidence_bypass.mbt",
+      "virtual_path": "acceptance_review.mbt",
+      "rule": "REV003"
+    },
+    {
+      "fixture": "conformance/negative/bare_authority_attestation.mbt",
+      "virtual_path": "authority.mbt",
+      "rule": "AUTH001"
+    },
+    {
+      "fixture": "conformance/negative/future_contract.mbt",
+      "virtual_path": "future.mbt",
+      "rule": "SCOPE001"
+    },
+    {
+      "fixture": "conformance/negative/flow3_contract_outside_package.mbt",
+      "virtual_path": "closed_loop/other/references.mbt",
+      "rule": "SCOPE001",
+      "scope_symbols": "all_flow3_public"
+    },
+    {
+      "fixture": "conformance/negative/flow4a_storage_outside_package.mbt",
+      "virtual_path": "closed_loop/other/storage.mbt",
+      "rule": "SCOPE003",
+      "scope_symbols": "all_flow4a_public",
+      "mechanical_symbols": "flow4a"
+    },
+    {
+      "fixture": "conformance/negative/flow3_domain_inside_contract.mbt",
+      "virtual_path": "closed_loop/contracts/references.mbt",
+      "rule": "DOM004"
+    },
+    {
+      "fixture": "conformance/negative/flow4_contract_inside_flow3.mbt",
+      "virtual_path": "closed_loop/contracts/envelope.mbt",
+      "rule": "SCOPE001"
+    },
+    {
+      "fixture": "conformance/negative/flow3_side_effect_interface.mbti",
+      "virtual_path": "closed_loop/contracts/pkg.generated.mbti",
+      "rule": "API002"
+    },
+    {
+      "fixture": "conformance/negative/flow4_public_interface.mbti",
+      "virtual_path": "closed_loop/contracts/pkg.generated.mbti",
+      "rule": "SCOPE002"
+    },
+    {
+      "fixture": "conformance/negative/flow4b_effect_api.mbt",
+      "virtual_path": "closed_loop/storage/future_effect.mbt",
+      "rule": "FLOW4B001"
+    },
+    {
+      "fixture": "conformance/negative/flow4b_coordination_api.mbt",
+      "virtual_path": "closed_loop/storage/future_coordination.mbt",
+      "rule": "FLOW4B001"
+    },
+    {
+      "fixture": "conformance/negative/flow4b_authority_publication_api.mbt",
+      "virtual_path": "closed_loop/storage/future_authority.mbt",
+      "rule": "FLOW4B001"
+    },
+    {
+      "fixture": "conformance/negative/non_idempotent_handler.mbt",
+      "virtual_path": "handler.mbt",
+      "rule": "IDEM001"
+    },
+    {
+      "fixture": "conformance/negative/weak_containment.mbt",
+      "virtual_path": "boundary.mbt",
+      "rule": "PATH001"
+    },
+    {
+      "fixture": "conformance/negative/weak_cli_containment.mbt",
+      "virtual_path": "cmd/main/main.mbt",
+      "rule": "PATH002"
+    },
+    {
+      "fixture": "conformance/negative/runtime_drift.mbt",
+      "virtual_path": "engine.mbt",
+      "rule": "SRC001"
+    },
+    {
+      "fixture": "conformance/negative/new_runtime_source.mbt",
+      "virtual_path": "new_runtime_source.mbt",
+      "rule": "SRC002"
+    },
+    {
+      "fixture": "conformance/negative/interface_drift.mbti",
+      "virtual_path": "pkg.generated.mbti",
+      "rule": "API001"
+    },
+    {
+      "fixture": "conformance/negative/golden_drift.json",
+      "virtual_path": "conformance/golden/v2/work-graph.json",
+      "rule": "GOLD001"
+    },
+    {
+      "fixture": "conformance/positive/approved_flow5a_governance_surface_test.mbt",
+      "virtual_path": "closed_loop/other/governance.mbti",
+      "rule": "SCOPE005",
+      "scope_symbols": "all_flow5a_public"
+    },
+    {
+      "fixture": "conformance/negative/flow5a_effect_dispatch_provider_api.mbt",
+      "virtual_path": "closed_loop/governance/transition.mbt",
+      "rule": "FLOW5A001"
+    },
+    {
+      "fixture": "conformance/negative/flow5a_scheduling_worker_api.mbt",
+      "virtual_path": "closed_loop/governance/projection.mbt",
+      "rule": "FLOW5A001"
+    },
+    {
+      "fixture": "conformance/negative/flow5a_domain_vocabulary.mbt",
+      "virtual_path": "closed_loop/governance/evidence.mbt",
+      "rule": "FLOW5A004"
+    },
+    {
+      "fixture": "conformance/negative/flow5a_bare_acceptance.mbt",
+      "virtual_path": "closed_loop/governance/transition.mbt",
+      "rule": "FLOW5A002"
+    },
+    {
+      "fixture": "conformance/negative/flow5a_review_bypass.mbt",
+      "virtual_path": "closed_loop/governance/review.mbt",
+      "rule": "FLOW5A002"
+    },
+    {
+      "fixture": "conformance/negative/flow5a_authority_bypass.mbt",
+      "virtual_path": "closed_loop/governance/authority.mbt",
+      "rule": "FLOW5A002"
+    },
+    {
+      "fixture": "conformance/negative/flow5a_codec_duplication.mbt",
+      "virtual_path": "closed_loop/governance/canonical.mbt",
+      "rule": "FLOW5A003"
+    },
+    {
+      "fixture": "conformance/negative/flow5a_storage_duplication.mbt",
+      "virtual_path": "closed_loop/governance/commit.mbt",
+      "rule": "FLOW5A003"
+    },
+    {
+      "fixture": "closed_loop/effects/pkg.generated.mbti",
+      "virtual_path": "closed_loop/other/effects.mbti",
+      "rule": "SCOPE007",
+      "scope_symbols": "all_flow6a_public",
+      "mechanical_symbols": "flow6a",
+      "exclude_from_repository": false
+    },
+    {
+      "fixture": "conformance/negative/flow6a_concrete_dispatcher_provider_api.mbt",
+      "virtual_path": "closed_loop/effects/transitions.mbt",
+      "rule": "FLOW6A001"
+    },
+    {
+      "fixture": "conformance/negative/flow6a_effect_invocation.mbt",
+      "virtual_path": "closed_loop/effects/transitions.mbt",
+      "rule": "FLOW6A001"
+    },
+    {
+      "fixture": "conformance/negative/flow6a_domain_vocabulary.mbt",
+      "virtual_path": "closed_loop/effects/records.mbt",
+      "rule": "DOM004"
+    },
+    {
+      "fixture": "conformance/negative/flow6a_secret_persistence.mbt",
+      "virtual_path": "closed_loop/effects/records.mbt",
+      "rule": "SEC001"
+    },
+    {
+      "fixture": "conformance/negative/flow6a_scheduling_worker_api.mbt",
+      "virtual_path": "closed_loop/effects/transitions.mbt",
+      "rule": "FLOW6A004"
+    },
+    {
+      "fixture": "conformance/negative/flow6a_storage_codec_governance_duplication.mbt",
+      "virtual_path": "closed_loop/effects/transitions.mbt",
+      "rule": "FLOW6A003"
+    },
+    {
+      "fixture": "conformance/negative/flow6a_bare_acceptance_capability_apply.mbt",
+      "virtual_path": "closed_loop/effects/transitions.mbt",
+      "rule": "FLOW6A001"
+    },
+    {
+      "fixture": "conformance/negative/flow6a_unknown_retry_bypass.mbt",
+      "virtual_path": "closed_loop/effects/transitions.mbt",
+      "rule": "FLOW6A001"
+    },
+    {
+      "fixture": "conformance/negative/flow6a_later_flow7_concepts.mbt",
+      "virtual_path": "closed_loop/effects/transitions.mbt",
+      "rule": "FLOW6A004"
+    },
+    {
+      "fixture": "closed_loop/effects_authorization/pkg.generated.mbti",
+      "virtual_path": "closed_loop/other/effects_authorization.mbti",
+      "rule": "SCOPE011",
+      "scope_symbols": "all_flow6c_v2_public",
+      "mechanical_symbols": "flow6c_v2",
+      "exclude_from_repository": false
+    },
+    {
+      "fixture": "conformance/negative/flow6c_v2_scope_escape.mbt",
+      "virtual_path": "closed_loop/other/effects_authorization_escape.mbt",
+      "rule": "SCOPE011"
+    },
+    {
+      "fixture": "closed_loop/orchestration/pkg.generated.mbti",
+      "virtual_path": "closed_loop/other/orchestration.mbti",
+      "rule": "SCOPE009",
+      "scope_symbols": "all_flow7a_public",
+      "mechanical_symbols": "flow7a",
+      "exclude_from_repository": false
+    },
+    {
+      "fixture": "conformance/negative/flow7a_ambient_time_random.mbt",
+      "virtual_path": "closed_loop/orchestration/clock.mbt",
+      "rule": "FLOW7A003"
+    },
+    {
+      "fixture": "conformance/negative/flow7a_concrete_runtime.mbt",
+      "virtual_path": "closed_loop/orchestration/ports.mbt",
+      "rule": "FLOW7A001"
+    },
+    {
+      "fixture": "conformance/negative/flow7a_effect_invocation.mbt",
+      "virtual_path": "closed_loop/orchestration/transitions.mbt",
+      "rule": "FLOW7A004"
+    },
+    {
+      "fixture": "conformance/negative/flow7a_retry_bypass.mbt",
+      "virtual_path": "closed_loop/orchestration/retry.mbt",
+      "rule": "FLOW7A001"
+    },
+    {
+      "fixture": "conformance/negative/flow7a_lease_bypass.mbt",
+      "virtual_path": "closed_loop/orchestration/lease.mbt",
+      "rule": "FLOW7A001"
+    },
+    {
+      "fixture": "conformance/negative/flow7a_acceptance_fabrication.mbt",
+      "virtual_path": "closed_loop/orchestration/transitions.mbt",
+      "rule": "FLOW7A001"
+    },
+    {
+      "fixture": "conformance/negative/flow7a_storage_duplication.mbt",
+      "virtual_path": "closed_loop/orchestration/projection.mbt",
+      "rule": "FLOW7A002"
+    },
+    {
+      "fixture": "conformance/negative/flow7a_secret_destination.mbt",
+      "virtual_path": "closed_loop/orchestration/ports.mbt",
+      "rule": "FLOW7A005"
+    },
+    {
+      "fixture": "conformance/negative/flow7a_domain_vocabulary.mbt",
+      "virtual_path": "closed_loop/orchestration/schedule.mbt",
+      "rule": "FLOW7A005"
+    },
+    {
+      "fixture": "conformance/negative/flow7a_later_ui_cli_v2.mbt",
+      "virtual_path": "closed_loop/orchestration/ports.mbt",
+      "rule": "FLOW7A005"
+    }
+  ],
+  "clean_self_tests": [
+    {
+      "fixture": "conformance/positive/neutral_flow3_vocabulary_test.mbt",
+      "virtual_path": "neutral.mbt"
+    },
+    {
+      "fixture": "conformance/positive/approved_flow3_contract_surface_test.mbt",
+      "virtual_path": "closed_loop/contracts/envelope.mbt",
+      "outside_virtual_path": "closed_loop/contracts/unlisted_surface.mbt"
+    },
+    {
+      "fixture": "conformance/positive/approved_flow4a_storage_surface_test.mbt",
+      "virtual_path": "closed_loop/storage/pkg.generated.mbti",
+      "outside_virtual_path": "closed_loop/storage/unlisted_surface.mbti",
+      "scope_contract": "flow4a",
+      "mechanical_symbols": "flow4a"
+    },
+    {
+      "fixture": "conformance/positive/approved_flow5a_governance_surface_test.mbt",
+      "virtual_path": "closed_loop/governance/pkg.generated.mbti",
+      "outside_virtual_path": "closed_loop/other/governance.mbti",
+      "scope_contract": "flow5a"
+    },
+    {
+      "fixture": "closed_loop/effects/pkg.generated.mbti",
+      "virtual_path": "closed_loop/effects/pkg.generated.mbti",
+      "outside_virtual_path": "closed_loop/other/effects.mbti",
+      "scope_contract": "flow6a",
+      "mechanical_symbols": "flow6a"
+    },
+    {
+      "fixture": "closed_loop/effects_authorization/pkg.generated.mbti",
+      "virtual_path": "closed_loop/effects_authorization/pkg.generated.mbti",
+      "outside_virtual_path": "closed_loop/other/effects_authorization.mbti",
+      "scope_contract": "flow6c_v2",
+      "mechanical_symbols": "flow6c_v2"
+    },
+    {
+      "fixture": "closed_loop/orchestration/pkg.generated.mbti",
+      "virtual_path": "closed_loop/orchestration/pkg.generated.mbti",
+      "outside_virtual_path": "closed_loop/other/orchestration.mbti",
+      "scope_contract": "flow7a",
+      "mechanical_symbols": "flow7a"
+    }
+  ]
+}

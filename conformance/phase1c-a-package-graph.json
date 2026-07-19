@@ -1,0 +1,152 @@
+{
+  "schema": "moonflow.phase1c-a-package-graph.v1",
+  "status": "phase1c_b_implemented_validation_in_progress",
+  "facade": "vectie/moonflow/closed_loop/orchestration",
+  "baseline": {
+    "phase1b3_inventory": "conformance/phase1b3-boundary-inventory.json",
+    "facade_production_files": 31,
+    "facade_production_loc": 17662,
+    "facade_interface_sha256": "261069bd363c8597ef53434fa22792fd031979347d0355822dd9f65e6dfe8a9b",
+    "incremental_native_check_seconds": 0.42,
+    "historical_monolithic_native_test_minutes": "22-24",
+    "new_native_test_benchmark": "stopped_by_direction_before_completion"
+  },
+  "result": {
+    "facade_production_files": 32,
+    "facade_production_loc": 18918,
+    "internal_production_files": 4,
+    "internal_production_loc": 481,
+    "internal_test_files": 4,
+    "internal_test_loc": 172,
+    "lifecycle_race_internal_production_files": [
+      "closed_loop/orchestration/internal/decision/lifecycle_race.mbt",
+      "closed_loop/orchestration/internal/replay/classification.mbt"
+    ],
+    "lifecycle_race_internal_production_loc": 335,
+    "internal_package_edges": 4,
+    "incremental_native_check_seconds": 0.31,
+    "incremental_native_check_measurement": "single warm incremental observation; not evidence of compile-time reduction",
+    "compile_time_reduction_claim": "not established; no comparable clean-build or monolithic native-test benchmark was run",
+    "focused_native_restart_test": "phase1c_b_native_wbtest.mbt index 0 passed in about 60 seconds including compilation; this is functional evidence, not a compile-time comparison",
+    "facade_interface_unchanged": false,
+    "facade_interface_compatibility": "phase1b3_semantic_lines_preserved_with_allowlisted_phase1c_b_additions",
+    "semantic_scope": "phase1c_b_lifecycle_race_slice_with_facade-owned nominal API",
+    "material_extraction": "Two internal files totaling 335 LOC, including adjacent replay-kind helpers, own exact lifecycle-batch/outcome classification, deterministic recorded ordering, contested-batch recovery, and immutable winner-prefix reconstruction; the facade retains public one-scope governed factories, opaque candidates, receipt canonicalization, validation, and error translation",
+    "remaining_evidence_gaps": [
+      "P2-1 materialized runtime-output corpus remains pending; source anchors are not runtime evidence",
+      "compile-time reduction remains unproven",
+      "the full portable Phase1C-B race file remains deferred because it triggers the historical monolithic native compilation path"
+    ],
+    "acceptance_status": "provisional_not_accepted"
+  },
+  "packages": {
+    "vectie/moonflow/closed_loop/orchestration": {
+      "path": "closed_loop/orchestration",
+      "owner": "stable public nominal types, errors, facade adapters, and compatibility surface",
+      "imports": [
+        "moonbitlang/core/buffer",
+        "moonbitlang/core/encoding/utf8",
+        "vectie/moonflow/closed_loop/contracts",
+        "vectie/moonflow/closed_loop/effects",
+        "vectie/moonflow/closed_loop/effects_authorization",
+        "vectie/moonflow/closed_loop/governance",
+        "vectie/moonflow/closed_loop/orchestration/internal/base",
+        "vectie/moonflow/closed_loop/orchestration/internal/decision",
+        "vectie/moonflow/closed_loop/orchestration/internal/replay",
+        "vectie/moonflow/closed_loop/retry_authority",
+        "vectie/moonflow/closed_loop/storage"
+      ]
+    },
+    "vectie/moonflow/closed_loop/orchestration/internal/base": {
+      "path": "closed_loop/orchestration/internal/base",
+      "owner": "model-independent validation and checked non-negative arithmetic",
+      "imports": []
+    },
+    "vectie/moonflow/closed_loop/orchestration/internal/decision": {
+      "path": "closed_loop/orchestration/internal/decision",
+      "owner": "pure retry timing, jitter, and recorded-window decision kernels",
+      "imports": [
+        "moonbitlang/core/encoding/utf8",
+        "vectie/moonflow/closed_loop/contracts",
+        "vectie/moonflow/closed_loop/orchestration/internal/base"
+      ]
+    },
+    "vectie/moonflow/closed_loop/orchestration/internal/replay": {
+      "path": "closed_loop/orchestration/internal/replay",
+      "owner": "closed event classification, contested durable batch selection, and replay binding",
+      "imports": [
+        "vectie/moonflow/closed_loop/contracts",
+        "vectie/moonflow/closed_loop/storage"
+      ]
+    }
+  },
+  "forbidden_import_fragments": [
+    "moondesk",
+    "moonwiki",
+    "mooncode",
+    "moonfish",
+    "mooncast",
+    "/finance",
+    "/media",
+    "/campaign",
+    "/shot"
+  ],
+  "gate_ownership": {
+    "boundary_scan.py": "product/domain vocabulary, secret, review, and durable-record containment",
+    "check_phase1c_package_graph.py": "package graph, repository-wide private-import ownership, compatibility artifacts, and additive facade interface"
+  },
+  "allowed_internal_importers": [
+    "vectie/moonflow/closed_loop/orchestration",
+    "vectie/moonflow/closed_loop/orchestration/internal/decision",
+    "vectie/moonflow/closed_loop/orchestration/internal/replay"
+  ],
+  "facade_interface_additive_gate": {
+    "path": "closed_loop/orchestration/pkg.generated.mbti",
+    "phase1b3_file_sha256": "261069bd363c8597ef53434fa22792fd031979347d0355822dd9f65e6dfe8a9b",
+    "phase1b3_semantic_lines_sha256": "11decb5733c6bf2aab1821bce6781052ec23ba6bd26951011b6914bef1b5c8b7",
+    "allowed_additions_sha256": "572186e1c8294d7d10d8a50fffc583c617b5147034830840cc848fceaee046d6",
+    "allowed_types": [
+      "CommittedLifecycleCandidateReceiptV2",
+      "LifecycleCandidateCategoryV2",
+      "LifecycleCommitCandidateV2",
+      "LifecycleCommitOutcomeV2",
+      "LifecycleRaceLossReasonV2",
+      "LifecycleRaceLossReceiptV2",
+      "RetryPreparationCurrentnessV2",
+      "RetryPreparationStatusV2",
+      "StaleGovernanceLifecycleReceiptV2"
+    ],
+    "allowed_functions": [
+      "commit_lifecycle_candidate_v2",
+      "prepare_lifecycle_atomic_retry_candidate_v2",
+      "prepare_lifecycle_cancellation_candidate_v2",
+      "prepare_lifecycle_cancelled_after_reconciled_not_applied_work_terminal_candidate_v2",
+      "prepare_lifecycle_failed_work_terminal_candidate_v2",
+      "prepare_lifecycle_lease_claim_candidate_v2",
+      "prepare_lifecycle_lease_expiry_candidate_v2",
+      "prepare_lifecycle_lease_reclaim_candidate_v2",
+      "prepare_lifecycle_reconciliation_request_candidate_v2",
+      "prepare_lifecycle_reconciliation_resolution_candidate_v2",
+      "prepare_lifecycle_retry_exhausted_work_terminal_candidate_v2",
+      "prepare_lifecycle_retry_proven_failure_work_terminal_candidate_v2",
+      "prepare_lifecycle_succeeded_work_terminal_candidate_v2"
+    ],
+    "allowed_methods": [
+      "GuardedRetryScheduleRequestV2::retry_preparation_currentness"
+    ]
+  },
+  "compatibility_artifacts": {
+    "conformance/phase1b3-semantic-compatibility.json": "cf0972b55d36574605652515decab6b83893f724245d30e5dc2287c2da1a7a75",
+    "conformance/golden/v2/acceptance-review-observe.json": "d003bdad4c79791b1f8efae6c4d92f84bf4c4fbb59d45284660e21a42a27d977",
+    "conformance/golden/v2/adapter-request-observe.json": "4fd8b31ba8596d9ddca761cf67abcfe5cc847142c54aeea43f8fc7f11c63e910",
+    "conformance/golden/v2/adapter-request-validate.json": "69c6079029aeda8afb63559fa6f93b33169697314028f129738d6a38c47f8f1f",
+    "conformance/golden/v2/adapter-result-observe.json": "f1974fdea634b0b976f89c8a4a7655ca327e195ce1e79c357d23f5ecb01436fc",
+    "conformance/golden/v2/adapter-result-validate.json": "a3c9aff2744af939121d2be8ad394d3ca8b956f1803444c5bd768ab401a1c16c",
+    "conformance/golden/v2/event-stream.json": "6a2f5be8ba2bcfad91042c60febd22aad197ac0a2237c8858e0fcf27cbafe775",
+    "conformance/golden/v2/projection.json": "eb3ec3759b2dcf4cb17c9d068f34ac97f4e4a866d3211c6eb43ae9044099c4c5",
+    "conformance/golden/v2/source-linked-events.json": "54cf72fb1bd97565465c073e255d4eef85e54b1e7513ee20cd6adeca7754c145",
+    "conformance/golden/v2/source-linked-projection.json": "3319ec0e8a1f1c204b63322ecd052a122fbe87bd7df10d5141054b1f30189268",
+    "conformance/golden/v2/work-graph.json": "3b23dc460306dda6f69b8c5b74d6f5453cf576ff7cbba7d0cc60a15e3592d802",
+    "fixtures/source-linked-work-graph.json": "519ffeb91e4869ec4ae605847feb52a175d7df17ece81b0ca7eeecbe74d17863"
+  }
+}

@@ -1,0 +1,3 @@
+fn illegal_effect_terminal_source_decode() -> Unit {
+  ignore(@effects.CommittedEffectTerminalSourceV2::decode("forged", b"forged"))
+}

@@ -1,0 +1,4 @@
+fn illegal_prepared_cancellation_construction(
+) -> @orchestration.PreparedCancellationV2 {
+  { request: () }
+}

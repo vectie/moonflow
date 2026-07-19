@@ -1,0 +1,6 @@
+fn illegal_prepared_cancellation_lifecycle_conversion(
+  prepared : @orchestration.PreparedCancellationV2,
+  current : @orchestration.CurrentGovernedClosedLoopProjectionV2,
+) -> Unit {
+  ignore(prepared.lifecycle_candidate(current))
+}

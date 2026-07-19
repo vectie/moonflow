@@ -1,0 +1,4 @@
+fn illegal_work_terminal_record_construction(
+) -> @orchestration.WorkTerminalRecordV2 {
+  { terminal_ref: () }
+}

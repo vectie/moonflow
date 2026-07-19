@@ -1,0 +1,4 @@
+fn illegal_dispatch_authorization_construction(
+) -> @orchestration.GuardedDispatchAuthorizationV2 {
+  { workflow: () }
+}

@@ -1,0 +1,4 @@
+fn illegal_terminal_receipt_construction(
+) -> @orchestration.CommittedWorkTerminalReceiptV2 {
+  { record_ref: () }
+}

@@ -1,0 +1,16 @@
+{
+  "result_id": "result-validate-1",
+  "request_id": "request-validate-1",
+  "attempt_id": "attempt-validate-1",
+  "idempotency_key": "flow2-golden-v2/work-validate/1/sha256:validate-input",
+  "product_id": "synthetic-validator",
+  "external_job_id": "job-validate-1",
+  "status": "succeeded",
+  "output_digest": "sha256:validate-output",
+  "output_artifacts": [
+    "artifacts/validate-evidence.json"
+  ],
+  "error_kind": "",
+  "compensable": false,
+  "recorded_at": "2026-07-16T00:00:05Z"
+}

@@ -1,0 +1,7 @@
+fn illegal_lifecycle_committed_receipt_decode() -> Unit {
+  ignore(
+    @orchestration.CommittedLifecycleCandidateReceiptV2::decode(
+      "forged", b"forged",
+    ),
+  )
+}

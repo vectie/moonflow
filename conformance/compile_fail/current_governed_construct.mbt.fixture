@@ -1,0 +1,4 @@
+fn illegal_current_governed_construction(
+) -> @orchestration.CurrentGovernedClosedLoopProjectionV2 {
+  { work: () }
+}

@@ -1,0 +1,20 @@
+///|
+fn neutral_flow3_vocabulary() -> Array[String] {
+  [
+    "record",
+    "schema",
+    "envelope",
+    "artifact",
+    "evidence",
+    "asset",
+    "workflow",
+    "stage",
+    "tool",
+    "review",
+    "effect",
+    "provider",
+    "project",
+    "operation",
+    "adapter",
+  ]
+}

@@ -1,0 +1,3 @@
+fn illegal_terminal_receipt_decode() -> Unit {
+  ignore(@orchestration.CommittedWorkTerminalReceiptV2::decode())
+}

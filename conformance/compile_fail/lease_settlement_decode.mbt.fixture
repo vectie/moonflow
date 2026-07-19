@@ -1,0 +1,3 @@
+fn illegal_lease_settlement_decode() -> Unit {
+  ignore(@orchestration.LeaseSettlementAuthorizationV2::decode())
+}

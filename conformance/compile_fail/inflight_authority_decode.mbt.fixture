@@ -1,0 +1,3 @@
+fn illegal_inflight_authority_decode() -> Unit {
+  ignore(@orchestration.InFlightResolutionAuthorityV2::decode())
+}

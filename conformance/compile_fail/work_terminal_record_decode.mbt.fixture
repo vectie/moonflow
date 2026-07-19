@@ -1,0 +1,3 @@
+fn illegal_work_terminal_record_decode() -> Unit {
+  ignore(@orchestration.WorkTerminalRecordV2::decode("forged", b"forged"))
+}

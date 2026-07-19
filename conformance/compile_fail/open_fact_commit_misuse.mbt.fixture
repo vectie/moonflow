@@ -1,0 +1,11 @@
+fn illegal_open_fact_commit_misuse(
+  current : @orchestration.CurrentGovernedClosedLoopProjectionV2,
+  open : @orchestration.OpenWorkAuthorityV2,
+  receipt : @effects.EffectReceipt,
+) -> Unit {
+  ignore(
+    @orchestration.prepare_guarded_effect_receipt_v2(
+      current, open, "event", "command", receipt,
+    ),
+  )
+}

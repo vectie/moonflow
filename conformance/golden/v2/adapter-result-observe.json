@@ -1,0 +1,16 @@
+{
+  "result_id": "result-observe-1",
+  "request_id": "request-observe-1",
+  "attempt_id": "attempt-observe-1",
+  "idempotency_key": "flow2-golden-v2/work-observe/1/sha256:observe-input",
+  "product_id": "synthetic-observer",
+  "external_job_id": "job-observe-1",
+  "status": "succeeded",
+  "output_digest": "sha256:observe-output",
+  "output_artifacts": [
+    "artifacts/observe-evidence.json"
+  ],
+  "error_kind": "",
+  "compensable": false,
+  "recorded_at": "2026-07-16T00:00:02Z"
+}
