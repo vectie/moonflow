@@ -142,24 +142,6 @@ pub fn decode_ordered_http_json_config(
 }
 
 ///|
-async fn read_limited(client : @http.Client, ceiling : Int) -> Bytes {
-  let buffer = FixedArray::make(ceiling + 1, b'0')
-  let mut received = 0
-  while received <= ceiling {
-    let count = client.read(
-      buffer,
-      offset=received,
-      max_len=ceiling + 1 - received,
-    )
-    if count == 0 {
-      return buffer.unsafe_reinterpret_as_bytes()[:received].to_owned()
-    }
-    received += count
-  }
-  fail("HTTP response exceeds configured byte ceiling")
-}
-
-///|
 fn json_signals_error(value : Json) -> Bool {
   guard value is Object(fields) else { return false }
   match fields.get("error") {
@@ -202,14 +184,9 @@ fn decode_success_body(
 
 ///|
 async fn get_json(url : String, ceiling : Int) -> (Int, Bytes, Json) {
-  let (response, client) = @http.get_stream(url, headers={
-    "Accept": "application/json",
-    "Connection": "close",
-  })
-  defer client.close()
-  let body = read_limited(client, ceiling)
-  let value = decode_success_body(body, response.code, "source GET")
-  (response.code, body, value)
+  let response = fixed_http_json_request(url, "GET", b"", ceiling, None)
+  let value = decode_success_body(response.body, response.code, "source GET")
+  (response.code, response.body, value)
 }
 
 ///|
@@ -219,22 +196,19 @@ async fn post_json(
   ceiling : Int,
   idempotency_key : String,
 ) -> (Int, Bytes, Json) {
-  let client = @http.post_stream(url, headers={
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    "Idempotency-Key": idempotency_key,
-    "Connection": "close",
-  })
-  defer client.close()
-  client.write(body)
-  let response = client.end_request()
-  let response_body = read_limited(client, ceiling)
+  let response = fixed_http_json_request(
+    url,
+    "POST",
+    body,
+    ceiling,
+    Some(idempotency_key),
+  )
   let value = decode_success_body(
-    response_body,
+    response.body,
     response.code,
     "destination POST",
   )
-  (response.code, response_body, value)
+  (response.code, response.body, value)
 }
 
 ///|
