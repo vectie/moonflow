@@ -1,0 +1,64 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/ordered_http_json"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+pub fn decode_ordered_http_json_config(Json) -> OrderedHttpJsonConfig raise
+
+pub async fn execute_ordered_http_json(OrderedHttpJsonConfig) -> OrderedHttpJsonReceipt
+
+pub fn ordered_http_json_contract_version() -> String
+
+// Errors
+
+// Types and methods
+pub(all) struct OrderedHttpJsonConfig {
+  contract_version : String
+  transfer_id : String
+  source_url : String
+  expected_source_digest : String
+  max_response_bytes : Int
+  max_attempts : Int
+  retry_delay_ms : Int
+  steps : Array[OrderedJsonPostStep]
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct OrderedHttpJsonReceipt {
+  contract_version : String
+  transfer_id : String
+  source_url : String
+  expected_source_digest : String
+  source_status : Int
+  source_response_digest : String
+  max_attempts : Int
+  retry_delay_ms : Int
+  steps : Array[OrderedHttpJsonStepReceipt]
+  receipt_digest : String
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn OrderedHttpJsonReceipt::canonical_json(Self) -> String
+pub fn OrderedHttpJsonReceipt::valid(Self) -> Bool
+
+pub(all) struct OrderedHttpJsonStepReceipt {
+  ordinal : Int
+  field : String
+  destination_url : String
+  request_digest : String
+  idempotency_key : String
+  attempt_count : Int
+  response_status : Int
+  response_digest : String
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct OrderedJsonPostStep {
+  field : String
+  destination_url : String
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+// Type aliases
+
+// Traits
+

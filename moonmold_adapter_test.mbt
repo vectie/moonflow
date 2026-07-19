@@ -29,8 +29,7 @@ fn dispatch(
       acceptance_criteria: ["portable lineage accepted"],
       input_contracts: ["moonmold-building-plan-v1"],
       output_contracts: [
-        "moonmold.spatial-artifact.v1",
-        "moonmold.representation-transform.v1",
+        "moonmold.spatial-artifact.v1", "moonmold.representation-transform.v1",
       ],
       required_claim: claim,
       input_digest: input,
@@ -92,7 +91,11 @@ test "MoonFlow capability and accepted evidence stay within digital authority" {
 test "MoonFlow rejects stale lineage mismatch and physical overclaim" {
   let stale = attest_moonmold_result(dispatch(), result(parent=digest("e")))
   assert_false(stale.accepted)
-  assert_true(stale.issues.contains("MoonMold result has a stale or unexpected parent digest"))
+  assert_true(
+    stale.issues.contains(
+      "MoonMold result has a stale or unexpected parent digest",
+    ),
+  )
   let styled_as_engineering = attest_moonmold_result(
     dispatch(),
     result(
@@ -102,14 +105,24 @@ test "MoonFlow rejects stale lineage mismatch and physical overclaim" {
     ),
   )
   assert_false(styled_as_engineering.accepted)
-  assert_true(styled_as_engineering.issues.contains("MoonMold result representation lineage mismatches dispatch"))
+  assert_true(
+    styled_as_engineering.issues.contains(
+      "MoonMold result representation lineage mismatches dispatch",
+    ),
+  )
   let physical = attest_moonmold_result(
     dispatch(),
     result(claim="physical-readiness", physical=true),
   )
   assert_false(physical.accepted)
-  assert_true(physical.issues.contains("MoonMold cannot emit simulation evidence or physical claims"))
-  assert_true(physical.issues.contains("MoonMold result cannot report physical effects"))
+  assert_true(
+    physical.issues.contains(
+      "MoonMold cannot emit simulation evidence or physical claims",
+    ),
+  )
+  assert_true(
+    physical.issues.contains("MoonMold result cannot report physical effects"),
+  )
 }
 
 ///|
@@ -145,6 +158,9 @@ test "MoonFlow rejects premature simulation-evidence claim" {
   )
   let mapping = attest_moonmold_result(simulation_dispatch, overclaim)
   assert_false(mapping.accepted)
-  assert_true(mapping.issues.contains("MoonMold cannot emit simulation evidence or physical claims"))
+  assert_true(
+    mapping.issues.contains(
+      "MoonMold cannot emit simulation evidence or physical claims",
+    ),
+  )
 }
-

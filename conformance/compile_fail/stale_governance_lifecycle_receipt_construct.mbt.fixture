@@ -1,0 +1,4 @@
+fn illegal_stale_governance_lifecycle_receipt_construction(
+) -> @orchestration.StaleGovernanceLifecycleReceiptV2 {
+  { candidate_ref: () }
+}

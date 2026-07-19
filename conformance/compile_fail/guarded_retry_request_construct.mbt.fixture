@@ -1,0 +1,4 @@
+fn illegal_guarded_retry_request_construction(
+) -> @orchestration.GuardedRetryScheduleRequestV2 {
+  { request: () }
+}

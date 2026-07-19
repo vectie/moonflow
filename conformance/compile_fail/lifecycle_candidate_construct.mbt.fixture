@@ -1,0 +1,4 @@
+fn illegal_lifecycle_candidate_construction(
+) -> @orchestration.LifecycleCommitCandidateV2 {
+  { candidate_ref: () }
+}

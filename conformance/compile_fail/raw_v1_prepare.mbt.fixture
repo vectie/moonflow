@@ -1,0 +1,3 @@
+fn illegal_raw_v1_prepare() -> Unit {
+  ignore(@orchestration.prepare_schedule_event())
+}

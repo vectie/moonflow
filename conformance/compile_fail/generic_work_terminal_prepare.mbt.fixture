@@ -1,0 +1,3 @@
+fn illegal_generic_work_terminal_prepare() -> Unit {
+  ignore(@orchestration.prepare_effect_work_terminal_v22)
+}

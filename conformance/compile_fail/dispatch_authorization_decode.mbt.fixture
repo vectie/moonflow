@@ -1,0 +1,3 @@
+fn illegal_dispatch_authorization_decode() -> Unit {
+  ignore(@orchestration.GuardedDispatchAuthorizationV2::decode())
+}

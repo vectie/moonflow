@@ -1,0 +1,4 @@
+fn illegal_effect_terminal_source_construction(
+) -> @effects.CommittedEffectTerminalSourceV2 {
+  { receipt_ref: () }
+}

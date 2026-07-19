@@ -1,0 +1,4 @@
+fn illegal_guarded_workflow_binding_construction(
+) -> @storage.GuardedWorkflowBinding {
+  { registry_version: () }
+}

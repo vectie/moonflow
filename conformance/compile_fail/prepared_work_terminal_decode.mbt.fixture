@@ -1,0 +1,3 @@
+fn illegal_prepared_work_terminal_decode() -> Unit {
+  ignore(@orchestration.PreparedWorkTerminalV2::decode("forged", b"forged"))
+}

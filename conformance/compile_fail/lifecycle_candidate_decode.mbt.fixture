@@ -1,0 +1,3 @@
+fn illegal_lifecycle_candidate_decode() -> Unit {
+  ignore(@orchestration.LifecycleCommitCandidateV2::decode("forged", b"forged"))
+}

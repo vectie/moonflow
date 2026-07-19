@@ -1,0 +1,6 @@
+fn illegal_unbound_guarded_lifecycle_capability(
+  store : @storage.FileSystemGuardedStore,
+  candidate : @orchestration.LifecycleCommitCandidateV2,
+) -> Unit {
+  ignore(@orchestration.commit_lifecycle_candidate_v2(store, candidate))
+}

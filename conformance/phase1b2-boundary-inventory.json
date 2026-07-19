@@ -1,0 +1,144 @@
+{
+  "schema": "moonflow.boundary-metadata-inventory.v1",
+  "id": "flow7-phase1b2-authority-cancellation-baseline",
+  "metadata_only": true,
+  "rules_changed": false,
+  "scanner": {
+    "path": "conformance/boundary_scan.py",
+    "before_sha256": "626fdc41558bef2db52eebbdc12a0f92618d2745a888030d46c5bedc8b25d6db",
+    "after_sha256": "626fdc41558bef2db52eebbdc12a0f92618d2745a888030d46c5bedc8b25d6db"
+  },
+  "boundary_rules": {
+    "path": "conformance/boundary-rules.json",
+    "before_sha256": "36a2a89c074efbe96f60531882872ec3ef38531eed9c2fdb2ffb8ad2001e7352",
+    "after_sha256": "6b8c127775b6a28d73b19ee70b8b5a708f21adc81af71cb7e342426917a60bf0"
+  },
+  "inventory_counts": {
+    "before": {
+      "flow4a_storage": [10, 3, 1, 1],
+      "flow6a_effects": [15, 13, 1, 1],
+      "flow7a_orchestration": [29, 34, 2, 2]
+    },
+    "after": {
+      "flow4a_storage": [10, 3, 1, 1],
+      "flow6a_effects": [15, 13, 1, 1],
+      "flow7a_orchestration": [35, 70, 2, 2]
+    },
+    "section_order": [
+      "production_files",
+      "test_files",
+      "manifest_files",
+      "interface_files"
+    ]
+  },
+  "flow7_inventory_digest": {
+    "before": "a90229e1ae9f6e2866bd0e44c7a6fcc34b2e1cc25d04e8dd10712617dc9eae4b",
+    "after": "dc22c30e75ce8dcb0c5861f2d1b93d54649899a81a511925d10278a31c5b07e6"
+  },
+  "added": {
+    "flow7a_production_files": [
+      "closed_loop/orchestration/phase1b_authority_guards.mbt",
+      "closed_loop/orchestration/phase1b_cancellation_commit.mbt",
+      "closed_loop/orchestration/phase1b_effect_fact_guards.mbt",
+      "closed_loop/orchestration/phase1b_lease_guards.mbt",
+      "closed_loop/orchestration/phase1b_new_work_guards.mbt",
+      "closed_loop/orchestration/phase1b_retry_guards.mbt"
+    ],
+    "flow7a_test_files": [
+      "conformance/check_phase1b_surface.sh",
+      "conformance/compile_fail/attempt_authorization_construct.mbt.fixture",
+      "conformance/compile_fail/attempt_authorization_decode.mbt.fixture",
+      "conformance/compile_fail/current_governed_mutate.mbt.fixture",
+      "conformance/compile_fail/dispatch_authorization_construct.mbt.fixture",
+      "conformance/compile_fail/dispatch_authorization_decode.mbt.fixture",
+      "conformance/compile_fail/dispatch_observation_construct.mbt.fixture",
+      "conformance/compile_fail/dispatch_observation_decode.mbt.fixture",
+      "conformance/compile_fail/guarded_atomic_retry_construct.mbt.fixture",
+      "conformance/compile_fail/guarded_atomic_retry_decode.mbt.fixture",
+      "conformance/compile_fail/guarded_attempt_call_construct.mbt.fixture",
+      "conformance/compile_fail/guarded_attempt_call_decode.mbt.fixture",
+      "conformance/compile_fail/guarded_dispatch_call_construct.mbt.fixture",
+      "conformance/compile_fail/guarded_dispatch_call_decode.mbt.fixture",
+      "conformance/compile_fail/guarded_retry_request_construct.mbt.fixture",
+      "conformance/compile_fail/guarded_retry_request_decode.mbt.fixture",
+      "conformance/compile_fail/inflight_authority_construct.mbt.fixture",
+      "conformance/compile_fail/inflight_authority_decode.mbt.fixture",
+      "conformance/compile_fail/inflight_dispatch_misuse.mbt.fixture",
+      "conformance/compile_fail/inflight_new_work_misuse.mbt.fixture",
+      "conformance/compile_fail/lease_settlement_construct.mbt.fixture",
+      "conformance/compile_fail/lease_settlement_decode.mbt.fixture",
+      "conformance/compile_fail/open_authority_construct.mbt.fixture",
+      "conformance/compile_fail/open_authority_decode.mbt.fixture",
+      "conformance/compile_fail/open_fact_commit_misuse.mbt.fixture",
+      "conformance/compile_fail/open_operation_construct.mbt.fixture",
+      "conformance/compile_fail/open_operation_decode.mbt.fixture",
+      "conformance/compile_fail/prepared_cancellation_construct.mbt.fixture",
+      "conformance/compile_fail/prepared_cancellation_decode.mbt.fixture",
+      "conformance/compile_fail/raw_dispatch_listing.mbt.fixture",
+      "conformance/compile_fail/raw_effect_prepare.mbt.fixture",
+      "conformance/compile_fail/raw_lease_prepare.mbt.fixture",
+      "conformance/compile_fail/raw_retry_prepare.mbt.fixture",
+      "conformance/compile_fail/raw_v1_prepare.mbt.fixture",
+      "conformance/compile_fail/terminal_receipt_construct.mbt.fixture",
+      "conformance/compile_fail/terminal_receipt_decode.mbt.fixture",
+      "conformance/compile_fail/unrestricted_commit.mbt.fixture"
+    ]
+  },
+  "removed": {
+    "flow6a_test_files": [
+      "closed_loop/effects/effects_test.mbt",
+      "closed_loop/effects/effects_native_test.mbt"
+    ],
+    "flow7a_test_files": [
+      "closed_loop/orchestration/orchestration_native_test.mbt",
+      "closed_loop/orchestration/orchestration_v2_test.mbt",
+      "closed_loop/orchestration/orchestration_test.mbt",
+      "closed_loop/orchestration/phase1a_commit_test.mbt",
+      "closed_loop/orchestration/phase1b_native_test.mbt",
+      "closed_loop/orchestration/phase1b_lineage_native_test.mbt",
+      "closed_loop/orchestration/phase1b_lineage_test.mbt",
+      "closed_loop/orchestration/phase1b_test.mbt",
+      "closed_loop/orchestration/v2_aggregate_test.mbt",
+      "closed_loop/orchestration/v2_authority_receipt_test.mbt",
+      "closed_loop/orchestration/v2_durable_native_test.mbt",
+      "closed_loop/orchestration/v2_durable_test.mbt",
+      "closed_loop/orchestration/v2_lease_lifecycle_test.mbt"
+    ]
+  },
+  "changed": {
+    "flow4a": [
+      "closed_loop/storage/port.mbt",
+      "closed_loop/storage/pkg.generated.mbti",
+      "conformance/negative/flow4a_storage_outside_package.mbt",
+      "conformance/positive/approved_flow4a_storage_surface_test.mbt"
+    ],
+    "flow6a": [
+      "closed_loop/effects/attempt.mbt",
+      "closed_loop/effects/decode.mbt",
+      "closed_loop/effects/intent.mbt",
+      "closed_loop/effects/observations.mbt",
+      "closed_loop/effects/ports.mbt",
+      "closed_loop/effects/projection.mbt",
+      "closed_loop/effects/strict_fold.mbt",
+      "closed_loop/effects/transitions.mbt",
+      "closed_loop/effects/moon.pkg",
+      "closed_loop/effects/pkg.generated.mbti"
+    ],
+    "flow7a": [
+      "closed_loop/orchestration/phase1a_bindings.mbt",
+      "closed_loop/orchestration/phase1a_lifecycle.mbt",
+      "closed_loop/orchestration/phase1b_governed.mbt",
+      "closed_loop/orchestration/retry_link.mbt",
+      "closed_loop/orchestration/schedule.mbt",
+      "closed_loop/orchestration/transitions.mbt",
+      "closed_loop/orchestration/v2_aggregate.mbt",
+      "closed_loop/orchestration/v2_durable.mbt",
+      "closed_loop/orchestration/v2_lease_lifecycle_request.mbt",
+      "closed_loop/orchestration/moon.pkg",
+      "closed_loop/orchestration/pkg.generated.mbti",
+      "conformance/check_phase1b_compile_fail.sh",
+      "conformance/compile_fail/moon.pkg.fixture",
+      "conformance/run.sh"
+    ]
+  }
+}

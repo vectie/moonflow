@@ -1,0 +1,3 @@
+fn illegal_retry_eligibility_receipt_decode() -> Unit {
+  ignore(@effects.CommittedRetryEligibilityReceiptV2::decode("forged", b"forged"))
+}

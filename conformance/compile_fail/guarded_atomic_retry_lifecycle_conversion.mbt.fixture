@@ -1,0 +1,6 @@
+fn illegal_guarded_atomic_retry_lifecycle_conversion(
+  prepared : @orchestration.GuardedAtomicRetryV2,
+  current : @orchestration.CurrentGovernedClosedLoopProjectionV2,
+) -> Unit {
+  ignore(prepared.lifecycle_candidate(current))
+}

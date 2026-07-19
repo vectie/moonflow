@@ -1,0 +1,5 @@
+fn illegal_current_governed_decode() -> Unit {
+  ignore(
+    @orchestration.CurrentGovernedClosedLoopProjectionV2::decode(),
+  )
+}

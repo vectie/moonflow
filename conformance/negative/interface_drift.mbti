@@ -1,0 +1,2 @@
+// Safe negative fixture: deliberately not the root generated interface.
+package "negative/interface-drift"

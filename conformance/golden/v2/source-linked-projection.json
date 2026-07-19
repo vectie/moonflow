@@ -1,0 +1,74 @@
+{
+  "protocol": "moonflow.run-projection.v2",
+  "run_id": "flow-source-linked-fixture-r1",
+  "book_id": "source-linked-fixture",
+  "declaration_revision": "r1",
+  "source_digest": "sha256:7c83693394b7d8dfd98d8a3c7217cbddfa44e4b7ba5ef88c513d6da403e32f9c",
+  "last_sequence": 3,
+  "outcome": "ready",
+  "runnable_item_ids": [
+    "work-research"
+  ],
+  "items": [
+    {
+      "work_item_id": "work-research",
+      "declaration_id": "research",
+      "product_id": "moonwiki",
+      "requested_authority": "observe",
+      "acceptance_criteria": [
+        "reviewed evidence and limitations are attached"
+      ],
+      "depends_on": [],
+      "status": "ready",
+      "attempt_count": 0,
+      "request_id": "",
+      "result_id": "",
+      "active_attempt_id": "",
+      "idempotency_key": "",
+      "external_job_id": "",
+      "attempt_status": "",
+      "operation": "",
+      "input_digest": "",
+      "output_digest": "",
+      "error_kind": "",
+      "compensable": false,
+      "blocker": "",
+      "acceptance_review_id": "",
+      "acceptance_review_artifact": "",
+      "acceptance_reviewer_id": "",
+      "artifacts": [],
+      "approvals": []
+    },
+    {
+      "work_item_id": "work-validate",
+      "declaration_id": "validate",
+      "product_id": "moonmoon",
+      "requested_authority": "sandbox-execution",
+      "acceptance_criteria": [
+        "the declared digital validation gate passes"
+      ],
+      "depends_on": [
+        "work-research"
+      ],
+      "status": "proposed",
+      "attempt_count": 0,
+      "request_id": "",
+      "result_id": "",
+      "active_attempt_id": "",
+      "idempotency_key": "",
+      "external_job_id": "",
+      "attempt_status": "",
+      "operation": "",
+      "input_digest": "",
+      "output_digest": "",
+      "error_kind": "",
+      "compensable": false,
+      "blocker": "",
+      "acceptance_review_id": "",
+      "acceptance_review_artifact": "",
+      "acceptance_reviewer_id": "",
+      "artifacts": [],
+      "approvals": []
+    }
+  ]
+}

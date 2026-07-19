@@ -1,0 +1,4 @@
+fn illegal_inflight_authority_construction(
+) -> @orchestration.InFlightResolutionAuthorityV2 {
+  { workflow: () }
+}

@@ -1,0 +1,3 @@
+package "negative/flow3-side-effect"
+
+pub fn WireEnvelope::apply(Self) -> Unit

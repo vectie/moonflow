@@ -1,0 +1,44 @@
+{
+  "schema": "moonflow.phase1b3-semantic-compatibility.v1",
+  "status": "source_anchor_only_provisional",
+  "audit_disposition": {
+    "p2_1": "pending_materialized_runtime_outputs",
+    "limitation": "This artifact hashes source anchors and verifies assertion presence; it does not contain canonical terminal, receipt, replay, or rejection output bytes/digests.",
+    "required_closure": "Generate a dedicated executable corpus and have the checker regenerate and compare its materialized outputs."
+  },
+  "terminal_outcomes": [
+    "CancelledBeforeEffectIntentV2",
+    "SucceededV2",
+    "CancelledAfterReconciledNotAppliedV2",
+    "FailedNonRetryableV2",
+    "FailedRetryExhaustedV2",
+    "FailedCancellationStoppedRetryV2"
+  ],
+  "semantic_anchors": {
+    "closed_loop/orchestration/phase1b3_de_wbtest.mbt": "3bd7f7fe50baae2b7c0874bc3f6a0fca7cf8d8c4a4e06b70516772f4daabb20b",
+    "closed_loop/orchestration/phase1b3_e_native_wbtest.mbt": "16c56edaea7e3c379c37bee074279c098075e62f0d0e9300ec7e402b6259916c",
+    "closed_loop/orchestration/phase1b_cancellation_commit.mbt": "e9e90f5eec3fc265245f797fb6d78e3825014e1bbbd903afe6138ce09f7da103"
+  },
+  "required_runtime_assertions": [
+    "FLOW-7 Phase1B.3-D/E terminal outcomes are exact final and memory-stable",
+    "FLOW-7 Phase1B.3-D terminal races have one CAS winner",
+    "FLOW-7 Phase1B.3-E filesystem restarts preserve all new terminal outcomes",
+    "FLOW-7 Phase1B.3-E restart boundaries preserve reconciliation authority"
+  ],
+  "required_semantic_tokens": [
+    "terminal_receipt.digest()",
+    "work_replay_digest",
+    "work_effects_state_digest",
+    "work_orchestration_state_digest",
+    "trailing_bytes",
+    "ReplayBindingViolation(field=\"work_record_byte_binding\")",
+    "IdempotencyConflict(key~)",
+    "OptimisticRevisionConflict(expected~, actual~, ..)"
+  ],
+  "provisional_source_coverage": {
+    "safe_terminal_hash": "source assertions reference content-addressed terminal receipt stability, but no output digest is materialized here",
+    "terminal_source_retry_receipts": "source assertions cover the six terminal outcomes and receipt bindings",
+    "exact_rejections": "source assertions cover tamper, idempotency, and stale-head typed variants/fields",
+    "restart_parity": "source assertions cover representative MemoryStore and FileSystemStore replay/state/receipt comparisons"
+  }
+}

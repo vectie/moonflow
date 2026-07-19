@@ -1,0 +1,4 @@
+fn illegal_attempt_authorization_construction(
+) -> @orchestration.GuardedAttemptAuthorizationV2 {
+  { workflow: () }
+}

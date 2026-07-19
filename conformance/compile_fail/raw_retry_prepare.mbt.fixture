@@ -1,0 +1,3 @@
+fn illegal_raw_retry_prepare() -> Unit {
+  ignore(@orchestration.prepare_atomic_retry_v2())
+}

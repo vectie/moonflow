@@ -1,0 +1,21 @@
+///|
+/// Closed, typed failures for the pure FLOW-6A protocol.
+pub(all) suberror EffectsError {
+  InvalidState(field~ : String)
+  UnsupportedVersion(field~ : String, version~ : String)
+  IdentityMismatch(field~ : String)
+  GovernanceViolation(field~ : String)
+  AuthorityExpired(expires_at~ : Int64, observed_at~ : Int64)
+  ReviewReceiptViolation(field~ : String)
+  OrderingViolation(field~ : String)
+  RevisionMismatch(expected~ : Int64, actual~ : Int64)
+  DigestMismatch(field~ : String)
+  EvidenceMismatch(field~ : String)
+  IdempotencyConflict(key~ : String)
+  FencingViolation(field~ : String)
+  OutboxAtomicityViolation(field~ : String)
+  OutcomeConflict(field~ : String)
+  ReconciliationViolation(field~ : String)
+  RetryEligibilityViolation(field~ : String)
+  MalformedRecord(field~ : String)
+} derive(Eq, Debug)

@@ -1,0 +1,3 @@
+fn illegal_attempt_authorization_decode() -> Unit {
+  ignore(@orchestration.GuardedAttemptAuthorizationV2::decode())
+}

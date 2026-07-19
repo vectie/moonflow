@@ -1,0 +1,12 @@
+fn illegal_inflight_new_work_misuse(
+  current : @orchestration.CurrentGovernedClosedLoopProjectionV2,
+  inflight : @orchestration.InFlightResolutionAuthorityV2,
+  operation : @orchestration.OpenWorkOperationAuthorizationV2,
+  registration : @effects.AttemptRegistration,
+) -> Unit {
+  ignore(
+    @orchestration.prepare_guarded_attempt_registration_v2(
+      current, inflight, operation, "event", "command", registration,
+    ),
+  )
+}

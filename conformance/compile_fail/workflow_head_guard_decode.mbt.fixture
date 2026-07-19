@@ -1,0 +1,3 @@
+fn illegal_workflow_head_guard_decode() -> Unit {
+  ignore(@storage.WorkflowHeadGuard::decode(b"forged"))
+}

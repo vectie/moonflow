@@ -1,0 +1,104 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/closed_loop/host"
+
+import {
+  "vectie/moonflow/closed_loop/contracts",
+  "vectie/moonflow/closed_loop/orchestration",
+}
+
+// Values
+pub fn advance_configured_pack_run_json_v1(Json, Bytes) -> PackRunApplicationReceiptV1 raise
+
+pub fn advance_configured_pack_run_v1(ConfiguredPackRunApplicationV1, Bytes) -> PackRunApplicationReceiptV1 raise
+
+pub fn commit_configured_pack_handoff_json_v1(Json, Bytes) -> @orchestration.PackHostReceiptV1 raise
+
+pub fn commit_configured_pack_handoff_v1(ConfiguredPackHostV1, Bytes) -> @orchestration.PackHostReceiptV1 raise
+
+pub fn decode_configured_pack_host_v1(Json) -> ConfiguredPackHostV1 raise
+
+pub fn decode_configured_pack_run_application_v1(Json) -> ConfiguredPackRunApplicationV1 raise
+
+pub async fn materialize_operator_actions_v1(String, String, @orchestration.OperatorActionCatalogMaterializationV1) -> OperatorActionMaterializationReceiptV1
+
+pub async fn materialize_operator_projection_v1(String, String, @orchestration.OperatorProjectionMaterializationV1) -> OperatorProjectionMaterializationReceiptV1
+
+// Errors
+
+// Types and methods
+type ConfiguredHostRootsV1
+
+type ConfiguredHostWorkflowsV1
+
+pub(all) enum ConfiguredPackHostOperationV1 {
+  ConfiguredFinalLearningV1
+  ConfiguredScheduleV1
+  ConfiguredOperatorV1
+}
+
+pub struct ConfiguredPackHostV1 {
+  operation : ConfiguredPackHostOperationV1
+  workspace_root : String
+  profile : String
+  run_id : String?
+  binding_id : String?
+  recovery_evidence_binding_id : String?
+  effects_policy_ref : @contracts.RecordRef?
+  roots : ConfiguredHostRootsV1
+  workflows : ConfiguredHostWorkflowsV1
+  canonical_json : String
+  digest : @contracts.ContentDigest
+}
+
+pub struct ConfiguredPackRunApplicationV1 {
+  workspace_root : String
+  run_id : String
+  recovery_evidence_binding_id : String
+  final_learning_binding_id : String
+  effects_policy_ref : @contracts.RecordRef
+  roots : ConfiguredPackRunRootsV1
+  workflows : ConfiguredPackRunWorkflowsV1
+  canonical_json : String
+  digest : @contracts.ContentDigest
+}
+
+type ConfiguredPackRunRootsV1
+
+type ConfiguredPackRunWorkflowsV1
+
+pub struct OperatorActionMaterializationReceiptV1 {
+  run_id : String
+  operator_projection_digest : @contracts.ContentDigest
+  catalog_digest : @contracts.ContentDigest
+  action_count : Int
+  canonical_json : String
+  digest : @contracts.ContentDigest
+}
+pub fn OperatorActionMaterializationReceiptV1::to_json(Self) -> Json
+
+pub struct OperatorProjectionMaterializationReceiptV1 {
+  path : String
+  content_digest : @contracts.ContentDigest
+  byte_length : Int
+  canonical_json : String
+  digest : @contracts.ContentDigest
+}
+pub fn OperatorProjectionMaterializationReceiptV1::to_json(Self) -> Json
+
+pub struct PackRunApplicationReceiptV1 {
+  host_receipt : @orchestration.PackHostReceiptV1
+  operator_projection : @orchestration.MoonFlowOperatorSurfaceV1
+  json : Json
+  canonical_json : String
+  digest : @contracts.ContentDigest
+}
+pub fn PackRunApplicationReceiptV1::canonical_json(Self) -> String
+pub fn PackRunApplicationReceiptV1::digest(Self) -> @contracts.ContentDigest
+pub fn PackRunApplicationReceiptV1::host_receipt(Self) -> @orchestration.PackHostReceiptV1
+pub fn PackRunApplicationReceiptV1::operator_projection(Self) -> @orchestration.MoonFlowOperatorSurfaceV1
+pub fn PackRunApplicationReceiptV1::to_json(Self) -> Json
+
+// Type aliases
+
+// Traits
+

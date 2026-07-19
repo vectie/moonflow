@@ -1,0 +1,3 @@
+fn illegal_guarded_workflow_binding_decode() -> Unit {
+  ignore(@storage.GuardedWorkflowBinding::decode(b"forged"))
+}

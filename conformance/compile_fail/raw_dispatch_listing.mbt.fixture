@@ -1,0 +1,3 @@
+fn illegal_raw_dispatch_listing(projection : @effects.EffectsProjection) -> Unit {
+  ignore(projection.dispatch_eligible_intents())
+}

@@ -1,0 +1,3 @@
+fn illegal_prepared_cancellation_decode() -> Unit {
+  ignore(@orchestration.PreparedCancellationV2::decode("forged", b"forged"))
+}

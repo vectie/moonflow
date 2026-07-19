@@ -1,0 +1,3 @@
+fn finance_probe {
+  ()
+}

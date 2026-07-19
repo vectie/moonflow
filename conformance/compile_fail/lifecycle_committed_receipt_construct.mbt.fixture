@@ -1,0 +1,4 @@
+fn illegal_lifecycle_committed_receipt_construction(
+) -> @orchestration.CommittedLifecycleCandidateReceiptV2 {
+  { candidate_ref: () }
+}

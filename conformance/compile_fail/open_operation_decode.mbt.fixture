@@ -1,0 +1,3 @@
+fn illegal_open_operation_decode() -> Unit {
+  ignore(@orchestration.OpenWorkOperationAuthorizationV2::decode())
+}

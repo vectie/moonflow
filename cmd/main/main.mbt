@@ -692,6 +692,89 @@ async fn validate_capability(capability_path : String) -> Unit {
 }
 
 ///|
+async fn validate_pack_handoff(input_path : String) -> Unit {
+  let envelope = @orchestration.decode_pack_handoff_envelope_v1(
+    read_json(input_path),
+  )
+  println(envelope.to_json().stringify())
+}
+
+///|
+async fn materialize_operator_projection(
+  run_root : String,
+  run_id : String,
+  input_path : String,
+) -> Unit {
+  let materialization = @orchestration.decode_operator_projection_materialization_json_v1(
+    read_json(input_path),
+  )
+  let receipt = @flow_host.materialize_operator_projection_v1(
+    run_root, run_id, materialization,
+  )
+  println(receipt.to_json().stringify())
+}
+
+///|
+async fn materialize_operator_actions(
+  run_root : String,
+  run_id : String,
+  input_path : String,
+) -> Unit {
+  let materialization = @orchestration.decode_operator_action_catalog_materialization_v1(
+    read_json(input_path),
+  )
+  let receipt = @flow_host.materialize_operator_actions_v1(
+    run_root, run_id, materialization,
+  )
+  println(receipt.to_json().stringify())
+}
+
+///|
+async fn commit_pack_handoff(config_path : String, input_path : String) -> Unit {
+  let receipt = @flow_host.commit_configured_pack_handoff_json_v1(
+    read_json(config_path),
+    @fs.read_file(input_path).binary(),
+  )
+  println(receipt.canonical_json())
+}
+
+///|
+async fn advance_pack_run(config_path : String, input_path : String) -> Unit {
+  let receipt = @flow_host.advance_configured_pack_run_json_v1(
+    read_json(config_path),
+    @fs.read_file(input_path).binary(),
+  )
+  println(receipt.canonical_json())
+}
+
+///|
+async fn run_ordered_http_json(
+  config_path : String,
+  receipt_path : String,
+) -> Unit {
+  guard !@fs.exists(receipt_path) else {
+    fail("ordered HTTP JSON receipt already exists: \{receipt_path}")
+  }
+  let config = @ordered_http_json.decode_ordered_http_json_config(
+    read_json(config_path),
+  )
+  let receipt = @ordered_http_json.execute_ordered_http_json(config)
+  guard receipt.valid() else { fail("ordered HTTP JSON receipt is invalid") }
+  guard !@fs.exists(receipt_path) else {
+    fail("ordered HTTP JSON receipt was concurrently created: \{receipt_path}")
+  }
+  let canonical = receipt.canonical_json()
+  @fs.write_file(
+    receipt_path,
+    @utf8.encode(canonical + "\n"),
+    sync=Full,
+    create=0o600,
+    truncate=false,
+  )
+  println(canonical)
+}
+
+///|
 fn usage() -> Unit {
   println(
     "MoonFlow usage:\n" +
@@ -709,7 +792,13 @@ fn usage() -> Unit {
     "  moonflow complete-artifacts <workspace> <run-id> <work-item-id> <recorded-at> <artifact>...\n" +
     "  moonflow bundle-evidence <workspace> <bundle-spec-artifact> <recorded-at>\n" +
     "  moonflow run-unattended <workspace> <graph-artifact> <capabilities-artifact> <manifest-artifact> <envelope-artifact> <usage-artifact> <recorded-at>\n" +
-    "  moonflow validate-capability <capability.json>",
+    "  moonflow validate-capability <capability.json>\n" +
+    "  moonflow validate-pack-handoff <handoff.json>\n" +
+    "  moonflow materialize-operator <run-root> <run-id> <materialization.json>\n" +
+    "  moonflow materialize-operator-actions <run-root> <run-id> <catalog.json>\n" +
+    "  moonflow commit-pack-handoff <host-config.json> <handoff.json>\n" +
+    "  moonflow advance-pack-run <application-config.json> <handoff.json>\n" +
+    "  moonflow ordered-http-json <transport-config.json> <new-receipt.json>",
   )
 }
 
@@ -789,6 +878,17 @@ async fn main {
       )
     ["validate-capability", capability_path] =>
       validate_capability(capability_path)
+    ["validate-pack-handoff", input_path] => validate_pack_handoff(input_path)
+    ["materialize-operator", run_root, run_id, input_path] =>
+      materialize_operator_projection(run_root, run_id, input_path)
+    ["materialize-operator-actions", run_root, run_id, input_path] =>
+      materialize_operator_actions(run_root, run_id, input_path)
+    ["commit-pack-handoff", config_path, input_path] =>
+      commit_pack_handoff(config_path, input_path)
+    ["advance-pack-run", config_path, input_path] =>
+      advance_pack_run(config_path, input_path)
+    ["ordered-http-json", config_path, receipt_path] =>
+      run_ordered_http_json(config_path, receipt_path)
     ["version"] => println("MoonFlow \{@moonflow.runtime_protocol_id()}")
     _ => usage()
   }

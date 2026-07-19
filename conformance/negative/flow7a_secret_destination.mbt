@@ -1,0 +1,3 @@
+fn destination_probe {
+  ()
+}

@@ -1,0 +1,27 @@
+name: FLOW-2 and FLOW-3 conformance
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Install pinned module dependencies
+        run: moon install
+
+      - name: Run FLOW-2 compatibility and FLOW-3 boundary gates
+        run: ./conformance/run.sh

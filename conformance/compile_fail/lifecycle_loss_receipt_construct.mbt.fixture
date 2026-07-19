@@ -1,0 +1,4 @@
+fn illegal_lifecycle_loss_receipt_construction(
+) -> @orchestration.LifecycleRaceLossReceiptV2 {
+  { receipt_ref: () }
+}

@@ -1,0 +1,3 @@
+fn illegal_raw_effect_prepare() -> Unit {
+  ignore(@effects.prepare_effect_commit())
+}

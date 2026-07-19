@@ -1,0 +1,52 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/closed_loop/orchestration/internal/replay"
+
+import {
+  "vectie/moonflow/closed_loop/contracts",
+  "vectie/moonflow/closed_loop/storage",
+}
+
+// Values
+pub fn contested_batch(@storage.ReplayResult, Int64) -> ContestedBatch?
+
+pub fn contested_events(@storage.ReplayResult, ContestedBatch) -> Array[@storage.WorkflowEvent]?
+
+pub fn is_genesis_position(Int64, Int64, Bool) -> Bool
+
+pub fn is_orchestration_event_kind_v2(String) -> Bool
+
+pub fn is_verified_mixed_schedule_prefix_kind_v2(String) -> Bool
+
+pub fn lifecycle_contest(@storage.ReplayResult, Int64, @contracts.ContentDigest?) -> LifecycleContest?
+
+// Errors
+
+// Types and methods
+pub struct ContestedBatch {
+  command_key : String
+  expected_revision : Int64
+  event_refs : ReadOnlyArray[@contracts.RecordRef]
+  batch_digest : @contracts.ContentDigest
+}
+pub fn ContestedBatch::batch_digest(Self) -> @contracts.ContentDigest
+pub fn ContestedBatch::command_key(Self) -> String
+pub fn ContestedBatch::event_refs(Self) -> ReadOnlyArray[@contracts.RecordRef]
+pub fn ContestedBatch::expected_revision(Self) -> Int64
+
+pub struct LifecycleContest {
+  batch : ContestedBatch
+  events : ReadOnlyArray[@storage.WorkflowEvent]
+  winner_prefix_replay_digest : @contracts.ContentDigest
+  winner_head_revision : Int64
+  winner_head_digest : @contracts.ContentDigest?
+}
+pub fn LifecycleContest::batch(Self) -> ContestedBatch
+pub fn LifecycleContest::events(Self) -> ReadOnlyArray[@storage.WorkflowEvent]
+pub fn LifecycleContest::winner_head_digest(Self) -> @contracts.ContentDigest?
+pub fn LifecycleContest::winner_head_revision(Self) -> Int64
+pub fn LifecycleContest::winner_prefix_replay_digest(Self) -> @contracts.ContentDigest
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,3 @@
+fn illegal_dispatch_observation_decode() -> Unit {
+  ignore(@orchestration.GuardedDispatchObservationV2::decode())
+}

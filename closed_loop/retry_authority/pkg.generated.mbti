@@ -1,0 +1,230 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/closed_loop/retry_authority"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonflow/closed_loop/contracts",
+}
+
+// Values
+pub fn retry_child_attempt_request_ref_v2(String, @contracts.RecordRef, Int64, String, @contracts.ContentDigest) -> @contracts.RecordRef raise RetryAuthorityError
+
+pub fn retry_child_schedule_request_ref_v2(String, @contracts.RecordRef, Int64, String, @contracts.ContentDigest) -> @contracts.RecordRef raise RetryAuthorityError
+
+// Errors
+pub(all) suberror RetryAuthorityError {
+  Malformed(field~ : String)
+  IdentityMismatch(field~ : String)
+  DigestMismatch(field~ : String)
+  BoundViolation(field~ : String)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub struct RetryPlanProposalV2 {
+  plan_ref : @contracts.RecordRef
+  request_ref : @contracts.RecordRef
+  request_digest : @contracts.ContentDigest
+  request_bytes : Bytes
+  workflow : @contracts.RecordRef
+  receipt_ref : @contracts.RecordRef
+  receipt_digest : @contracts.ContentDigest
+  receipt_bytes : Bytes
+  policy_ref : @contracts.RecordRef
+  policy_digest : @contracts.ContentDigest
+  policy_bytes : Bytes
+  timing_digest : @contracts.ContentDigest
+  timing_bytes : Bytes
+  due_at : Int64
+  root_intent_ref : @contracts.RecordRef
+  root_attempt_ref : @contracts.RecordRef
+  source_intent_ref : @contracts.RecordRef
+  source_attempt_ref : @contracts.RecordRef
+  lineage_digest : @contracts.ContentDigest
+  attempt_count : Int64
+  retry_count : Int64
+  retry_ordinal : Int64
+  cause_key : String
+  requested_work_ref : @contracts.RecordRef
+  requested_work_digest : @contracts.ContentDigest
+  logical_attempt_id : String
+  logical_attempt_version : String
+  logical_effect_id : String
+  logical_effect_version : String
+  artifact_digest : @contracts.ContentDigest
+  child_attempt_request_ref : @contracts.RecordRef
+  child_attempt_ordinal : Int64
+  child_attempt_idempotency_key : String
+  admission_ref : @contracts.RecordRef
+  admission_digest : @contracts.ContentDigest
+  admission_bytes : Bytes
+  admission_deadline : Int64
+  source_schedule_deadline : Int64?
+  admission_governance_deadline : Int64
+  admission_controls_deadline : Int64
+  requested_schedule_deadline : Int64
+  governance_digest : @contracts.ContentDigest?
+  governance_bytes : Bytes?
+  governance_deadline : Int64?
+  schedule_request_ref : @contracts.RecordRef
+  schedule_idempotency_key : String
+  command_idempotency_key : String
+  prefix_head_ref : @contracts.RecordRef
+  prefix_head_digest : @contracts.ContentDigest
+  prefix_sequence : Int64
+  prefix_revision : Int64
+  prefix_replay_digest : @contracts.ContentDigest
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn RetryPlanProposalV2::admission_bytes(Self) -> Bytes
+pub fn RetryPlanProposalV2::admission_controls_deadline(Self) -> Int64
+pub fn RetryPlanProposalV2::admission_deadline(Self) -> Int64
+pub fn RetryPlanProposalV2::admission_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::admission_governance_deadline(Self) -> Int64
+pub fn RetryPlanProposalV2::admission_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::artifact_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::attempt_count(Self) -> Int64
+pub fn RetryPlanProposalV2::canonical_bytes(Self) -> Bytes
+pub fn RetryPlanProposalV2::cause_key(Self) -> String
+pub fn RetryPlanProposalV2::child_attempt_idempotency_key(Self) -> String
+pub fn RetryPlanProposalV2::child_attempt_ordinal(Self) -> Int64
+pub fn RetryPlanProposalV2::child_attempt_request_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::command_idempotency_key(Self) -> String
+pub fn RetryPlanProposalV2::decode(@contracts.RecordRef, Bytes) -> Self raise RetryAuthorityError
+pub fn RetryPlanProposalV2::digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::due_at(Self) -> Int64
+pub fn RetryPlanProposalV2::governance_bytes(Self) -> Bytes?
+pub fn RetryPlanProposalV2::governance_deadline(Self) -> Int64?
+pub fn RetryPlanProposalV2::governance_digest(Self) -> @contracts.ContentDigest?
+pub fn RetryPlanProposalV2::lineage_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::logical_attempt_id(Self) -> String
+pub fn RetryPlanProposalV2::logical_attempt_version(Self) -> String
+pub fn RetryPlanProposalV2::logical_effect_id(Self) -> String
+pub fn RetryPlanProposalV2::logical_effect_version(Self) -> String
+pub fn RetryPlanProposalV2::new(String, @contracts.RecordRef, @contracts.RecordRef, @contracts.ContentDigest, Bytes, @contracts.RecordRef, @contracts.ContentDigest, Bytes, @contracts.ContentDigest, Bytes, Int64, @contracts.RecordRef, @contracts.RecordRef, @contracts.RecordRef, @contracts.RecordRef, @contracts.ContentDigest, Int64, Int64, Int64, String, @contracts.RecordRef, @contracts.ContentDigest, String, String, String, String, @contracts.ContentDigest, String, Int64, String, @contracts.RecordRef, @contracts.ContentDigest, Bytes, @contracts.RecordRef, @contracts.ContentDigest, Bytes, Int64, Int64?, Int64, Int64, Int64, @contracts.ContentDigest?, Bytes?, Int64?, String, String, String, @contracts.RecordRef, @contracts.ContentDigest, Int64, Int64, @contracts.ContentDigest) -> Self raise RetryAuthorityError
+pub fn RetryPlanProposalV2::plan_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::policy_bytes(Self) -> Bytes
+pub fn RetryPlanProposalV2::policy_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::policy_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::prefix_head_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::prefix_head_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::prefix_replay_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::prefix_revision(Self) -> Int64
+pub fn RetryPlanProposalV2::prefix_sequence(Self) -> Int64
+pub fn RetryPlanProposalV2::receipt_bytes(Self) -> Bytes
+pub fn RetryPlanProposalV2::receipt_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::receipt_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::request_bytes(Self) -> Bytes
+pub fn RetryPlanProposalV2::request_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::request_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::requested_schedule_deadline(Self) -> Int64
+pub fn RetryPlanProposalV2::requested_work_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::requested_work_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::retry_count(Self) -> Int64
+pub fn RetryPlanProposalV2::retry_ordinal(Self) -> Int64
+pub fn RetryPlanProposalV2::root_attempt_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::root_intent_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::schedule_idempotency_key(Self) -> String
+pub fn RetryPlanProposalV2::schedule_request_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::source_attempt_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::source_intent_ref(Self) -> @contracts.RecordRef
+pub fn RetryPlanProposalV2::source_schedule_deadline(Self) -> Int64?
+pub fn RetryPlanProposalV2::timing_bytes(Self) -> Bytes
+pub fn RetryPlanProposalV2::timing_digest(Self) -> @contracts.ContentDigest
+pub fn RetryPlanProposalV2::workflow(Self) -> @contracts.RecordRef
+
+pub struct RetryScheduleRequestV2 {
+  request_ref : @contracts.RecordRef
+  workflow : @contracts.RecordRef
+  receipt_ref : @contracts.RecordRef
+  receipt_digest : @contracts.ContentDigest
+  receipt_bytes : Bytes
+  policy_ref : @contracts.RecordRef
+  policy_digest : @contracts.ContentDigest
+  policy_bytes : Bytes
+  timing_digest : @contracts.ContentDigest
+  timing_bytes : Bytes
+  due_at : Int64
+  attempt_count : Int64
+  retry_count : Int64
+  retry_ordinal : Int64
+  cause_key : String
+  requested_work_ref : @contracts.RecordRef
+  requested_work_digest : @contracts.ContentDigest
+  logical_attempt_id : String
+  logical_attempt_version : String
+  logical_effect_id : String
+  logical_effect_version : String
+  artifact_digest : @contracts.ContentDigest
+  child_attempt_request_ref : @contracts.RecordRef
+  child_attempt_id : String
+  child_attempt_ordinal : Int64
+  child_attempt_idempotency_key : String
+  child_schedule_request_ref : @contracts.RecordRef
+  schedule_id : String
+  schedule_idempotency_key : String
+  source_schedule_deadline : Int64?
+  admission_governance_deadline : Int64
+  admission_controls_deadline : Int64
+  requested_schedule_deadline : Int64
+  governance_deadline : Int64?
+  effective_deadline : Int64
+  prefix_head_ref : @contracts.RecordRef
+  prefix_head_digest : @contracts.ContentDigest
+  prefix_sequence : Int64
+  prefix_revision : Int64
+  prefix_replay_digest : @contracts.ContentDigest
+  command_idempotency_key : String
+  canonical : Bytes
+  digest : @contracts.ContentDigest
+}
+pub fn RetryScheduleRequestV2::admission_controls_deadline(Self) -> Int64
+pub fn RetryScheduleRequestV2::admission_governance_deadline(Self) -> Int64
+pub fn RetryScheduleRequestV2::artifact_digest(Self) -> @contracts.ContentDigest
+pub fn RetryScheduleRequestV2::attempt_count(Self) -> Int64
+pub fn RetryScheduleRequestV2::canonical_bytes(Self) -> Bytes
+pub fn RetryScheduleRequestV2::cause_key(Self) -> String
+pub fn RetryScheduleRequestV2::child_attempt_id(Self) -> String
+pub fn RetryScheduleRequestV2::child_attempt_idempotency_key(Self) -> String
+pub fn RetryScheduleRequestV2::child_attempt_ordinal(Self) -> Int64
+pub fn RetryScheduleRequestV2::child_attempt_request_ref(Self) -> @contracts.RecordRef
+pub fn RetryScheduleRequestV2::child_schedule_request_ref(Self) -> @contracts.RecordRef
+pub fn RetryScheduleRequestV2::command_idempotency_key(Self) -> String
+pub fn RetryScheduleRequestV2::decode(@contracts.RecordRef, Bytes) -> Self raise RetryAuthorityError
+pub fn RetryScheduleRequestV2::digest(Self) -> @contracts.ContentDigest
+pub fn RetryScheduleRequestV2::due_at(Self) -> Int64
+pub fn RetryScheduleRequestV2::effective_deadline(Self) -> Int64
+pub fn RetryScheduleRequestV2::governance_deadline(Self) -> Int64?
+pub fn RetryScheduleRequestV2::logical_attempt_id(Self) -> String
+pub fn RetryScheduleRequestV2::logical_attempt_version(Self) -> String
+pub fn RetryScheduleRequestV2::logical_effect_id(Self) -> String
+pub fn RetryScheduleRequestV2::logical_effect_version(Self) -> String
+pub fn RetryScheduleRequestV2::new(String, @contracts.RecordRef, @contracts.RecordRef, @contracts.ContentDigest, Bytes, @contracts.RecordRef, @contracts.ContentDigest, Bytes, @contracts.ContentDigest, Bytes, Int64, Int64, Int64, Int64, String, @contracts.RecordRef, @contracts.ContentDigest, String, String, String, String, @contracts.ContentDigest, String, Int64, String, String, String, Int64?, Int64, Int64, Int64, Int64?, @contracts.RecordRef, @contracts.ContentDigest, Int64, Int64, @contracts.ContentDigest, String) -> Self raise RetryAuthorityError
+pub fn RetryScheduleRequestV2::policy_bytes(Self) -> Bytes
+pub fn RetryScheduleRequestV2::policy_digest(Self) -> @contracts.ContentDigest
+pub fn RetryScheduleRequestV2::policy_ref(Self) -> @contracts.RecordRef
+pub fn RetryScheduleRequestV2::prefix_head_digest(Self) -> @contracts.ContentDigest
+pub fn RetryScheduleRequestV2::prefix_head_ref(Self) -> @contracts.RecordRef
+pub fn RetryScheduleRequestV2::prefix_replay_digest(Self) -> @contracts.ContentDigest
+pub fn RetryScheduleRequestV2::prefix_revision(Self) -> Int64
+pub fn RetryScheduleRequestV2::prefix_sequence(Self) -> Int64
+pub fn RetryScheduleRequestV2::receipt_bytes(Self) -> Bytes
+pub fn RetryScheduleRequestV2::receipt_digest(Self) -> @contracts.ContentDigest
+pub fn RetryScheduleRequestV2::receipt_ref(Self) -> @contracts.RecordRef
+pub fn RetryScheduleRequestV2::request_ref(Self) -> @contracts.RecordRef
+pub fn RetryScheduleRequestV2::requested_schedule_deadline(Self) -> Int64
+pub fn RetryScheduleRequestV2::requested_work_digest(Self) -> @contracts.ContentDigest
+pub fn RetryScheduleRequestV2::requested_work_ref(Self) -> @contracts.RecordRef
+pub fn RetryScheduleRequestV2::retry_count(Self) -> Int64
+pub fn RetryScheduleRequestV2::retry_ordinal(Self) -> Int64
+pub fn RetryScheduleRequestV2::schedule_id(Self) -> String
+pub fn RetryScheduleRequestV2::schedule_idempotency_key(Self) -> String
+pub fn RetryScheduleRequestV2::source_schedule_deadline(Self) -> Int64?
+pub fn RetryScheduleRequestV2::timing_bytes(Self) -> Bytes
+pub fn RetryScheduleRequestV2::timing_digest(Self) -> @contracts.ContentDigest
+pub fn RetryScheduleRequestV2::workflow(Self) -> @contracts.RecordRef
+
+// Type aliases
+
+// Traits
+

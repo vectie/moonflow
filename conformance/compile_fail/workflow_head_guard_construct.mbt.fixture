@@ -1,0 +1,3 @@
+fn illegal_workflow_head_guard_construction() -> @storage.WorkflowHeadGuard {
+  { workflow: () }
+}

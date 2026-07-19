@@ -1,0 +1,25 @@
+{
+  "contract_id": "moonflow.acceptance-review.v1",
+  "review_id": "review-observe-1",
+  "run_id": "flow2-golden-v2",
+  "work_item_id": "work-observe",
+  "declaration_id": "observe-declaration",
+  "result_id": "result-observe-1",
+  "attempt_id": "attempt-observe-1",
+  "output_digest": "sha256:observe-output",
+  "decision": "accepted",
+  "criteria": [
+    {
+      "criterion": "declared evidence is attached",
+      "satisfied": true,
+      "evidence_refs": [
+        "artifacts/observe-evidence.json"
+      ],
+      "note": "The declared evidence is attached to the item."
+    }
+  ],
+  "reviewer_id": "reviewer-flow2",
+  "review_authority_id": "review-authority-flow2",
+  "receipt_artifact": "reviews/observe-review.json",
+  "recorded_at": "2026-07-16T00:00:03Z"
+}

@@ -1,0 +1,32 @@
+{
+  "contract_id": "moonsuite.work-model.v1",
+  "graph_id": "flow2-golden-v2",
+  "book_id": "flow2-generic-source",
+  "declaration_revision": "r2",
+  "source_digest": "sha256:flow2-generic-source-r2",
+  "items": [
+    {
+      "work_item_id": "work-observe",
+      "declaration_id": "observe-declaration",
+      "product_id": "synthetic-observer",
+      "requested_authority": "observe",
+      "acceptance_criteria": [
+        "declared evidence is attached"
+      ],
+      "depends_on": []
+    },
+    {
+      "work_item_id": "work-validate",
+      "declaration_id": "validate-declaration",
+      "product_id": "synthetic-validator",
+      "requested_authority": "sandbox-execution",
+      "acceptance_criteria": [
+        "declared validation evidence is attached"
+      ],
+      "depends_on": [
+        "work-observe"
+      ]
+    }
+  ],
+  "recorded_at": "2026-07-16T00:00:00Z"
+}

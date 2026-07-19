@@ -1,0 +1,5 @@
+fn illegal_current_governed_mutation(
+  current : @orchestration.CurrentGovernedClosedLoopProjectionV2,
+) -> Unit {
+  current.cancellation_authoritative = true
+}

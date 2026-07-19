@@ -1,0 +1,8 @@
+fn illegal_raw_lifecycle_seal(request : @storage.CommitRequest) -> Unit {
+  ignore(
+    @orchestration.seal_lifecycle_candidate_v2(
+      @orchestration.CancellationRequestCandidateV2,
+      request,
+    ),
+  )
+}

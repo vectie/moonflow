@@ -1,0 +1,4 @@
+fn illegal_receipt_construction(
+) -> @orchestration.CommittedCancellationGovernanceReceiptV2 {
+  { record_ref: () }
+}

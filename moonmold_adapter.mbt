@@ -9,13 +9,10 @@ pub fn moonmold_capability() -> AdapterCapability {
       "observe", "cognitive-maintenance", "sandbox-execution", "workspace-mutation",
     ],
     input_contracts: [
-      "moonmold-building-plan-v1", "moonmold.spatial-artifact.v1",
-      "moonmold.representation-transform.v1",
+      "moonmold-building-plan-v1", "moonmold.spatial-artifact.v1", "moonmold.representation-transform.v1",
     ],
     output_contracts: [
-      "moonmold.spatial-artifact.v1",
-      "moonmold.representation-transform.v1",
-      "moonmold-live-blender-evidence-v1",
+      "moonmold.spatial-artifact.v1", "moonmold.representation-transform.v1", "moonmold-live-blender-evidence-v1",
     ],
     claim_ceiling: "digital-artifact",
     healthy: true,
@@ -100,7 +97,9 @@ fn moonmold_representation_transition_issues(
       }
     "engineering-model" =>
       if parent != "editable-authoring-model" || relation != "modeled-from" {
-        issues.push("engineering must be modeled from editable authoring geometry")
+        issues.push(
+          "engineering must be modeled from editable authoring geometry",
+        )
       }
     "visual-styled-model" =>
       if parent != "engineering-model" || relation != "styled-from" {
@@ -108,12 +107,16 @@ fn moonmold_representation_transition_issues(
       }
     "simulation-model" =>
       if parent != "engineering-model" || relation != "physics-derived-from" {
-        issues.push("simulation input must be physics-derived from engineering geometry")
+        issues.push(
+          "simulation input must be physics-derived from engineering geometry",
+        )
       }
     "manufacturing-candidate" =>
       if parent != "engineering-model" ||
         relation != "manufacturing-derived-from" {
-        issues.push("manufacturing candidate must derive from engineering geometry")
+        issues.push(
+          "manufacturing candidate must derive from engineering geometry",
+        )
       }
     _ => issues.push("unsupported MoonMold representation")
   }
@@ -134,7 +137,9 @@ pub fn MoonMoldDispatch::quality_issues(
   }
   if self.request.requested_authority == "external-effect" ||
     self.request.requested_authority == "physical-effect" {
-    issues.push("MoonMold dispatch cannot request external or physical authority")
+    issues.push(
+      "MoonMold dispatch cannot request external or physical authority",
+    )
   }
   if self.request.required_claim != "digital-artifact" {
     issues.push("MoonMold dispatch claim ceiling must be digital-artifact")
@@ -166,7 +171,9 @@ pub fn attest_moonmold_result(
   if result.request_id != dispatch.request.request_id ||
     result.attempt_id != dispatch.request.attempt_id ||
     result.idempotency_key != dispatch.request.idempotency_key {
-    issues.push("result request, attempt, or idempotency lineage mismatches dispatch")
+    issues.push(
+      "result request, attempt, or idempotency lineage mismatches dispatch",
+    )
   }
   if result.status != "succeeded" && result.status != "idempotent-no-op" {
     issues.push("MoonMold result is not successful")
@@ -222,7 +229,8 @@ pub fn attest_moonmold_result(
     accepted: issues.is_empty(),
     issues,
     checkpoint_artifact_refs: [
-      result.portable_artifact_ref, ..result.evidence_refs,
+      result.portable_artifact_ref,
+      ..result.evidence_refs,
     ],
   }
 }
@@ -283,4 +291,3 @@ pub fn moonmold_checkpoint_decision(
     invalidated_artifact_refs: [],
   }
 }
-

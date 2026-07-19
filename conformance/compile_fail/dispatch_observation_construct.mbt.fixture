@@ -1,0 +1,4 @@
+fn illegal_dispatch_observation_construction(
+) -> @orchestration.GuardedDispatchObservationV2 {
+  { observation: () }
+}
