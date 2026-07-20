@@ -1,0 +1,11 @@
+{
+  "observation_id": "observation-1",
+  "scope_id": "wiki-maintainer",
+  "participant_id": "session-canary",
+  "assignment": "challenger",
+  "capability": { "record_id": "wiki-maintainer", "record_version": "5", "record_digest": "sha256:wiki-maintainer:5" },
+  "outcome": { "record_id": "delivery-outcome-1", "record_version": "1", "record_digest": "sha256:delivery-outcome-1" },
+  "reward_evidence": { "record_id": "pack-reward-1", "record_version": "1", "record_digest": "sha256:pack-reward-1" },
+  "accepted": true,
+  "recorded_at": "110"
+}

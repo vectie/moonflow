@@ -692,6 +692,105 @@ async fn validate_capability(capability_path : String) -> Unit {
 }
 
 ///|
+fn capability_projection_dir(workspace : String) -> String {
+  let root = @moonflow.normalize_workspace_path(workspace)
+  "\{root}/.moonsuite/products/moonflow/capabilities"
+}
+
+///|
+fn capability_projection_path(
+  workspace : String,
+  scope_id : String,
+) -> String raise {
+  let safe_scope_id = safe_id(scope_id, "scope_id")
+  let root = @moonflow.normalize_workspace_path(workspace)
+  let path = "\{capability_projection_dir(workspace)}/\{safe_scope_id}.json"
+  guard @moonflow.path_is_within_workspace(root, path) else {
+    fail("MoonFlow capability projection escapes workspace")
+  }
+  path
+}
+
+///|
+async fn activate_capability(
+  workspace : String,
+  request_path : String,
+  activation_id : String,
+  activated_at : String,
+) -> Unit {
+  let request = @moonflow.decode_capability_activation_request_v1(
+    read_json(request_path),
+  )
+  let projection = @moonflow.activate_capability_v1(
+    request,
+    activation_id~,
+    activated_at=@json.from_json(activated_at.to_json()),
+  )
+  let path = capability_projection_path(workspace, projection.scope_id)
+  guard !@fs.exists(path) else {
+    fail(
+      "capability projection already exists for scope: \{projection.scope_id}",
+    )
+  }
+  ensure_directory(capability_projection_dir(workspace))
+  write_json(path, projection.to_json())
+  println(projection.to_json().stringify(indent=2))
+}
+
+///|
+async fn resolve_capability(
+  workspace : String,
+  scope_id : String,
+  participant_id : String,
+) -> Unit {
+  let projection = @moonflow.decode_capability_activation_projection_v1(
+    read_json(capability_projection_path(workspace, scope_id)),
+  )
+  let resolution = @moonflow.resolve_capability_v1(
+    projection,
+    scope_id~,
+    participant_id~,
+  )
+  println(resolution.to_json().stringify(indent=2))
+}
+
+///|
+async fn observe_capability(
+  workspace : String,
+  scope_id : String,
+  observation_path : String,
+) -> Unit {
+  let path = capability_projection_path(workspace, scope_id)
+  let projection = @moonflow.decode_capability_activation_projection_v1(
+    read_json(path),
+  )
+  let observation = @moonflow.decode_capability_observation_v1(
+    read_json(observation_path),
+  )
+  let updated = projection.record_observation(observation)
+  write_json(path, updated.to_json())
+  println(updated.to_json().stringify(indent=2))
+}
+
+///|
+async fn settle_capability(
+  workspace : String,
+  scope_id : String,
+  settlement_path : String,
+) -> Unit {
+  let path = capability_projection_path(workspace, scope_id)
+  let projection = @moonflow.decode_capability_activation_projection_v1(
+    read_json(path),
+  )
+  let settlement = @moonflow.decode_capability_settlement_request_v1(
+    read_json(settlement_path),
+  )
+  let updated = projection.settle(settlement)
+  write_json(path, updated.to_json())
+  println(updated.to_json().stringify(indent=2))
+}
+
+///|
 async fn validate_pack_handoff(input_path : String) -> Unit {
   let envelope = @orchestration.decode_pack_handoff_envelope_v1(
     read_json(input_path),
@@ -793,6 +892,10 @@ fn usage() -> Unit {
     "  moonflow bundle-evidence <workspace> <bundle-spec-artifact> <recorded-at>\n" +
     "  moonflow run-unattended <workspace> <graph-artifact> <capabilities-artifact> <manifest-artifact> <envelope-artifact> <usage-artifact> <recorded-at>\n" +
     "  moonflow validate-capability <capability.json>\n" +
+    "  moonflow activate-capability <workspace> <request.json> <activation-id> <activated-at>\n" +
+    "  moonflow resolve-capability <workspace> <scope-id> <participant-id>\n" +
+    "  moonflow observe-capability <workspace> <scope-id> <observation.json>\n" +
+    "  moonflow settle-capability <workspace> <scope-id> <settlement.json>\n" +
     "  moonflow validate-pack-handoff <handoff.json>\n" +
     "  moonflow materialize-operator <run-root> <run-id> <materialization.json>\n" +
     "  moonflow materialize-operator-actions <run-root> <run-id> <catalog.json>\n" +
@@ -878,6 +981,20 @@ async fn main {
       )
     ["validate-capability", capability_path] =>
       validate_capability(capability_path)
+    [
+      "activate-capability",
+      workspace,
+      request_path,
+      activation_id,
+      activated_at,
+    ] =>
+      activate_capability(workspace, request_path, activation_id, activated_at)
+    ["resolve-capability", workspace, scope_id, participant_id] =>
+      resolve_capability(workspace, scope_id, participant_id)
+    ["observe-capability", workspace, scope_id, observation_path] =>
+      observe_capability(workspace, scope_id, observation_path)
+    ["settle-capability", workspace, scope_id, settlement_path] =>
+      settle_capability(workspace, scope_id, settlement_path)
     ["validate-pack-handoff", input_path] => validate_pack_handoff(input_path)
     ["materialize-operator", run_root, run_id, input_path] =>
       materialize_operator_projection(run_root, run_id, input_path)

@@ -1,0 +1,20 @@
+{
+  "contract_version": "moonbook.bookkeeper.capability_activation_request.v1",
+  "request": { "record_id": "activation-request-1", "record_version": "1", "record_digest": "sha256:activation-request-1" },
+  "receipt": { "record_id": "adoption-receipt-1", "record_version": "1", "record_digest": "sha256:adoption-receipt-1" },
+  "scope_id": "wiki-maintainer",
+  "rollout_mode": "canary",
+  "challenger_participant_ids": ["session-canary"],
+  "max_observations": 4,
+  "experiment": { "record_id": "experiment-1", "record_version": "1", "record_digest": "sha256:experiment-1" },
+  "old_capability": { "record_id": "wiki-maintainer", "record_version": "4", "record_digest": "sha256:wiki-maintainer:4" },
+  "new_capability": { "record_id": "wiki-maintainer", "record_version": "5", "record_digest": "sha256:wiki-maintainer:5" },
+  "rollback": { "record_id": "rollback-plan-1", "record_version": "1", "record_digest": "sha256:rollback-plan-1" },
+  "activation_review": { "record_id": "activation-review-1", "record_version": "1", "record_digest": "sha256:activation-review-1" },
+  "activation_reviewer_id": "human-activation-reviewer",
+  "activation_reviewer_authority_ref": "authority:human-activation-reviewer",
+  "requested_at": "100",
+  "adoption_authorized": true,
+  "source_side_effects_applied": false,
+  "activation_side_effects_applied": false
+}

@@ -1,0 +1,11 @@
+{
+  "contract_version": "moonflow.capability_loop.v1",
+  "settlement_id": "settlement-1",
+  "scope_id": "wiki-maintainer",
+  "decision": "promote",
+  "experiment_outcome": { "record_id": "experiment-outcome-1", "record_version": "1", "record_digest": "sha256:experiment-outcome-1" },
+  "reviewer_id": "human-settlement-reviewer",
+  "reviewer_authority_ref": "authority:human-settlement-reviewer",
+  "review_evidence": { "record_id": "settlement-review-1", "record_version": "1", "record_digest": "sha256:settlement-review-1" },
+  "settled_at": "120"
+}

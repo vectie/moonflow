@@ -3,11 +3,14 @@ package "vectie/moonflow"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
   "vectie/moonlib/pipeline",
 }
 
 // Values
 pub fn acceptance_review_event(RunProjection, AcceptanceReviewReceipt) -> RuntimeEvent raise AcceptanceReviewError
+
+pub fn activate_capability_v1(CapabilityActivationRequestV1, activation_id~ : String, activated_at~ : Int64) -> CapabilityActivationProjectionV1 raise
 
 pub fn adapter_attempt_status_from_id(String) -> AdapterAttemptStatus raise
 
@@ -21,6 +24,8 @@ pub fn attest_moonmold_result(MoonMoldDispatch, MoonMoldResult) -> MoonMoldEvide
 
 pub fn authority_class_is_canonical(String) -> Bool
 
+pub fn capability_loop_contract_version() -> String
+
 pub fn claim_class_rank(String) -> Int?
 
 pub fn decode_acceptance_review_receipt(Json) -> AcceptanceReviewReceipt raise
@@ -32,6 +37,14 @@ pub fn decode_adapter_capability(Json) -> AdapterCapability raise
 pub fn decode_adapter_request(Json) -> AdapterRequest raise
 
 pub fn decode_adapter_result(Json) -> AdapterResult raise
+
+pub fn decode_capability_activation_projection_v1(Json) -> CapabilityActivationProjectionV1 raise
+
+pub fn decode_capability_activation_request_v1(Json) -> CapabilityActivationRequestV1 raise
+
+pub fn decode_capability_observation_v1(Json) -> CapabilityObservationV1 raise
+
+pub fn decode_capability_settlement_request_v1(Json) -> CapabilitySettlementRequestV1 raise
 
 pub fn decode_director_requirement(Json) -> DirectorRequirement raise
 
@@ -90,6 +103,8 @@ pub fn render_unattended_attestor_arguments(Array[String], String, String, Strin
 pub fn render_unattended_observer_arguments(Array[String], String, String, String, String, String) -> Array[String]
 
 pub fn replay(String, Array[RuntimeEvent]) -> RunProjection raise FlowError
+
+pub fn resolve_capability_v1(CapabilityActivationProjectionV1, scope_id~ : String, participant_id~ : String) -> CapabilityResolutionV1 raise
 
 pub fn revise_run(RunProjection, Json, String, String, String) -> RunRevisionResult raise
 
@@ -232,6 +247,93 @@ pub(all) struct AdapterResult {
   recorded_at : String
 } derive(Eq, ToJson, @debug.Debug)
 pub fn AdapterResult::quality_issues(Self) -> Array[String]
+
+pub(all) struct CapabilityActivationProjectionV1 {
+  contract_version : String
+  activation_id : String
+  request : CapabilityRecordRefV1
+  receipt : CapabilityRecordRefV1
+  scope_id : String
+  rollout_mode : String
+  status : String
+  challenger_participant_ids : Array[String]
+  max_observations : Int
+  experiment : CapabilityRecordRefV1
+  old_capability : CapabilityRecordRefV1
+  new_capability : CapabilityRecordRefV1
+  rollback : CapabilityRecordRefV1
+  activation_review : CapabilityRecordRefV1
+  activation_reviewer_id : String
+  activation_reviewer_authority_ref : String
+  activated_at : Int64
+  observations : Array[CapabilityObservationV1]
+  settlement : CapabilitySettlementRequestV1?
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn CapabilityActivationProjectionV1::record_observation(Self, CapabilityObservationV1) -> Self raise
+pub fn CapabilityActivationProjectionV1::settle(Self, CapabilitySettlementRequestV1) -> Self raise
+
+pub(all) struct CapabilityActivationRequestV1 {
+  contract_version : String
+  request : CapabilityRecordRefV1
+  receipt : CapabilityRecordRefV1
+  scope_id : String
+  rollout_mode : String
+  challenger_participant_ids : Array[String]
+  max_observations : Int
+  experiment : CapabilityRecordRefV1
+  old_capability : CapabilityRecordRefV1
+  new_capability : CapabilityRecordRefV1
+  rollback : CapabilityRecordRefV1
+  activation_review : CapabilityRecordRefV1
+  activation_reviewer_id : String
+  activation_reviewer_authority_ref : String
+  requested_at : Int64
+  adoption_authorized : Bool
+  source_side_effects_applied : Bool
+  activation_side_effects_applied : Bool
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct CapabilityObservationV1 {
+  observation_id : String
+  scope_id : String
+  participant_id : String
+  assignment : String
+  capability : CapabilityRecordRefV1
+  outcome : CapabilityRecordRefV1
+  reward_evidence : CapabilityRecordRefV1
+  accepted : Bool
+  recorded_at : Int64
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct CapabilityRecordRefV1 {
+  record_id : String
+  record_version : String
+  record_digest : String
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct CapabilityResolutionV1 {
+  contract_version : String
+  scope_id : String
+  participant_id : String
+  assignment : String
+  selected_capability : CapabilityRecordRefV1
+  shadow_capability : CapabilityRecordRefV1?
+  activation_id : String
+  experiment : CapabilityRecordRefV1
+  status : String
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct CapabilitySettlementRequestV1 {
+  contract_version : String
+  settlement_id : String
+  scope_id : String
+  decision : String
+  experiment_outcome : CapabilityRecordRefV1
+  reviewer_id : String
+  reviewer_authority_ref : String
+  review_evidence : CapabilityRecordRefV1
+  settled_at : Int64
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 
 pub(all) struct CheckpointMigrationDecision {
   child_work_item_id : String
