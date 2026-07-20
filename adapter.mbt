@@ -59,11 +59,16 @@ pub(all) struct AdapterCapability {
 } derive(Debug, Eq, ToJson)
 
 ///|
-pub fn authority_class_is_canonical(authority : String) -> Bool {
+pub fn canonical_authority_classes() -> Array[String] {
   [
     "observe", "cognitive-maintenance", "sandbox-execution", "workspace-mutation",
     "external-effect", "physical-effect",
-  ].contains(authority)
+  ]
+}
+
+///|
+pub fn authority_class_is_canonical(authority : String) -> Bool {
+  canonical_authority_classes().contains(authority)
 }
 
 ///|

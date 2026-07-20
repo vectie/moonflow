@@ -299,10 +299,7 @@ pub fn events_from_work_graph(value : Json) -> Array[RuntimeEvent] raise {
       }
     }
     let requested_authority = wire_string(item, "requested_authority")
-    if ![
-        "observe", "cognitive-maintenance", "sandbox-execution", "workspace-mutation",
-        "external-effect", "physical-effect",
-      ].contains(requested_authority) {
+    if !authority_class_is_canonical(requested_authority) {
       fail(
         "unsupported requested_authority \{requested_authority} for \{work_item_id}",
       )

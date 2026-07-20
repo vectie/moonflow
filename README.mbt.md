@@ -4,6 +4,8 @@ MoonFlow is Moon Suite's generic durable orchestration capability and engine.
 
 The governed reinforcement and capability-activation loop is documented in
 [`docs/REINFORCEMENT_CAPABILITY_LOOP.md`](docs/REINFORCEMENT_CAPABILITY_LOOP.md).
+The executable ownership boundaries and pure test seams are documented in
+[`docs/RESPONSIBILITY_AND_TESTABILITY.md`](docs/RESPONSIBILITY_AND_TESTABILITY.md).
 MoonClaw is the suite's single agent runtime: it owns the model loop, personas,
 reasoning lifecycle, and agent execution, and may call MoonFlow to durably
 advance declared work. MoonBook owns source intent; MoonFlow imports a

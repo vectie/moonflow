@@ -24,6 +24,8 @@ pub fn attest_moonmold_result(MoonMoldDispatch, MoonMoldResult) -> MoonMoldEvide
 
 pub fn authority_class_is_canonical(String) -> Bool
 
+pub fn canonical_authority_classes() -> Array[String]
+
 pub fn capability_loop_contract_version() -> String
 
 pub fn claim_class_rank(String) -> Int?

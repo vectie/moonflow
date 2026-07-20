@@ -44,24 +44,31 @@ fn RunProjection::unaccepted_dependency(
 }
 
 ///|
-fn RunProjection::refresh_outcome(self : RunProjection) -> Unit {
-  if self.items.is_empty() {
-    self.outcome = "proposed"
-  } else if self.items.all(item => item.status == Accepted) {
-    self.outcome = "accepted"
-  } else if self.items.any(item => item.status == Active) {
-    self.outcome = "active"
-  } else if self.items.any(item => item.status == Review) {
-    self.outcome = "review"
-  } else if self.items.any(item => item.status == Blocked) {
-    self.outcome = "blocked"
-  } else if self.items.any(item => item.status == Failed) {
-    self.outcome = "failed"
-  } else if self.items.any(item => item.status == Ready) {
-    self.outcome = "ready"
+fn projection_outcome_for_statuses(statuses : Array[RuntimeStatus]) -> String {
+  if statuses.is_empty() {
+    "proposed"
+  } else if statuses.all(status => status == Accepted) {
+    "accepted"
+  } else if statuses.contains(Active) {
+    "active"
+  } else if statuses.contains(Review) {
+    "review"
+  } else if statuses.contains(Blocked) {
+    "blocked"
+  } else if statuses.contains(Failed) {
+    "failed"
+  } else if statuses.contains(Ready) {
+    "ready"
   } else {
-    self.outcome = "waiting"
+    "waiting"
   }
+}
+
+///|
+fn RunProjection::refresh_outcome(self : RunProjection) -> Unit {
+  self.outcome = projection_outcome_for_statuses(
+    self.items.map(item => item.status),
+  )
 }
 
 ///|
@@ -130,10 +137,7 @@ fn RunProjection::apply_new_event(
           field="execution_binding",
         )
       }
-      if ![
-          "observe", "cognitive-maintenance", "sandbox-execution", "workspace-mutation",
-          "external-effect", "physical-effect",
-        ].contains(event.requested_authority) {
+      if !authority_class_is_canonical(event.requested_authority) {
         raise InvalidAuthority(
           item_id=event.work_item_id,
           authority=event.requested_authority,
