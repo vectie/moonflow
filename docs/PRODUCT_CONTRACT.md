@@ -1,8 +1,9 @@
 # MoonFlow product contract
 
-Class: platform
+Class: platform service
+Form: orchestration functionality; no standalone end-user application
 Maturity: local alpha orchestration engine
-Last reviewed: 2026-07-30
+Last reviewed: 2026-07-31
 
 ## Outcome
 

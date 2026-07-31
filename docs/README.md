@@ -4,6 +4,9 @@
   boundary.
 - [Responsibility and testability](RESPONSIBILITY_AND_TESTABILITY.md) —
   executable ownership and test seams.
+- [Cross-product orchestration qualification](qualification/CROSS_PRODUCT_ORCHESTRATION.md)
+  — the observed success, denial, restart, and receipt sequence without a false
+  standalone MoonFlow application.
 - [Executable capability truth](CAPABILITY_TRUTH.md) — manifest-derived
   operation identities, adapter/health conformance and fail-closed graph
   compilation.

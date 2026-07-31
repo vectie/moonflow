@@ -8,6 +8,7 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/x/crypto",
   "vectie/moonflow",
+  "vectie/moonflow/collaboration" @collaboration,
   "vectie/moonlib/pipeline",
   "vectie/moonflow/closed_loop/orchestration",
   "vectie/moonflow/closed_loop/host" @flow_host,

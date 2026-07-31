@@ -1,0 +1,13 @@
+import {
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/json",
+  "vectie/moonlib/capability",
+}
+
+import {
+  "moonbitlang/core/test",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
+} for "wbtest"

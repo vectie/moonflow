@@ -30,6 +30,26 @@ MoonClaw, MoonGate, or a product adapter. Integration tests then prove replay,
 artifact containment, idempotency, restart behavior, and cross-product receipt
 identity separately.
 
+## Repository shape
+
+| Path | Responsibility |
+| --- | --- |
+| root package | public graph, event, adapter, review, and capability contracts |
+| `closed_loop/contracts` | generic closed-loop identities and wire records |
+| `closed_loop/effects` | effect intent, observations, and strict replay |
+| `closed_loop/governance` | policy evaluation without provider or domain policy |
+| `closed_loop/orchestration` | scheduling, attempts, leases, reconciliation, and recovery |
+| `closed_loop/storage` | durable append/replay implementation |
+| `closed_loop/host` | host wiring around the generic engine |
+| `ordered_http_json` | bounded, ordered transport utility; no reasoning loop |
+| `cmd/main` | operator/developer composition root |
+| `conformance` | compile-fail, boundary, golden replay, and restart evidence |
+
+MoonFlow intentionally has no `pack.json`, domain workflow templates, or
+standalone Rabbita application. A domain pack owns its operation semantics and
+MoonDesk owns the visual canvas. The CLI is an operator/developer surface, not
+another product or agent runtime.
+
 ## Responsible completion
 
 MoonFlow may report a run accepted only when every item has an independent
@@ -37,3 +57,6 @@ acceptance receipt bound to the exact result and source declaration. Adapter
 success alone means `review`, never `accepted`. Unknown outcomes reconcile
 before retry, external or physical authority is never inferred, and domain
 claims remain owned by the producing product.
+
+The cross-product acceptance sequence is recorded in
+[qualification/CROSS_PRODUCT_ORCHESTRATION.md](qualification/CROSS_PRODUCT_ORCHESTRATION.md).

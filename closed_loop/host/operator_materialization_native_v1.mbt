@@ -8,6 +8,17 @@ extern "c" fn operator_materialization_native_rename_v1(
 ) -> Int = "moonflow_operator_materialization_native_rename_v1"
 
 ///|
+#borrow(path)
+extern "c" fn operator_materialization_native_lock_v1(
+  path : Bytes,
+) -> Int = "moonflow_operator_materialization_native_lock_v1"
+
+///|
+extern "c" fn operator_materialization_native_unlock_v1(
+  handle : Int,
+) -> Int = "moonflow_operator_materialization_native_unlock_v1"
+
+///|
 fn operator_materialization_atomic_replace_v1(
   source : String,
   destination : String,
@@ -21,6 +32,81 @@ fn operator_materialization_atomic_replace_v1(
       "operator materialization atomic replacement failed (status \{status})",
     )
   }
+}
+
+///|
+/// Persist canonical JSON using a complete same-directory temporary followed
+/// by POSIX atomic replacement. The caller still owns semantic expected-head
+/// validation; this function owns crash-safe visibility of the resulting file.
+pub async fn atomic_replace_named_json_v1(
+  directory : String,
+  name : String,
+  canonical_json : String,
+) -> Unit {
+  if !directory.has_prefix("/") ||
+    name.is_blank() ||
+    name.contains("/") ||
+    name.contains("\\") ||
+    name.contains("..") {
+    fail("atomic JSON destination is not canonical")
+  }
+  if !@fs.exists(directory) {
+    @fs.mkdir(directory, permission=0o755, recursive=true)
+  }
+  let canonical_directory = @fs.realpath(directory)
+  if canonical_directory != directory {
+    fail("atomic JSON directory must be canonical")
+  }
+  let bytes = @utf8.encode(canonical_json + "\n")
+  let digest = @contracts.sha256_digest(bytes)
+  let target = directory + "/" + name
+  let temporary = directory + "/." + name + "." + digest.hex() + ".tmp"
+  @fs.write_file(
+    temporary,
+    bytes,
+    sync=Full,
+    create=0o600,
+    truncate=true,
+  )
+  operator_materialization_atomic_replace_v1(temporary, target)
+}
+
+///|
+/// Acquire a process-scoped advisory lock. The operating system releases the
+/// descriptor if the process exits, so a crashed writer cannot leave a stale
+/// lock that permanently blocks the workspace.
+pub async fn acquire_named_writer_lock_v1(
+  directory : String,
+  name : String,
+) -> Int {
+  if !directory.has_prefix("/") ||
+    name.is_blank() ||
+    name.contains("/") ||
+    name.contains("\\") ||
+    name.contains("..") {
+    fail("writer lock destination is not canonical")
+  }
+  if !@fs.exists(directory) {
+    @fs.mkdir(directory, permission=0o755, recursive=true)
+  }
+  let canonical_directory = @fs.realpath(directory)
+  if canonical_directory != directory {
+    fail("writer lock directory must be canonical")
+  }
+  let handle = operator_materialization_native_lock_v1(
+    @utf8.encode(directory + "/." + name + ".lock"),
+  )
+  if handle < 0 {
+    fail("failed to acquire writer lock (status \{handle})")
+  }
+  handle
+}
+
+///|
+pub fn release_named_writer_lock_v1(handle : Int) -> Unit {
+  // Closing the descriptor releases the lock even when explicit LOCK_UN reports
+  // an error, so cleanup must remain non-raising and safe inside `defer`.
+  ignore(operator_materialization_native_unlock_v1(handle))
 }
 
 ///|

@@ -37,6 +37,265 @@ async fn write_json(path : String, value : Json) -> Unit {
 }
 
 ///|
+fn collaboration_snapshot_path(
+  workspace : String,
+  workspace_id : String,
+) -> String raise {
+  let safe_workspace_id = safe_id(workspace_id, "workspace_id")
+  let root = @moonflow.normalize_workspace_path(workspace)
+  let path = root +
+    "/.moonsuite/products/moonflow/collaboration/" +
+    safe_workspace_id +
+    ".json"
+  if !@moonflow.path_is_within_workspace(root, path) {
+    fail("MoonFlow collaboration snapshot escapes workspace")
+  }
+  path
+}
+
+///|
+fn collaboration_snapshot_directory(workspace : String) -> String {
+  @moonflow.normalize_workspace_path(workspace) +
+  "/.moonsuite/products/moonflow/collaboration"
+}
+
+///|
+async fn inspect_collaboration_command(
+  workspace : String,
+  workspace_id : String,
+) -> Unit {
+  let path = collaboration_snapshot_path(workspace, workspace_id)
+  if !@fs.exists(path) {
+    fail("MoonFlow collaboration snapshot does not exist: \{workspace_id}")
+  }
+  let projection = @collaboration.decode_collaboration_snapshot_v1(
+    read_json(path),
+  )
+  println(
+    @collaboration.encode_collaboration_snapshot_v1(projection).stringify(
+      indent=2,
+    ),
+  )
+}
+
+///|
+async fn apply_collaboration_command(
+  workspace : String,
+  workspace_id : String,
+  mutation_path : String,
+) -> Unit {
+  let safe_workspace_id = safe_id(workspace_id, "workspace_id")
+  let directory = collaboration_snapshot_directory(workspace)
+  let writer_lock = @flow_host.acquire_named_writer_lock_v1(
+    directory,
+    safe_workspace_id,
+  )
+  defer @flow_host.release_named_writer_lock_v1(writer_lock)
+  let snapshot_path = collaboration_snapshot_path(workspace, safe_workspace_id)
+  let current = if @fs.exists(snapshot_path) {
+    Some(
+      @collaboration.decode_collaboration_snapshot_v1(
+        read_json(snapshot_path),
+      ),
+    )
+  } else {
+    None
+  }
+  let result = @collaboration.apply_collaboration_operator_mutation_v1(
+    current,
+    read_json(mutation_path),
+  )
+  match result {
+    OperatorApplied(projection, receipt) => {
+      if projection.workspace().workspace_id() != safe_workspace_id {
+        fail("collaboration mutation produced a different workspace")
+      }
+      let snapshot = @collaboration.encode_collaboration_snapshot_v1(
+        projection,
+      )
+      @flow_host.atomic_replace_named_json_v1(
+        directory,
+        safe_workspace_id + ".json",
+        snapshot.stringify(indent=2),
+      )
+      println(
+        ({
+          "status": "applied",
+          "receipt": @collaboration.encode_collaboration_operator_receipt_v1(
+            receipt,
+          ),
+          "snapshot": snapshot,
+        } : Json).stringify(indent=2),
+      )
+    }
+    OperatorIdempotent(projection, receipt) =>
+      println(
+        ({
+          "status": "idempotent",
+          "receipt": @collaboration.encode_collaboration_operator_receipt_v1(
+            receipt,
+          ),
+          "snapshot": @collaboration.encode_collaboration_snapshot_v1(
+            projection,
+          ),
+        } : Json).stringify(indent=2),
+      )
+    OperatorConflict(receipt) => {
+      println(
+        @collaboration.encode_collaboration_conflict_v1(receipt).stringify(
+          indent=2,
+        ),
+      )
+      fail("collaboration expected-head conflict")
+    }
+    OperatorDenied(reason) => fail("collaboration mutation denied: \{reason}")
+  }
+}
+
+///|
+fn handover_snapshot_path(workspace : String, handover_id : String) -> String raise {
+  let safe_handover_id = safe_id(handover_id, "handover_id")
+  let root = @moonflow.normalize_workspace_path(workspace)
+  let path = root +
+    "/.moonsuite/products/moonflow/handovers/" +
+    safe_handover_id +
+    ".json"
+  if !@moonflow.path_is_within_workspace(root, path) {
+    fail("MoonFlow handover snapshot escapes workspace")
+  }
+  path
+}
+
+///|
+fn handover_snapshot_directory(workspace : String) -> String {
+  @moonflow.normalize_workspace_path(workspace) +
+  "/.moonsuite/products/moonflow/handovers"
+}
+
+///|
+async fn inspect_handover_command(
+  workspace : String,
+  handover_id : String,
+) -> Unit {
+  let path = handover_snapshot_path(workspace, handover_id)
+  if !@fs.exists(path) {
+    fail("MoonFlow handover snapshot does not exist: \{handover_id}")
+  }
+  let projection = @collaboration.decode_handover_snapshot_v1(read_json(path))
+  println(
+    @collaboration.encode_handover_snapshot_v1(projection).stringify(indent=2),
+  )
+}
+
+///|
+async fn list_handovers_command(workspace : String) -> Unit {
+  let directory = handover_snapshot_directory(workspace)
+  let entries : Array[Json] = []
+  if @fs.exists(directory) {
+    for name in @fs.readdir(directory) {
+      if !name.has_suffix(".json") {
+        continue
+      }
+      let handover_id = name[0:name.length() - 5].to_owned()
+      if handover_id.trim().is_empty() ||
+        handover_id.contains("/") ||
+        handover_id.contains("\\") ||
+        handover_id.contains("..") {
+        continue
+      }
+      let entry : Json = try {
+        let projection = @collaboration.decode_handover_snapshot_v1(
+          read_json(directory + "/" + name),
+        )
+        {
+          "handover_id": handover_id,
+          "state": projection.state().id(),
+          "head_digest": projection.head_digest().text(),
+          "envelope_digest": projection.envelope().envelope_digest().text(),
+          "valid": true,
+        }
+      } catch {
+        _ => {
+          "handover_id": handover_id,
+          "state": "quarantined",
+          "valid": false,
+        }
+      }
+      entries.push(entry)
+    }
+  }
+  entries.sort_by(fn(left, right) { left.stringify().compare(right.stringify()) })
+  println(
+    ({
+      "contract_id": "moonflow.handover-catalog.v1",
+      "handovers": entries,
+    } : Json).stringify(indent=2),
+  )
+}
+
+///|
+async fn apply_handover_command(
+  workspace : String,
+  handover_id : String,
+  mutation_path : String,
+) -> Unit {
+  let safe_handover_id = safe_id(handover_id, "handover_id")
+  let directory = handover_snapshot_directory(workspace)
+  let writer_lock = @flow_host.acquire_named_writer_lock_v1(
+    directory,
+    safe_handover_id,
+  )
+  defer @flow_host.release_named_writer_lock_v1(writer_lock)
+  let snapshot_path = handover_snapshot_path(workspace, safe_handover_id)
+  let current = if @fs.exists(snapshot_path) {
+    Some(@collaboration.decode_handover_snapshot_v1(read_json(snapshot_path)))
+  } else {
+    None
+  }
+  match @collaboration.apply_handover_operator_mutation_v1(
+    current,
+    read_json(mutation_path),
+  ) {
+    HandoverOperatorApplied(projection, receipt) => {
+      let snapshot = @collaboration.encode_handover_snapshot_v1(projection)
+      @flow_host.atomic_replace_named_json_v1(
+        directory,
+        safe_handover_id + ".json",
+        snapshot.stringify(indent=2),
+      )
+      println(
+        ({
+          "status": "applied",
+          "receipt": @collaboration.encode_handover_operator_receipt_v1(
+            receipt,
+          ),
+          "snapshot": snapshot,
+        } : Json).stringify(indent=2),
+      )
+    }
+    HandoverOperatorIdempotent(projection, receipt) =>
+      println(
+        ({
+          "status": "idempotent",
+          "receipt": @collaboration.encode_handover_operator_receipt_v1(
+            receipt,
+          ),
+          "snapshot": @collaboration.encode_handover_snapshot_v1(projection),
+        } : Json).stringify(indent=2),
+      )
+    HandoverOperatorConflict(receipt) => {
+      println(
+        @collaboration.encode_handover_conflict_v1(receipt).stringify(
+          indent=2,
+        ),
+      )
+      fail("handover expected-head conflict")
+    }
+    HandoverOperatorDenied(reason) => fail("handover mutation denied: \{reason}")
+  }
+}
+
+///|
 async fn persist_run(
   workspace : String,
   run_id : String,
@@ -948,6 +1207,11 @@ fn usage() -> Unit {
     "  moonflow receive-operator-receipt <workspace> <run-id> <handoff-token> <submission-artifact>\n" +
     "  moonflow recover-operator-receipts <workspace> <run-id>\n" +
     "  moonflow operator-receiver-status <workspace> <run-id> <handoff-token>\n" +
+    "  moonflow collaboration inspect <workspace> <workspace-id>\n" +
+    "  moonflow collaboration apply <workspace> <workspace-id> <typed-mutation.json>\n" +
+    "  moonflow handover inspect <workspace> <handover-id>\n" +
+    "  moonflow handover list <workspace>\n" +
+    "  moonflow handover apply <workspace> <handover-id> <typed-mutation.json>\n" +
     "  moonflow ordered-http-json <transport-config.json> <new-receipt.json>",
   )
 }
@@ -1069,6 +1333,19 @@ async fn main {
       recover_operator_receipts(workspace, run_id)
     ["operator-receiver-status", workspace, run_id, token] =>
       show_operator_receiver_status(workspace, run_id, token)
+    ["collaboration", "inspect", workspace, workspace_id] =>
+      inspect_collaboration_command(workspace, workspace_id)
+    ["collaboration", "apply", workspace, workspace_id, mutation_path] =>
+      apply_collaboration_command(
+        workspace,
+        workspace_id,
+        mutation_path,
+      )
+    ["handover", "inspect", workspace, handover_id] =>
+      inspect_handover_command(workspace, handover_id)
+    ["handover", "list", workspace] => list_handovers_command(workspace)
+    ["handover", "apply", workspace, handover_id, mutation_path] =>
+      apply_handover_command(workspace, handover_id, mutation_path)
     ["ordered-http-json", config_path, receipt_path] =>
       run_ordered_http_json(config_path, receipt_path)
     ["version"] => println("MoonFlow \{@moonflow.runtime_protocol_id()}")
