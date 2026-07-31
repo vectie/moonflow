@@ -75,6 +75,14 @@ Dispatch and unattended execution re-evaluate the health validity window at
 their recorded execution time.
 See [`docs/CAPABILITY_TRUTH.md`](docs/CAPABILITY_TRUTH.md).
 
+Ready Work items that require a pack-owned operator surface use the generic,
+digest-bound receiver loop documented in
+[`docs/OPERATOR_RECEIVER_LOOP.md`](docs/OPERATOR_RECEIVER_LOOP.md). It carries
+run, attempt, operation, input, evidence, authority, and review identity into a
+configured manifest entrypoint and accepts only a correlated durable receipt.
+An accepted receipt advances the existing event stream and unlocks declared
+dependencies; it does not create another runtime.
+
 `prepare-next` removes hand-authored dispatch requests. It derives each ready
 item's requirement from its MoonBook execution binding, selects a healthy
 compatible adapter, verifies and hashes the declared input artifacts, writes a
@@ -122,6 +130,9 @@ moonflow validate-capability <capability.json>
 moonflow compile-capability-catalog <source-bundle.json>
 moonflow validate-work-graph-capabilities <graph.json> <catalog.json> <evaluated-at>
 moonflow import-conformant-graph <workspace> <graph.json> <catalog.json> <evaluated-at>
+moonflow receive-operator-receipt <workspace> <run-id> <handoff-token> <submission-artifact>
+moonflow recover-operator-receipts <workspace> <run-id>
+moonflow operator-receiver-status <workspace> <run-id> <handoff-token>
 ```
 
 `run-unattended` requires a v3 manifest. Every attempt is authorized by

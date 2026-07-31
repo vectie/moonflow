@@ -52,6 +52,7 @@ async fn persist_run(
     "\{directory}/projection.json",
     @moonflow.projection_json(projection),
   )
+  publish_operator_handoffs(workspace, directory, projection)
   projection
 }
 
@@ -726,6 +727,7 @@ async fn import_conformant_graph(
     graph, catalog, evaluated_at,
   )
   let run_id = events[0].run_id
+  persist_operator_capability_catalog(workspace, run_id, catalog)
   let projection = persist_run(workspace, run_id, events)
   println(@moonflow.projection_json(projection).stringify(indent=2))
 }
@@ -943,6 +945,9 @@ fn usage() -> Unit {
     "  moonflow materialize-operator-actions <run-root> <run-id> <catalog.json>\n" +
     "  moonflow commit-pack-handoff <host-config.json> <handoff.json>\n" +
     "  moonflow advance-pack-run <application-config.json> <handoff.json>\n" +
+    "  moonflow receive-operator-receipt <workspace> <run-id> <handoff-token> <submission-artifact>\n" +
+    "  moonflow recover-operator-receipts <workspace> <run-id>\n" +
+    "  moonflow operator-receiver-status <workspace> <run-id> <handoff-token>\n" +
     "  moonflow ordered-http-json <transport-config.json> <new-receipt.json>",
   )
 }
@@ -1058,6 +1063,12 @@ async fn main {
       commit_pack_handoff(config_path, input_path)
     ["advance-pack-run", config_path, input_path] =>
       advance_pack_run(config_path, input_path)
+    ["receive-operator-receipt", workspace, run_id, token, submission_ref] =>
+      receive_operator_receipt(workspace, run_id, token, submission_ref)
+    ["recover-operator-receipts", workspace, run_id] =>
+      recover_operator_receipts(workspace, run_id)
+    ["operator-receiver-status", workspace, run_id, token] =>
+      show_operator_receiver_status(workspace, run_id, token)
     ["ordered-http-json", config_path, receipt_path] =>
       run_ordered_http_json(config_path, receipt_path)
     ["version"] => println("MoonFlow \{@moonflow.runtime_protocol_id()}")
