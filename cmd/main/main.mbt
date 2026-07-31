@@ -215,8 +215,9 @@ async fn prepare_next(
 ) -> Unit {
   validate_artifact_ref(workspace, capabilities_ref)
   let root = @fs.realpath(@moonflow.normalize_workspace_path(workspace))
-  let capabilities = @moonflow.decode_adapter_capabilities(
+  let capabilities = @moonflow.decode_adapter_capabilities_at_v1(
     read_json(root + "/" + capabilities_ref),
+    recorded_at,
   )
   let events = load_events(workspace, run_id)
   let mut projection = @moonflow.replay(run_id, events)
@@ -692,6 +693,44 @@ async fn validate_capability(capability_path : String) -> Unit {
 }
 
 ///|
+async fn compile_capability_catalog(bundle_path : String) -> Unit {
+  let catalog = @moonflow.compile_capability_catalog_v1(read_json(bundle_path))
+  println(catalog.to_json().stringify(indent=2))
+}
+
+///|
+async fn validate_work_graph_capabilities(
+  graph_path : String,
+  catalog_path : String,
+  evaluated_at : String,
+) -> Unit {
+  let catalog = @moonflow.decode_capability_catalog_v1(read_json(catalog_path))
+  let report = @moonflow.compile_work_graph_capabilities_at_v1(
+    read_json(graph_path),
+    catalog,
+    evaluated_at,
+  )
+  println(report.to_json().stringify(indent=2))
+}
+
+///|
+async fn import_conformant_graph(
+  workspace : String,
+  graph_path : String,
+  catalog_path : String,
+  evaluated_at : String,
+) -> Unit {
+  let graph = read_json(graph_path)
+  let catalog = @moonflow.decode_capability_catalog_v1(read_json(catalog_path))
+  let events = @moonflow.conformant_events_from_work_graph_at_v1(
+    graph, catalog, evaluated_at,
+  )
+  let run_id = events[0].run_id
+  let projection = persist_run(workspace, run_id, events)
+  println(@moonflow.projection_json(projection).stringify(indent=2))
+}
+
+///|
 fn capability_projection_dir(workspace : String) -> String {
   let root = @moonflow.normalize_workspace_path(workspace)
   "\{root}/.moonsuite/products/moonflow/capabilities"
@@ -892,6 +931,9 @@ fn usage() -> Unit {
     "  moonflow bundle-evidence <workspace> <bundle-spec-artifact> <recorded-at>\n" +
     "  moonflow run-unattended <workspace> <graph-artifact> <capabilities-artifact> <manifest-artifact> <envelope-artifact> <usage-artifact> <recorded-at>\n" +
     "  moonflow validate-capability <capability.json>\n" +
+    "  moonflow compile-capability-catalog <source-bundle.json>\n" +
+    "  moonflow validate-work-graph-capabilities <graph.json> <catalog.json> <evaluated-at>\n" +
+    "  moonflow import-conformant-graph <workspace> <graph.json> <catalog.json> <evaluated-at>\n" +
     "  moonflow activate-capability <workspace> <request.json> <activation-id> <activated-at>\n" +
     "  moonflow resolve-capability <workspace> <scope-id> <participant-id>\n" +
     "  moonflow observe-capability <workspace> <scope-id> <observation.json>\n" +
@@ -981,6 +1023,18 @@ async fn main {
       )
     ["validate-capability", capability_path] =>
       validate_capability(capability_path)
+    ["compile-capability-catalog", bundle_path] =>
+      compile_capability_catalog(bundle_path)
+    ["validate-work-graph-capabilities", graph_path, catalog_path, evaluated_at] =>
+      validate_work_graph_capabilities(graph_path, catalog_path, evaluated_at)
+    [
+      "import-conformant-graph",
+      workspace,
+      graph_path,
+      catalog_path,
+      evaluated_at,
+    ] =>
+      import_conformant_graph(workspace, graph_path, catalog_path, evaluated_at)
     [
       "activate-capability",
       workspace,

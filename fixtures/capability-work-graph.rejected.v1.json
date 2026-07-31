@@ -1,0 +1,56 @@
+{
+  "contract_id": "moonsuite.work-model.v1",
+  "graph_id": "legacy-canvas-example-r1",
+  "book_id": "robot-design",
+  "declaration_revision": "r1",
+  "source_digest": "sha256:legacy-canvas-r1",
+  "items": [
+    {
+      "work_item_id": "make-model",
+      "declaration_id": "make-model",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "reviewed model exists"
+      ],
+      "operation": "model.create-3d-assets",
+      "input_contracts": [
+        "spatial-operation-request"
+      ],
+      "output_contracts": [
+        "spatial-operation-receipt"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "requests/model.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": []
+    },
+    {
+      "work_item_id": "score",
+      "declaration_id": "score",
+      "product_id": "moonstat",
+      "requested_authority": "sandbox-execution",
+      "acceptance_criteria": [
+        "score exists"
+      ],
+      "operation": "evaluation.score",
+      "input_contracts": [
+        "evaluation-input"
+      ],
+      "output_contracts": [
+        "evaluation-result"
+      ],
+      "required_claim": "execution-result",
+      "input_artifacts": [
+        "requests/score.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": [
+        "make-model"
+      ]
+    }
+  ],
+  "recorded_at": "2026-07-31T00:00:00Z"
+}

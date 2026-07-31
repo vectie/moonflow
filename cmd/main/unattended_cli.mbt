@@ -907,8 +907,11 @@ async fn run_unattended(
     ] {
     validate_artifact_ref(root, artifact)
   }
-  let graph_events = @moonflow.events_from_work_graph(
+  let capability_source = read_json(root + "/" + capabilities_ref)
+  let graph_events = @moonflow.capability_guarded_events_from_work_graph_v1(
     read_json(root + "/" + graph_ref),
+    capability_source,
+    recorded_at,
   )
   let run_id = graph_events[0].run_id
   let event_path = run_dir(root, run_id) + "/events.json"
@@ -918,8 +921,8 @@ async fn run_unattended(
     ignore(persist_run(root, run_id, graph_events))
     graph_events
   }
-  let capabilities = @moonflow.decode_adapter_capabilities(
-    read_json(root + "/" + capabilities_ref),
+  let capabilities = @moonflow.decode_adapter_capabilities_at_v1(
+    capability_source, recorded_at,
   )
   let manifest = @moonflow.decode_unattended_manifest(
     read_json(root + "/" + manifest_ref),

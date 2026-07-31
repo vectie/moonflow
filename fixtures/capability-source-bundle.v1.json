@@ -1,0 +1,75 @@
+{
+  "contract_id": "moonflow.capability-source-bundle.v1",
+  "catalog_id": "moonmold-local-example-2026-07-31",
+  "compiled_at": "2026-07-31T00:00:00Z",
+  "pack_manifests": [
+    {
+      "id": "moonmold",
+      "product_id": "moonmold",
+      "version": "0.2.0",
+      "schemas": [
+        {
+          "id": "spatial-operation-request",
+          "version": "1.0.0",
+          "path": "schemas/spatial-operation-request.schema.json"
+        },
+        {
+          "id": "spatial-operation-receipt",
+          "version": "1.0.0",
+          "path": "schemas/spatial-operation-receipt.schema.json"
+        }
+      ],
+      "tools": [
+        {
+          "id": "spatial.operation.execute",
+          "owner_product": "moonmold",
+          "input_schema_id": "spatial-operation-request",
+          "output_schema_id": "spatial-operation-receipt",
+          "authority": "WorkspaceMutation",
+          "idempotent": true,
+          "evidence_outputs": [
+            "records/operations",
+            "artifacts/models"
+          ],
+          "review_required": true
+        }
+      ]
+    }
+  ],
+  "adapter_declarations": [
+    {
+      "contract_id": "moonflow.adapter-declaration.v1",
+      "adapter_id": "moonmold-pack-local-v1",
+      "product_id": "moonmold",
+      "pack_id": "moonmold",
+      "pack_version": "0.2.0",
+      "protocol": "moonflow.adapter.v2",
+      "operations": [
+        {
+          "operation_id": "spatial.operation.execute",
+          "claim_ceiling": "digital-artifact",
+          "supports_cancel": true,
+          "supports_reconcile": true
+        }
+      ]
+    }
+  ],
+  "health_attestations": [
+    {
+      "contract_id": "moonflow.adapter-health.v1",
+      "adapter_id": "moonmold-pack-local-v1",
+      "product_id": "moonmold",
+      "pack_id": "moonmold",
+      "pack_version": "0.2.0",
+      "protocol": "moonflow.adapter.v2",
+      "status": "healthy",
+      "checked_at": "2026-07-30T23:59:00Z",
+      "valid_until": "2026-08-01T00:00:00Z",
+      "operation_refs": [
+        "moonmold/spatial.operation.execute@0.2.0"
+      ],
+      "evidence_ref": "health/moonmold-pack-local-v1.json",
+      "evidence_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "contract_id": "moonsuite.work-model.v1",
+  "graph_id": "capability-example-r1",
+  "book_id": "robot-design",
+  "declaration_revision": "r1",
+  "source_digest": "sha256:robot-design-r1",
+  "items": [
+    {
+      "work_item_id": "make-model",
+      "declaration_id": "make-model",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "reviewed model exists"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "requests/model.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": []
+    }
+  ],
+  "recorded_at": "2026-07-31T00:00:00Z"
+}

@@ -1,5 +1,9 @@
 # MoonFlow
 
+> **Platform · local alpha orchestration engine.** Read the
+> [product contract](docs/PRODUCT_CONTRACT.md) for the non-agent boundary,
+> adapter requirements, recovery model and release gates.
+
 MoonFlow is Moon Suite's generic durable orchestration capability and engine.
 
 The governed reinforcement and capability-activation loop is documented in
@@ -59,6 +63,18 @@ input/output contracts, and a claim ceiling. The director selects an adapter
 only when all dimensions match. Unknown outcomes reconcile before any retry;
 quality rejection revises the input or procedure instead of repeating it.
 
+For cross-product execution, capability truth is compiled instead of
+hand-authored. A `moonflow.capability-source-bundle.v1` combines the
+product-owned `pack.json`, a version-bound adapter declaration, and expiring
+health evidence. It produces canonical operation identities such as
+`moonmold/spatial.operation.execute@0.2.0` and versioned schema identities.
+The existing director consumes that catalog directly. Graph compilation fails
+closed on phantom products, invented/unversioned operations, schema or
+authority drift, unhealthy adapters, and claims above the declared ceiling.
+Dispatch and unattended execution re-evaluate the health validity window at
+their recorded execution time.
+See [`docs/CAPABILITY_TRUTH.md`](docs/CAPABILITY_TRUTH.md).
+
 `prepare-next` removes hand-authored dispatch requests. It derives each ready
 item's requirement from its MoonBook execution binding, selects a healthy
 compatible adapter, verifies and hashes the declared input artifacts, writes a
@@ -103,6 +119,9 @@ moonflow complete-artifacts <workspace> <run-id> <work-item-id> <recorded-at> <a
 moonflow bundle-evidence <workspace> <bundle-spec-artifact> <recorded-at>
 moonflow run-unattended <workspace> <graph-artifact> <capabilities-artifact> <manifest-artifact> <envelope-artifact> <usage-artifact> <recorded-at>
 moonflow validate-capability <capability.json>
+moonflow compile-capability-catalog <source-bundle.json>
+moonflow validate-work-graph-capabilities <graph.json> <catalog.json> <evaluated-at>
+moonflow import-conformant-graph <workspace> <graph.json> <catalog.json> <evaluated-at>
 ```
 
 `run-unattended` requires a v3 manifest. Every attempt is authorized by

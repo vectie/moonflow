@@ -64,7 +64,19 @@ pub fn decode_adapter_capabilities(
 ) -> Array[AdapterCapability] raise {
   match value {
     Array(values) => values.map(value => validate_adapter_capability(value))
-    _ => fail("MoonFlow capabilities must be a JSON array")
+    Object(fields) =>
+      match fields.get("contract_id") {
+        Some(String(contract_id)) if contract_id ==
+          capability_catalog_contract_v1() =>
+          decode_capability_catalog_v1(value).adapter_capabilities()
+        Some(String(contract_id)) =>
+          fail("unsupported MoonFlow capability contract: \{contract_id}")
+        _ => fail("MoonFlow capability object requires a supported contract_id")
+      }
+    _ =>
+      fail(
+        "MoonFlow capabilities must be a legacy JSON array or capability catalog",
+      )
   }
 }
 

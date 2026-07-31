@@ -26,7 +26,7 @@ preferred_target = "native"
 description = "Generic durable orchestration engine for Moon Suite"
 
 import {
-  "moonbitlang/async@0.16.6",
+  "moonbitlang/async@0.19.4",
   "moonbitlang/x@0.4.40",
   "vectie/moonlib@0.1.13",
 }
