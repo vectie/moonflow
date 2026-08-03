@@ -1,4 +1,24 @@
 ///|
+#borrow(status)
+extern "c" fn governance_native_temporary_root(status : Ref[Int]) -> Bytes = "moonflow_storage_native_temporary_root"
+
+///|
+extern "c" fn governance_native_unique_suffix() -> Bytes = "moonflow_storage_native_unique_suffix"
+
+///|
+fn governance_native_fixture_location() -> (String, String) {
+  let status = Ref(0)
+  let root = governance_native_temporary_root(status)
+  if status.val != 0 {
+    abort("temporary root unavailable")
+  }
+  (
+    try! @utf8.decode(root),
+    try! @utf8.decode(governance_native_unique_suffix()),
+  )
+}
+
+///|
 fn complete_native_fixture() -> (
   ReviewedChain,
   @governance.ReviewReceipt,
@@ -44,6 +64,7 @@ fn complete_native_fixture() -> (
 
 ///|
 test "FLOW-5A filesystem and memory restart with canonical equality" {
+  let (root, store_relative) = governance_native_fixture_location()
   let (chain, receipt, events, intents) = complete_native_fixture()
   let empty = @governance.GovernanceProjection::new(
     chain.policy,
@@ -53,15 +74,11 @@ test "FLOW-5A filesystem and memory restart with canonical equality" {
     empty, "native-complete-command-v1", events, intents,
   )
   let memory = @storage.MemoryStore::new()
-  let filesystem = try! @storage.FileSystemStore::open(
-    "/private/tmp", "moonflow-flow5a-governance-v1/canonical-equality",
-  )
+  let filesystem = try! @storage.FileSystemStore::open(root, store_relative)
   let memory_result = memory.commit(request)
   let filesystem_result = filesystem.commit(request)
   assert_true(memory_result == filesystem_result)
-  let restarted = try! @storage.FileSystemStore::open(
-    "/private/tmp", "moonflow-flow5a-governance-v1/canonical-equality",
-  )
+  let restarted = try! @storage.FileSystemStore::open(root, store_relative)
   let memory_replay = memory.replay(chain.workflow)
   let filesystem_replay = restarted.replay(chain.workflow)
   assert_true(
@@ -92,19 +109,16 @@ test "FLOW-5A filesystem and memory restart with canonical equality" {
 
 ///|
 test "FLOW-5A filesystem restart after every transition is authoritative" {
+  let (root, store_relative) = governance_native_fixture_location()
   let (chain, receipt, events, _) = complete_native_fixture()
-  let existing = try! @storage.FileSystemStore::open(
-    "/private/tmp", "moonflow-flow5a-governance-v1/restart-each",
-  )
+  let existing = try! @storage.FileSystemStore::open(root, store_relative)
   let mut projection = try! @governance.fold_replay(
     chain.policy,
     existing.replay(chain.workflow),
   )
   for index in projection.revision().to_int()..<events.length() {
     let event = events[index]
-    let filesystem = try! @storage.FileSystemStore::open(
-      "/private/tmp", "moonflow-flow5a-governance-v1/restart-each",
-    )
+    let filesystem = try! @storage.FileSystemStore::open(root, store_relative)
     let request = try! @governance.prepare_governance_commit(
       projection,
       "native-transition-command-\{index}",
@@ -112,9 +126,7 @@ test "FLOW-5A filesystem restart after every transition is authoritative" {
       [],
     )
     ignore(filesystem.commit(request))
-    let restarted = try! @storage.FileSystemStore::open(
-      "/private/tmp", "moonflow-flow5a-governance-v1/restart-each",
-    )
+    let restarted = try! @storage.FileSystemStore::open(root, store_relative)
     projection = try! @governance.fold_replay(
       chain.policy,
       restarted.replay(chain.workflow),
