@@ -1,22 +1,29 @@
-# FLOW-2/FLOW-3/FLOW-4A/FLOW-5A conformance
+# MoonFlow conformance
 
-Run every repository-local FLOW-2 compatibility, FLOW-3 isolation, FLOW-4A
-storage, and FLOW-5A pure-governance gate with:
+Run the release-relevant MoonFlow architecture gates with:
 
 ```sh
 ./conformance/run.sh
 ```
 
-The command is offline (`moon --frozen`), runs scanner self-tests and the real
-repository scan, executes the isolated contract tests, executes portable
-storage tests on wasm, wasm-gc, JavaScript, and native (including native
-filesystem/C-stub tests), executes FLOW-5A governance tests on all four targets,
-executes native golden and CLI containment checks, then runs the full suite on
-each backend and target-complete warning checks.
-It also compiles external negative fixtures and requires construction of the
-opaque governed aggregate and construction/decoding of committed cancellation
-governance receipts to fail at the package boundary.
-Scanner diagnostics are sorted and use `path:line: RULE reason`.
+The workflow resolves the pinned module graph before this command runs. The
+command proves the frozen scanner's own negative fixtures still work, rejects
+pack-owned finance, media-production, or
+MoonMold vocabulary and dependencies from production code, and runs the typed
+contracts, storage, governance, effects, orchestration, and golden-v2 suites on
+their release-relevant targets. Native orchestration runs in release mode to
+match the shipped runtime and avoid a known debug-codegen-only toolchain stall.
+It finishes with target-complete declaration and warning checks, then rejects
+malformed or whitespace-damaged patches before release.
+
+The historical FLOW-2 snapshot remains reviewable and can still be audited
+explicitly with `python3 conformance/boundary_scan.py scan`; its scanner and
+negative fixtures can be checked independently with
+`python3 conformance/boundary_scan.py fixture-test`. It is not the
+current release gate: that snapshot intentionally rejects every capability
+added after FLOW-2, so treating it as a current-source allowlist would make any
+architectural upgrade impossible. New isolation policy belongs in
+`check_current_isolation.sh`; frozen evidence is never silently rewritten.
 
 The scanner approves FLOW-3 symbols only in the exact enumerated production
 files and generated interface under `closed_loop/contracts`. It still scans

@@ -1,5 +1,5 @@
 {
-  "protocol": "moonflow.run-projection.v2",
+  "protocol": "moonflow.run-projection.v3",
   "run_id": "flow2-golden-v2",
   "book_id": "flow2-generic-source",
   "declaration_revision": "r2",
@@ -16,6 +16,18 @@
       "acceptance_criteria": [
         "declared evidence is attached"
       ],
+      "operation": "collect-declared-evidence",
+      "input_contracts": [
+        "moonsuite.evidence-request.v1"
+      ],
+      "output_contracts": [
+        "moonsuite.evidence-envelope.v1"
+      ],
+      "required_claim": "evidence-observation",
+      "input_artifacts": [
+        "inputs/observe-request.json"
+      ],
+      "timeout_ms": 1000,
       "depends_on": [],
       "status": "accepted",
       "attempt_count": 1,
@@ -25,7 +37,6 @@
       "idempotency_key": "flow2-golden-v2/work-observe/1/sha256:observe-input",
       "external_job_id": "job-observe-1",
       "attempt_status": "succeeded",
-      "operation": "collect-declared-evidence",
       "input_digest": "sha256:observe-input",
       "output_digest": "sha256:observe-output",
       "error_kind": "",
@@ -50,6 +61,18 @@
       "acceptance_criteria": [
         "declared validation evidence is attached"
       ],
+      "operation": "validate-declared-evidence",
+      "input_contracts": [
+        "moonsuite.evidence-envelope.v1"
+      ],
+      "output_contracts": [
+        "moonsuite.validation-result.v1"
+      ],
+      "required_claim": "validation-evidence",
+      "input_artifacts": [
+        "artifacts/observe-evidence.json"
+      ],
+      "timeout_ms": 1000,
       "depends_on": [
         "work-observe"
       ],
@@ -61,7 +84,6 @@
       "idempotency_key": "flow2-golden-v2/work-validate/1/sha256:validate-input",
       "external_job_id": "job-validate-1",
       "attempt_status": "succeeded",
-      "operation": "validate-declared-evidence",
       "input_digest": "sha256:validate-input",
       "output_digest": "sha256:validate-output",
       "error_kind": "",

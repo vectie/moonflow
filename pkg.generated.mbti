@@ -24,8 +24,6 @@ pub fn adapter_submission_event(RunProjection, AdapterRequest) -> RuntimeEvent r
 
 pub fn artifact_ref_is_workspace_relative(String) -> Bool
 
-pub fn attest_moonmold_result(MoonMoldDispatch, MoonMoldResult) -> MoonMoldEvidenceMapping
-
 pub fn authority_class_is_canonical(String) -> Bool
 
 pub fn canonical_authority_classes() -> Array[String]
@@ -109,10 +107,6 @@ pub fn events_from_work_graph(Json) -> Array[RuntimeEvent] raise
 pub fn evidence_bundle_manifest(EvidenceBundleSpec, Array[EvidenceBundleEntry], String, String) -> EvidenceBundleManifest raise
 
 pub fn graph_capability_report_contract_v1() -> String
-
-pub fn moonmold_capability() -> AdapterCapability
-
-pub fn moonmold_checkpoint_decision(MoonMoldEvidenceMapping, MoonMoldDispatch) -> MoonMoldCheckpointDecision
 
 pub fn normalize_workspace_path(String) -> String
 
@@ -576,60 +570,6 @@ pub(all) struct GraphCapabilityReportV1 {
   issues : Array[CapabilityConformanceIssueV1]
   catalog_issues : Array[CapabilityConformanceIssueV1]
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
-
-pub(all) struct MoonMoldCheckpointDecision {
-  decision : String
-  reason : String
-  invalidated_artifact_refs : Array[String]
-} derive(Eq, ToJson, @debug.Debug)
-
-pub(all) struct MoonMoldDispatch {
-  request : AdapterRequest
-  declaration_revision : String
-  source_digest : String
-  expected_parent_digest : String
-  expected_parent_representation : String
-  expected_child_representation : String
-  expected_lineage_relation : String
-  authority_envelope_id : String
-} derive(Eq, ToJson, @debug.Debug)
-pub fn MoonMoldDispatch::quality_issues(Self) -> Array[String]
-
-pub(all) struct MoonMoldEvidenceMapping {
-  mapping_id : String
-  request_id : String
-  declaration_revision : String
-  source_digest : String
-  input_digest : String
-  expected_parent_digest : String
-  artifact_id : String
-  artifact_digest : String
-  representation : String
-  lineage_relation : String
-  claim_ceiling : String
-  authority_envelope_id : String
-  accepted : Bool
-  issues : Array[String]
-  checkpoint_artifact_refs : Array[String]
-} derive(Eq, ToJson, @debug.Debug)
-
-pub(all) struct MoonMoldResult {
-  request_id : String
-  attempt_id : String
-  idempotency_key : String
-  status : String
-  artifact_id : String
-  artifact_digest : String
-  parent_digest : String
-  parent_representation : String
-  representation : String
-  lineage_relation : String
-  claim_ceiling : String
-  authority_envelope_id : String
-  portable_artifact_ref : String
-  evidence_refs : Array[String]
-  physical_effects : Bool
-} derive(Eq, ToJson, @debug.Debug)
 
 pub(all) struct PackCapabilityManifestV1 {
   pack_id : String

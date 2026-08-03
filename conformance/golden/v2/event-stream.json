@@ -12,6 +12,12 @@
     "source_digest": "sha256:flow2-generic-source-r2",
     "requested_authority": "",
     "acceptance_criteria": [],
+    "operation": "",
+    "input_contracts": [],
+    "output_contracts": [],
+    "required_claim": "",
+    "input_artifacts": [],
+    "timeout_ms": 0,
     "request_id": "",
     "result_id": "",
     "attempt_id": "",
@@ -44,6 +50,18 @@
     "acceptance_criteria": [
       "declared evidence is attached"
     ],
+    "operation": "collect-declared-evidence",
+    "input_contracts": [
+      "moonsuite.evidence-request.v1"
+    ],
+    "output_contracts": [
+      "moonsuite.evidence-envelope.v1"
+    ],
+    "required_claim": "evidence-observation",
+    "input_artifacts": [
+      "inputs/observe-request.json"
+    ],
+    "timeout_ms": 1000,
     "request_id": "",
     "result_id": "",
     "attempt_id": "",
@@ -76,6 +94,18 @@
     "acceptance_criteria": [
       "declared validation evidence is attached"
     ],
+    "operation": "validate-declared-evidence",
+    "input_contracts": [
+      "moonsuite.evidence-envelope.v1"
+    ],
+    "output_contracts": [
+      "moonsuite.validation-result.v1"
+    ],
+    "required_claim": "validation-evidence",
+    "input_artifacts": [
+      "artifacts/observe-evidence.json"
+    ],
+    "timeout_ms": 1000,
     "request_id": "",
     "result_id": "",
     "attempt_id": "",
@@ -110,6 +140,18 @@
     "acceptance_criteria": [
       "declared evidence is attached"
     ],
+    "operation": "collect-declared-evidence",
+    "input_contracts": [
+      "moonsuite.evidence-request.v1"
+    ],
+    "output_contracts": [
+      "moonsuite.evidence-envelope.v1"
+    ],
+    "required_claim": "evidence-observation",
+    "input_artifacts": [
+      "inputs/observe-request.json"
+    ],
+    "timeout_ms": 1000,
     "request_id": "",
     "result_id": "",
     "attempt_id": "",
@@ -142,6 +184,18 @@
     "acceptance_criteria": [
       "declared evidence is attached"
     ],
+    "operation": "collect-declared-evidence",
+    "input_contracts": [
+      "moonsuite.evidence-request.v1"
+    ],
+    "output_contracts": [
+      "moonsuite.evidence-envelope.v1"
+    ],
+    "required_claim": "evidence-observation",
+    "input_artifacts": [
+      "inputs/observe-request.json"
+    ],
+    "timeout_ms": 1000,
     "request_id": "request-observe-1",
     "result_id": "",
     "attempt_id": "attempt-observe-1",
@@ -174,6 +228,18 @@
     "acceptance_criteria": [
       "declared evidence is attached"
     ],
+    "operation": "collect-declared-evidence",
+    "input_contracts": [
+      "moonsuite.evidence-request.v1"
+    ],
+    "output_contracts": [
+      "moonsuite.evidence-envelope.v1"
+    ],
+    "required_claim": "evidence-observation",
+    "input_artifacts": [
+      "inputs/observe-request.json"
+    ],
+    "timeout_ms": 1000,
     "request_id": "request-observe-1",
     "result_id": "result-observe-1",
     "attempt_id": "attempt-observe-1",
@@ -208,6 +274,18 @@
     "acceptance_criteria": [
       "declared evidence is attached"
     ],
+    "operation": "collect-declared-evidence",
+    "input_contracts": [
+      "moonsuite.evidence-request.v1"
+    ],
+    "output_contracts": [
+      "moonsuite.evidence-envelope.v1"
+    ],
+    "required_claim": "evidence-observation",
+    "input_artifacts": [
+      "inputs/observe-request.json"
+    ],
+    "timeout_ms": 1000,
     "request_id": "request-observe-1",
     "result_id": "result-observe-1",
     "attempt_id": "attempt-observe-1",
@@ -242,6 +320,18 @@
     "acceptance_criteria": [
       "declared validation evidence is attached"
     ],
+    "operation": "validate-declared-evidence",
+    "input_contracts": [
+      "moonsuite.evidence-envelope.v1"
+    ],
+    "output_contracts": [
+      "moonsuite.validation-result.v1"
+    ],
+    "required_claim": "validation-evidence",
+    "input_artifacts": [
+      "artifacts/observe-evidence.json"
+    ],
+    "timeout_ms": 1000,
     "request_id": "",
     "result_id": "",
     "attempt_id": "",
@@ -274,6 +364,18 @@
     "acceptance_criteria": [
       "declared validation evidence is attached"
     ],
+    "operation": "validate-declared-evidence",
+    "input_contracts": [
+      "moonsuite.evidence-envelope.v1"
+    ],
+    "output_contracts": [
+      "moonsuite.validation-result.v1"
+    ],
+    "required_claim": "validation-evidence",
+    "input_artifacts": [
+      "artifacts/observe-evidence.json"
+    ],
+    "timeout_ms": 1000,
     "request_id": "request-validate-1",
     "result_id": "",
     "attempt_id": "attempt-validate-1",
@@ -306,6 +408,18 @@
     "acceptance_criteria": [
       "declared validation evidence is attached"
     ],
+    "operation": "validate-declared-evidence",
+    "input_contracts": [
+      "moonsuite.evidence-envelope.v1"
+    ],
+    "output_contracts": [
+      "moonsuite.validation-result.v1"
+    ],
+    "required_claim": "validation-evidence",
+    "input_artifacts": [
+      "artifacts/observe-evidence.json"
+    ],
+    "timeout_ms": 1000,
     "request_id": "request-validate-1",
     "result_id": "result-validate-1",
     "attempt_id": "attempt-validate-1",

@@ -1,6 +1,7 @@
 {
   "request_id": "request-validate-1",
   "run_id": "flow2-golden-v2",
+  "book_id": "flow2-generic-source",
   "work_item_id": "work-validate",
   "declaration_id": "validate-declaration",
   "attempt_id": "attempt-validate-1",
@@ -8,6 +9,16 @@
   "product_id": "synthetic-validator",
   "operation": "validate-declared-evidence",
   "requested_authority": "sandbox-execution",
+  "acceptance_criteria": [
+    "declared validation evidence is attached"
+  ],
+  "input_contracts": [
+    "moonsuite.evidence-envelope.v1"
+  ],
+  "output_contracts": [
+    "moonsuite.validation-result.v1"
+  ],
+  "required_claim": "validation-evidence",
   "input_digest": "sha256:validate-input",
   "input_artifacts": [
     "artifacts/observe-evidence.json"

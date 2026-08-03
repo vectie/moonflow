@@ -1,5 +1,5 @@
 {
-  "protocol": "moonflow.run-projection.v2",
+  "protocol": "moonflow.run-projection.v3",
   "run_id": "flow-source-linked-fixture-r1",
   "book_id": "source-linked-fixture",
   "declaration_revision": "r1",
@@ -18,6 +18,18 @@
       "acceptance_criteria": [
         "reviewed evidence and limitations are attached"
       ],
+      "operation": "query-evidence",
+      "input_contracts": [
+        "moonbook.research-question.v1"
+      ],
+      "output_contracts": [
+        "moonsuite.evidence-envelope.v1"
+      ],
+      "required_claim": "research-evidence",
+      "input_artifacts": [
+        "books/source-linked-fixture/inputs/research.json"
+      ],
+      "timeout_ms": 120000,
       "depends_on": [],
       "status": "ready",
       "attempt_count": 0,
@@ -27,7 +39,6 @@
       "idempotency_key": "",
       "external_job_id": "",
       "attempt_status": "",
-      "operation": "",
       "input_digest": "",
       "output_digest": "",
       "error_kind": "",
@@ -47,6 +58,18 @@
       "acceptance_criteria": [
         "the declared digital validation gate passes"
       ],
+      "operation": "simulate",
+      "input_contracts": [
+        "moonsuite.robot-design.v1"
+      ],
+      "output_contracts": [
+        "moonmoon.robot-mission-result.v1"
+      ],
+      "required_claim": "simulation-evidence",
+      "input_artifacts": [
+        "books/source-linked-fixture/inputs/design.json"
+      ],
+      "timeout_ms": 120000,
       "depends_on": [
         "work-research"
       ],
@@ -58,7 +81,6 @@
       "idempotency_key": "",
       "external_job_id": "",
       "attempt_status": "",
-      "operation": "",
       "input_digest": "",
       "output_digest": "",
       "error_kind": "",

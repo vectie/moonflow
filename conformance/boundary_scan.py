@@ -1249,7 +1249,10 @@ def assert_scope_coverage(
     ]
 
 
-def self_test(config: dict[str, Any]) -> int:
+def self_test(
+    config: dict[str, Any], *, verify_repository: bool = True,
+    verify_clean_surfaces: bool = True,
+) -> int:
     failures: list[str] = []
     covered: set[str] = set()
     expected_flow3_symbols = flow3_public_symbols(config)
@@ -1452,7 +1455,10 @@ def self_test(config: dict[str, Any]) -> int:
                     )
                 else:
                     individually_covered_flow7a_symbols.add(symbol)
-    for case in config.get("clean_self_tests", []):
+    clean_self_tests = (
+        config.get("clean_self_tests", []) if verify_clean_surfaces else []
+    )
+    for case in clean_self_tests:
         fixture = ROOT / case["fixture"]
         text = fixture.read_text(encoding="utf-8")
         findings = scan_virtual(case["virtual_path"], text, config)
@@ -1513,10 +1519,11 @@ def self_test(config: dict[str, Any]) -> int:
                     reason_pattern,
                 )
             )
-    real_findings = scan_repository(config)
-    if real_findings:
-        failures.append("real repository scan produced findings during self-test")
-        failures.extend(finding.render() for finding in real_findings)
+    if verify_repository:
+        real_findings = scan_repository(config)
+        if real_findings:
+            failures.append("real repository scan produced findings during self-test")
+            failures.extend(finding.render() for finding in real_findings)
     if failures:
         for failure in failures:
             print(f"SELFTEST: {failure}", file=sys.stderr)
@@ -1525,7 +1532,7 @@ def self_test(config: dict[str, Any]) -> int:
         "FLOW-7A scanner self-test: PASS "
         f"({len(config['self_tests'])} negative fixtures; rules "
         f"{', '.join(sorted(covered))}; "
-        f"{len(config.get('clean_self_tests', []))} clean fixtures; "
+        f"{len(clean_self_tests)} clean fixtures; "
         f"{approved_flow3_clean_surfaces} approved FLOW-3 clean surface with "
         f"{len(expected_flow3_symbols)} symbols; "
         f"{approved_flow4a_clean_surfaces} approved FLOW-4A clean surface with "
@@ -1550,18 +1557,33 @@ def self_test(config: dict[str, Any]) -> int:
         "FLOW-6C V2 public symbols individually covered; "
         f"{len(individually_covered_flow7a_symbols)}/{len(expected_flow7a_symbols)} "
         "FLOW-7A public symbols individually covered; "
-        "real allowlisted data clean)"
+        + (
+            "real allowlisted data clean)"
+            if verify_repository
+            else "frozen scanner fixtures verified)"
+        )
     )
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["scan", "self-test"], nargs="?", default="scan")
+    parser.add_argument(
+        "command",
+        choices=["scan", "self-test", "fixture-test"],
+        nargs="?",
+        default="scan",
+    )
     args = parser.parse_args()
     config = load_config()
     if args.command == "self-test":
         return self_test(config)
+    if args.command == "fixture-test":
+        return self_test(
+            config,
+            verify_repository=False,
+            verify_clean_surfaces=False,
+        )
     findings = scan_repository(config)
     if findings:
         for finding in findings:

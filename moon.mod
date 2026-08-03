@@ -11,7 +11,7 @@
 
 name = "vectie/moonflow"
 
-version = "0.1.0"
+version = "0.1.1"
 
 readme = "README.mbt.md"
 
@@ -28,5 +28,5 @@ description = "Generic durable orchestration engine for Moon Suite"
 import {
   "moonbitlang/async@0.19.4",
   "moonbitlang/x@0.4.40",
-  "vectie/moonlib@0.1.19",
+  "vectie/moonlib@0.1.21",
 }

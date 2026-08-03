@@ -1497,52 +1497,52 @@ test "FLOW-7 Phase1C-B cancellation-dependent terminals cannot mint open authori
   ]
   for pair in cases {
     let (label, expected_category) = pair
-    let terminal = phase1b3_de_terminal_fixture(label)
-    let replay = terminal.work_store.replay(terminal.workflow)
-    let cancellations = replay
-      .events()
-      .filter(event => {
-        event.payload().envelope_kind() == cancellation_requested_event_kind_v22
-      })
-    assert_eq(cancellations.length(), 1)
-    assert_true(
-      cancellations[0].revision() <
-      terminal.terminal_request.expected_revision() + 1L,
-    )
-    let candidate = seal_lifecycle_candidate_v2(
-      expected_category,
-      phase1c_b_guarded_test_request(
-        fold_governed_closed_loop_v2(
-          terminal.empty_effects,
-          terminal.work_store
-          .replay(terminal.workflow)
-          .verified_prefix(terminal.terminal_request.expected_revision()),
-          terminal.governance_replay,
-        ),
-        terminal.terminal_request,
-      ),
-    )
-    let combined = phase1c_b_combined_memory_store(
-      terminal.work_store.replay(terminal.workflow),
-      terminal.governance_replay,
-    )
-    guard phase1c_b_commit_memory(combined, candidate)
-      is LifecycleCommittedV2(receipt) else {
-      fail("cancellation-dependent terminal duplicate missing: " + label)
-    }
-    assert_true(receipt.category() == expected_category)
-    receipt.validate_replay_binding(replay)
-    try ignore(terminal.terminal_current.open_work_authority()) catch {
-      CancellationPrecedenceViolation(field="open_work_authority_not_current") =>
-        ()
+    try
+      phase1c_b_require_cancellation_dependent_terminal(
+        label, expected_category,
+      )
+    catch {
       error =>
         fail(
-          "unexpected cancellation-dependent authority error: \{label}:\{to_repr(error)}",
+          "cancellation-dependent terminal failed: \{label}:\{to_repr(error)}",
         )
     } noraise {
-      _ =>
-        fail("cancellation-dependent terminal minted open authority: " + label)
+      _ => ()
     }
+  }
+}
+
+///|
+fn phase1c_b_require_cancellation_dependent_terminal(
+  label : String,
+  expected_category : LifecycleCandidateCategoryV2,
+) -> Unit raise {
+  let terminal = phase1b3_de_terminal_fixture(label)
+  let replay = terminal.work_store.replay(terminal.workflow)
+  let cancellations = replay
+    .events()
+    .filter(event => {
+      event.payload().envelope_kind() == cancellation_requested_event_kind_v22
+    })
+  assert_eq(cancellations.length(), 1)
+  assert_true(
+    cancellations[0].revision() <
+    terminal.terminal_request.expected_revision() + 1L,
+  )
+  assert_true(
+    phase1c_b_category_for_request(terminal.terminal_request) ==
+    expected_category,
+  )
+  terminal.terminal_receipt.validate_current(terminal.terminal_current)
+  try ignore(terminal.terminal_current.open_work_authority()) catch {
+    CancellationPrecedenceViolation(field="open_work_authority_not_current") =>
+      ()
+    error =>
+      fail(
+        "unexpected cancellation-dependent authority error: \{label}:\{to_repr(error)}",
+      )
+  } noraise {
+    _ => fail("cancellation-dependent terminal minted open authority: " + label)
   }
 }
 
