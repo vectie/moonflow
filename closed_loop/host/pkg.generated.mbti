@@ -7,9 +7,13 @@ import {
 }
 
 // Values
+pub async fn acquire_named_writer_lock_v1(String, String) -> Int
+
 pub fn advance_configured_pack_run_json_v1(Json, Bytes) -> PackRunApplicationReceiptV1 raise
 
 pub fn advance_configured_pack_run_v1(ConfiguredPackRunApplicationV1, Bytes) -> PackRunApplicationReceiptV1 raise
+
+pub async fn atomic_replace_named_json_v1(String, String, String) -> Unit
 
 pub fn commit_configured_pack_handoff_json_v1(Json, Bytes) -> @orchestration.PackHostReceiptV1 raise
 
@@ -22,6 +26,8 @@ pub fn decode_configured_pack_run_application_v1(Json) -> ConfiguredPackRunAppli
 pub async fn materialize_operator_actions_v1(String, String, @orchestration.OperatorActionCatalogMaterializationV1) -> OperatorActionMaterializationReceiptV1
 
 pub async fn materialize_operator_projection_v1(String, String, @orchestration.OperatorProjectionMaterializationV1) -> OperatorProjectionMaterializationReceiptV1
+
+pub fn release_named_writer_lock_v1(Int) -> Unit
 
 // Errors
 

@@ -1,0 +1,325 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonflow/collaboration"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonlib/capability",
+}
+
+// Values
+pub fn active_assignment_claim_v1(CollaborationProjectionV1, String, String) -> AssignmentClaimV1?
+
+pub fn add_anchored_comment_v1(CollaborationProjectionV1, String, @capability.DigestRefV1, String, @capability.ContentAddressedEvidenceRefV1, @capability.PrincipalRefV1, String, @capability.DigestRefV1, String, mentions? : Array[@capability.PrincipalRefV1]) -> CollaborationMutationResultV1
+
+pub fn add_membership_v1(CollaborationProjectionV1, String, @capability.PrincipalRefV1, Array[MembershipRoleV1], @capability.PrincipalRefV1, String, @capability.DigestRefV1, String) -> CollaborationMutationResultV1
+
+pub fn advance_handover_v1(HandoverProjectionV1, String, HandoverStateV1, @capability.PrincipalRefV1, @capability.DigestRefV1, String, authority? : @capability.AuthorityDecisionRefV1, quarantine? : @capability.QuarantineMetadataV1) -> HandoverMutationResultV1
+
+pub fn apply_collaboration_operator_mutation_v1(CollaborationProjectionV1?, Json) -> CollaborationOperatorMutationResultV1 raise CollaborationError
+
+pub fn apply_handover_operator_mutation_v1(HandoverProjectionV1?, Json) -> HandoverOperatorMutationResultV1 raise CollaborationError
+
+pub fn begin_review_v1(CollaborationProjectionV1, String, @capability.PrincipalRefV1, String, @capability.DigestRefV1, String) -> CollaborationMutationResultV1
+
+pub fn claim_assignment_v1(CollaborationProjectionV1, String, String, @capability.PrincipalRefV1, String, String, @capability.DigestRefV1, String) -> CollaborationMutationResultV1
+
+pub fn create_assignment_v1(CollaborationProjectionV1, String, @capability.PrincipalRefV1, @capability.OperationRef, @capability.DigestRefV1, @capability.PrincipalRefV1, String, @capability.DigestRefV1, String, due_at? : String) -> CollaborationMutationResultV1
+
+pub fn decide_review_v1(CollaborationProjectionV1, String, ReviewStateV1, @capability.ContentAddressedEvidenceRefV1, @capability.PrincipalRefV1, String, @capability.DigestRefV1, String) -> CollaborationMutationResultV1
+
+pub fn decode_collaboration_snapshot_v1(Json) -> CollaborationProjectionV1 raise CollaborationError
+
+pub fn decode_handover_snapshot_v1(Json) -> HandoverProjectionV1 raise CollaborationError
+
+pub fn encode_collaboration_conflict_v1(CollaborationConflictReceiptV1) -> Json
+
+pub fn encode_collaboration_operator_receipt_v1(CollaborationMutationReceiptV1) -> Json
+
+pub fn encode_collaboration_snapshot_v1(CollaborationProjectionV1) -> Json
+
+pub fn encode_handover_conflict_v1(HandoverConflictReceiptV1) -> Json
+
+pub fn encode_handover_operator_receipt_v1(HandoverTransitionReceiptV1) -> Json
+
+pub fn encode_handover_snapshot_v1(HandoverProjectionV1) -> Json
+
+pub fn latest_assignment_claim_v1(CollaborationProjectionV1, String) -> AssignmentClaimV1?
+
+pub fn request_review_v1(CollaborationProjectionV1, String, @capability.DigestRefV1, @capability.PrincipalRefV1, String, @capability.PrincipalRefV1, String, @capability.DigestRefV1, String) -> CollaborationMutationResultV1
+
+pub fn set_membership_status_v1(CollaborationProjectionV1, @capability.PrincipalRefV1, MembershipStatusV1, @capability.PrincipalRefV1, String, @capability.DigestRefV1, String) -> CollaborationMutationResultV1
+
+pub fn start_collaboration_v1(@capability.WorkspaceRefV1, String, @capability.PrincipalRefV1, String, String) -> CollaborationProjectionV1 raise CollaborationError
+
+pub fn start_handover_v1(@capability.HandoverBundleV1, @capability.HandoverControlEnvelopeV1, String, @capability.PrincipalRefV1, String) -> HandoverProjectionV1 raise CollaborationError
+
+pub fn transition_assignment_v1(CollaborationProjectionV1, String, AssignmentStateV1, @capability.PrincipalRefV1, String, @capability.DigestRefV1, String, submitted_artifact? : @capability.ContentAddressedEvidenceRefV1, approval_review_id? : String) -> CollaborationMutationResultV1
+
+pub fn withdraw_review_v1(CollaborationProjectionV1, String, @capability.PrincipalRefV1, String, @capability.DigestRefV1, String) -> CollaborationMutationResultV1
+
+// Errors
+pub(all) suberror CollaborationError {
+  InvalidLifecycle(String)
+  InvalidCollaboration(String)
+  SnapshotDecode(String)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub struct AnchoredCommentV1 {
+  comment_id : String
+  author : @capability.PrincipalRefV1
+  subject_digest : @capability.DigestRefV1
+  anchor_ref : String
+  body : @capability.ContentAddressedEvidenceRefV1
+  mentions : ReadOnlyArray[@capability.PrincipalRefV1]
+  created_at : String
+} derive(Eq, @debug.Debug)
+pub fn AnchoredCommentV1::anchor_ref(Self) -> String
+pub fn AnchoredCommentV1::author(Self) -> @capability.PrincipalRefV1
+pub fn AnchoredCommentV1::body(Self) -> @capability.ContentAddressedEvidenceRefV1
+pub fn AnchoredCommentV1::comment_id(Self) -> String
+pub fn AnchoredCommentV1::mentions(Self) -> ReadOnlyArray[@capability.PrincipalRefV1]
+pub fn AnchoredCommentV1::subject_digest(Self) -> @capability.DigestRefV1
+
+pub struct AssignmentClaimV1 {
+  lease_id : String
+  assignment_id : String
+  holder : @capability.PrincipalRefV1
+  acquired_at : String
+  expires_at : String
+  previous_lease_id : String?
+  reclaimed_expired : Bool
+  mutation_id : String
+} derive(Eq, @debug.Debug)
+pub fn AssignmentClaimV1::assignment_id(Self) -> String
+pub fn AssignmentClaimV1::expires_at(Self) -> String
+pub fn AssignmentClaimV1::holder(Self) -> @capability.PrincipalRefV1
+pub fn AssignmentClaimV1::lease_id(Self) -> String
+pub fn AssignmentClaimV1::reclaimed_expired(Self) -> Bool
+
+pub(all) enum AssignmentStateV1 {
+  Assigned
+  InProgress
+  Submitted
+  Completed
+  Cancelled
+} derive(Eq, @debug.Debug)
+pub fn AssignmentStateV1::id(Self) -> String
+
+pub struct AssignmentV1 {
+  assignment_id : String
+  assignee : @capability.PrincipalRefV1
+  operation : @capability.OperationRef
+  subject_digest : @capability.DigestRefV1
+  state : AssignmentStateV1
+  due_at : String?
+  submitted_artifact : @capability.ContentAddressedEvidenceRefV1?
+  approval_review_id : String?
+  updated_at : String
+} derive(Eq, @debug.Debug)
+pub fn AssignmentV1::assignee(Self) -> @capability.PrincipalRefV1
+pub fn AssignmentV1::assignment_id(Self) -> String
+pub fn AssignmentV1::operation(Self) -> @capability.OperationRef
+pub fn AssignmentV1::state(Self) -> AssignmentStateV1
+pub fn AssignmentV1::subject_digest(Self) -> @capability.DigestRefV1
+
+pub struct CollaborationConflictReceiptV1 {
+  mutation_id : String
+  expected_head : @capability.DigestRefV1
+  actual_head : @capability.DigestRefV1
+  reason : String
+  recorded_at : String
+} derive(Eq, @debug.Debug)
+pub fn CollaborationConflictReceiptV1::actual_head(Self) -> @capability.DigestRefV1
+pub fn CollaborationConflictReceiptV1::expected_head(Self) -> @capability.DigestRefV1
+
+pub struct CollaborationMutationEventV1 {
+  mutation_id : String
+  event_kind : String
+  actor : @capability.PrincipalRefV1
+  expected_head : @capability.DigestRefV1
+  payload_digest : @capability.DigestRefV1
+  resulting_head : @capability.DigestRefV1
+  recorded_at : String
+} derive(Eq, @debug.Debug)
+
+pub struct CollaborationMutationReceiptV1 {
+  mutation_id : String
+  event_kind : String
+  head_digest : @capability.DigestRefV1
+  payload_digest : @capability.DigestRefV1
+  idempotent : Bool
+  recorded_at : String
+} derive(Eq, @debug.Debug)
+pub fn CollaborationMutationReceiptV1::head_digest(Self) -> @capability.DigestRefV1
+pub fn CollaborationMutationReceiptV1::idempotent(Self) -> Bool
+
+pub(all) enum CollaborationMutationResultV1 {
+  CollaborationApplied(CollaborationProjectionV1, CollaborationMutationReceiptV1)
+  CollaborationIdempotent(CollaborationMutationReceiptV1)
+  CollaborationConflict(CollaborationConflictReceiptV1)
+  CollaborationDenied(String)
+} derive(@debug.Debug)
+
+pub(all) enum CollaborationOperatorMutationResultV1 {
+  OperatorApplied(CollaborationProjectionV1, CollaborationMutationReceiptV1)
+  OperatorIdempotent(CollaborationProjectionV1, CollaborationMutationReceiptV1)
+  OperatorConflict(CollaborationConflictReceiptV1)
+  OperatorDenied(String)
+} derive(@debug.Debug)
+
+pub struct CollaborationProjectionV1 {
+  workspace : @capability.WorkspaceRefV1
+  memberships : ReadOnlyArray[MembershipV1]
+  assignments : ReadOnlyArray[AssignmentV1]
+  claims : ReadOnlyArray[AssignmentClaimV1]
+  comments : ReadOnlyArray[AnchoredCommentV1]
+  reviews : ReadOnlyArray[ReviewInboxItemV1]
+  events : ReadOnlyArray[CollaborationMutationEventV1]
+  head_digest : @capability.DigestRefV1
+} derive(Eq, @debug.Debug)
+pub fn CollaborationProjectionV1::assignment_claims(Self) -> ReadOnlyArray[AssignmentClaimV1]
+pub fn CollaborationProjectionV1::assignments(Self) -> ReadOnlyArray[AssignmentV1]
+pub fn CollaborationProjectionV1::comments(Self) -> ReadOnlyArray[AnchoredCommentV1]
+pub fn CollaborationProjectionV1::head_digest(Self) -> @capability.DigestRefV1
+pub fn CollaborationProjectionV1::memberships(Self) -> ReadOnlyArray[MembershipV1]
+pub fn CollaborationProjectionV1::review_inbox(Self) -> ReadOnlyArray[ReviewInboxItemV1]
+pub fn CollaborationProjectionV1::workspace(Self) -> @capability.WorkspaceRefV1
+
+pub struct HandoverConflictReceiptV1 {
+  transition_id : String
+  handover_id : String
+  expected_head : @capability.DigestRefV1
+  actual_head : @capability.DigestRefV1
+  reason : String
+  recorded_at : String
+} derive(Eq, @debug.Debug)
+pub fn HandoverConflictReceiptV1::reason(Self) -> String
+
+pub(all) enum HandoverMutationResultV1 {
+  Applied(HandoverProjectionV1, HandoverTransitionReceiptV1)
+  Idempotent(HandoverTransitionReceiptV1)
+  Conflict(HandoverConflictReceiptV1)
+  Denied(String)
+} derive(@debug.Debug)
+
+pub(all) enum HandoverOperatorMutationResultV1 {
+  HandoverOperatorApplied(HandoverProjectionV1, HandoverTransitionReceiptV1)
+  HandoverOperatorIdempotent(HandoverProjectionV1, HandoverTransitionReceiptV1)
+  HandoverOperatorConflict(HandoverConflictReceiptV1)
+  HandoverOperatorDenied(String)
+} derive(@debug.Debug)
+
+pub struct HandoverProjectionV1 {
+  bundle : @capability.HandoverBundleV1
+  envelope : @capability.HandoverControlEnvelopeV1
+  state : HandoverStateV1
+  head_digest : @capability.DigestRefV1
+  transitions : ReadOnlyArray[HandoverTransitionV1]
+} derive(Eq, @debug.Debug)
+pub fn HandoverProjectionV1::bundle(Self) -> @capability.HandoverBundleV1
+pub fn HandoverProjectionV1::envelope(Self) -> @capability.HandoverControlEnvelopeV1
+pub fn HandoverProjectionV1::head_digest(Self) -> @capability.DigestRefV1
+pub fn HandoverProjectionV1::state(Self) -> HandoverStateV1
+pub fn HandoverProjectionV1::transitions(Self) -> ReadOnlyArray[HandoverTransitionV1]
+
+pub(all) enum HandoverStateV1 {
+  Draft
+  Sealed
+  Offered
+  Accepted
+  Rejected
+  Expired
+  Imported
+  Resumed
+  Completed
+} derive(Eq, @debug.Debug)
+pub fn HandoverStateV1::id(Self) -> String
+
+pub struct HandoverTransitionReceiptV1 {
+  transition_id : String
+  handover_id : String
+  state : HandoverStateV1
+  head_digest : @capability.DigestRefV1
+  payload_digest : @capability.DigestRefV1
+  idempotent : Bool
+  recorded_at : String
+} derive(Eq, @debug.Debug)
+pub fn HandoverTransitionReceiptV1::head_digest(Self) -> @capability.DigestRefV1
+pub fn HandoverTransitionReceiptV1::idempotent(Self) -> Bool
+pub fn HandoverTransitionReceiptV1::state(Self) -> HandoverStateV1
+
+pub struct HandoverTransitionV1 {
+  transition_id : String
+  from_state : HandoverStateV1
+  to_state : HandoverStateV1
+  actor : @capability.PrincipalRefV1
+  expected_head : @capability.DigestRefV1
+  payload_digest : @capability.DigestRefV1
+  resulting_head : @capability.DigestRefV1
+  authority : @capability.AuthorityDecisionRefV1?
+  quarantine : @capability.QuarantineMetadataV1?
+  recorded_at : String
+} derive(Eq, @debug.Debug)
+pub fn HandoverTransitionV1::payload_digest(Self) -> @capability.DigestRefV1
+pub fn HandoverTransitionV1::resulting_head(Self) -> @capability.DigestRefV1
+pub fn HandoverTransitionV1::to_state(Self) -> HandoverStateV1
+pub fn HandoverTransitionV1::transition_id(Self) -> String
+
+pub(all) enum MembershipRoleV1 {
+  Owner
+  Contributor
+  Reviewer
+  Viewer
+} derive(Eq, @debug.Debug)
+pub fn MembershipRoleV1::id(Self) -> String
+
+pub(all) enum MembershipStatusV1 {
+  Active
+  Suspended
+  Removed
+} derive(Eq, @debug.Debug)
+pub fn MembershipStatusV1::id(Self) -> String
+
+pub struct MembershipV1 {
+  membership_id : String
+  principal : @capability.PrincipalRefV1
+  roles : ReadOnlyArray[MembershipRoleV1]
+  status : MembershipStatusV1
+  added_by : @capability.PrincipalRefV1
+  updated_at : String
+} derive(Eq, @debug.Debug)
+pub fn MembershipV1::membership_id(Self) -> String
+pub fn MembershipV1::principal(Self) -> @capability.PrincipalRefV1
+pub fn MembershipV1::roles(Self) -> ReadOnlyArray[MembershipRoleV1]
+pub fn MembershipV1::status(Self) -> MembershipStatusV1
+
+pub struct ReviewInboxItemV1 {
+  review_id : String
+  subject_digest : @capability.DigestRefV1
+  submitted_by : @capability.PrincipalRefV1
+  assigned_reviewer : @capability.PrincipalRefV1
+  requirement_id : String
+  state : ReviewStateV1
+  decision_evidence : @capability.ContentAddressedEvidenceRefV1?
+  updated_at : String
+} derive(Eq, @debug.Debug)
+pub fn ReviewInboxItemV1::assigned_reviewer(Self) -> @capability.PrincipalRefV1
+pub fn ReviewInboxItemV1::review_id(Self) -> String
+pub fn ReviewInboxItemV1::separation_of_duty_ok(Self) -> Bool
+pub fn ReviewInboxItemV1::state(Self) -> ReviewStateV1
+pub fn ReviewInboxItemV1::subject_digest(Self) -> @capability.DigestRefV1
+
+pub(all) enum ReviewStateV1 {
+  Requested
+  InReview
+  Approved
+  ChangesRequested
+  Withdrawn
+} derive(Eq, @debug.Debug)
+pub fn ReviewStateV1::id(Self) -> String
+
+// Type aliases
+
+// Traits
+
