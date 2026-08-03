@@ -9,14 +9,10 @@ extern "c" fn operator_materialization_native_rename_v1(
 
 ///|
 #borrow(path)
-extern "c" fn operator_materialization_native_lock_v1(
-  path : Bytes,
-) -> Int = "moonflow_operator_materialization_native_lock_v1"
+extern "c" fn operator_materialization_native_lock_v1(path : Bytes) -> Int = "moonflow_operator_materialization_native_lock_v1"
 
 ///|
-extern "c" fn operator_materialization_native_unlock_v1(
-  handle : Int,
-) -> Int = "moonflow_operator_materialization_native_unlock_v1"
+extern "c" fn operator_materialization_native_unlock_v1(handle : Int) -> Int = "moonflow_operator_materialization_native_unlock_v1"
 
 ///|
 fn operator_materialization_atomic_replace_v1(
@@ -61,13 +57,7 @@ pub async fn atomic_replace_named_json_v1(
   let digest = @contracts.sha256_digest(bytes)
   let target = directory + "/" + name
   let temporary = directory + "/." + name + "." + digest.hex() + ".tmp"
-  @fs.write_file(
-    temporary,
-    bytes,
-    sync=Full,
-    create=0o600,
-    truncate=true,
-  )
+  @fs.write_file(temporary, bytes, sync=Full, create=0o600, truncate=true)
   operator_materialization_atomic_replace_v1(temporary, target)
 }
 

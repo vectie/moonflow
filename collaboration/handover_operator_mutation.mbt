@@ -48,13 +48,14 @@ pub fn apply_handover_operator_mutation_v1(
       _ => raise SnapshotDecode("handover start bundle is invalid")
     }
     let envelope = @capability.decode_handover_control_envelope_v1(
-      envelope_json,
-      bundle,
+      envelope_json, bundle,
     ) catch {
       _ => raise SnapshotDecode("handover start envelope is invalid")
     }
     if envelope.handover_id() != wire.handover_id {
-      return HandoverOperatorDenied("mutation handover id does not match envelope")
+      return HandoverOperatorDenied(
+        "mutation handover id does not match envelope",
+      )
     }
     let desired = start_handover_v1(
       bundle,
@@ -77,38 +78,45 @@ pub fn apply_handover_operator_mutation_v1(
       None => HandoverOperatorApplied(desired, receipt)
       Some(existing) =>
         if existing.transitions.any(item => item == event) {
-          HandoverOperatorIdempotent(
-            existing,
-            HandoverTransitionReceiptV1::{ ..receipt, idempotent: true },
-          )
+          HandoverOperatorIdempotent(existing, HandoverTransitionReceiptV1::{
+            ..receipt,
+            idempotent: true,
+          })
         } else {
-          HandoverOperatorDenied("handover already exists with a different genesis")
+          HandoverOperatorDenied(
+            "handover already exists with a different genesis",
+          )
         }
     }
   } else if wire.action == "transition" {
     guard current is Some(projection) &&
       wire.expected_head is Some(head_text) &&
       wire.target_state is Some(state_text) else {
-      raise SnapshotDecode("handover transition requires current state, head, and target")
+      raise SnapshotDecode(
+        "handover transition requires current state, head, and target",
+      )
     }
     if projection.envelope.handover_id() != wire.handover_id {
-      return HandoverOperatorDenied("mutation handover id does not match snapshot")
+      return HandoverOperatorDenied(
+        "mutation handover id does not match snapshot",
+      )
     }
     let expected_head = @capability.digest_ref_v1(head_text) catch {
       _ => raise SnapshotDecode("handover expected head is invalid")
     }
     let authority = decode_optional_authority_v1(wire.authority)
     let quarantine = decode_optional_quarantine_v1(wire.quarantine)
-    match advance_handover_v1(
-      projection,
-      wire.transition_id,
-      handover_state_v1_from_id(state_text),
-      actor,
-      expected_head,
-      wire.recorded_at,
-      authority?=authority,
-      quarantine?=quarantine,
-    ) {
+    match
+      advance_handover_v1(
+        projection,
+        wire.transition_id,
+        handover_state_v1_from_id(state_text),
+        actor,
+        expected_head,
+        wire.recorded_at,
+        authority?,
+        quarantine?,
+      ) {
       Applied(next, receipt) => HandoverOperatorApplied(next, receipt)
       Idempotent(receipt) => HandoverOperatorIdempotent(projection, receipt)
       Conflict(receipt) => HandoverOperatorConflict(receipt)

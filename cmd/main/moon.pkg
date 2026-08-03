@@ -8,7 +8,7 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/x/crypto",
   "vectie/moonflow",
-  "vectie/moonflow/collaboration" @collaboration,
+  "vectie/moonflow/collaboration",
   "vectie/moonlib/pipeline",
   "vectie/moonflow/closed_loop/orchestration",
   "vectie/moonflow/closed_loop/host" @flow_host,
@@ -21,6 +21,4 @@ import {
   "moonbitlang/core/test",
 } for "wbtest"
 
-options(
-  "is-main": true,
-)
+pkgtype(kind: "executable")

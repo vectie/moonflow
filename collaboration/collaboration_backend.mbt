@@ -64,8 +64,7 @@ fn collaboration_event_v1(
     expected_head,
     payload_digest,
     resulting_head: collaboration_resulting_head_v1(
-      expected_head,
-      payload_digest,
+      expected_head, payload_digest,
     ),
     recorded_at,
   }
@@ -84,15 +83,12 @@ fn guard_collaboration_mutation_v1(
   if !@capability.identifier_component_is_canonical(mutation_id) ||
     !@capability.identifier_component_is_canonical(event_kind) ||
     !@capability.wire_timestamp_is_canonical(recorded_at) {
-    return MutationInvalid("mutation identity, kind, and timestamp must be canonical")
+    return MutationInvalid(
+      "mutation identity, kind, and timestamp must be canonical",
+    )
   }
   let payload_digest = collaboration_payload_digest_v1(
-    mutation_id,
-    event_kind,
-    actor,
-    expected_head,
-    detail,
-    recorded_at,
+    mutation_id, event_kind, actor, expected_head, detail, recorded_at,
   )
   for existing in projection.events {
     if existing.mutation_id == mutation_id {
@@ -110,7 +106,9 @@ fn guard_collaboration_mutation_v1(
   }
   if projection.events.last() is Some(last_event) &&
     recorded_at < last_event.recorded_at {
-    return MutationInvalid("collaboration mutation cannot backdate the durable timeline")
+    return MutationInvalid(
+      "collaboration mutation cannot backdate the durable timeline",
+    )
   }
   if expected_head != projection.head_digest {
     return MutationHeadConflict({
@@ -256,38 +254,32 @@ pub fn start_collaboration_v1(
     !@capability.identifier_component_is_canonical(mutation_id) ||
     owner.kind() != @capability.PrincipalKindV1::Human ||
     !@capability.wire_timestamp_is_canonical(recorded_at) {
-    raise InvalidCollaboration("collaboration genesis requires a named human owner")
+    raise InvalidCollaboration(
+      "collaboration genesis requires a named human owner",
+    )
   }
   let empty_head = collaboration_digest_v1(
     "\{workspace.canonical_text()}|collaboration-genesis",
   )
   let detail = "\{owner_membership_id}|\{owner.canonical_text()}|owner"
   let payload_digest = collaboration_payload_digest_v1(
-    mutation_id,
-    "collaboration-started",
-    owner,
-    empty_head,
-    detail,
-    recorded_at,
+    mutation_id, "collaboration-started", owner, empty_head, detail, recorded_at,
   )
   let event = collaboration_event_v1(
-    mutation_id,
-    "collaboration-started",
-    owner,
-    empty_head,
-    payload_digest,
-    recorded_at,
+    mutation_id, "collaboration-started", owner, empty_head, payload_digest, recorded_at,
   )
   {
     workspace,
-    memberships: ReadOnlyArray::from_array([{
-      membership_id: owner_membership_id,
-      principal: owner,
-      roles: ReadOnlyArray::from_array([Owner]),
-      status: Active,
-      added_by: owner,
-      updated_at: recorded_at,
-    }]),
+    memberships: ReadOnlyArray::from_array([
+      {
+        membership_id: owner_membership_id,
+        principal: owner,
+        roles: ReadOnlyArray::from_array([Owner]),
+        status: Active,
+        added_by: owner,
+        updated_at: recorded_at,
+      },
+    ]),
     assignments: ReadOnlyArray::from_array([]),
     claims: ReadOnlyArray::from_array([]),
     comments: ReadOnlyArray::from_array([]),
@@ -310,15 +302,11 @@ pub fn add_membership_v1(
 ) -> CollaborationMutationResultV1 {
   let role_ids = roles.map(role => role.id()).join(",")
   let detail = "\{membership_id}|\{principal.canonical_text()}|\{role_ids}"
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "membership-added",
-    actor,
-    expected_head,
-    detail,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "membership-added", actor, expected_head, detail,
+      recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
@@ -332,7 +320,9 @@ pub fn add_membership_v1(
       }
       if roles.contains(Reviewer) &&
         principal.kind() != @capability.PrincipalKindV1::Human {
-        return CollaborationDenied("reviewer membership is restricted to humans")
+        return CollaborationDenied(
+          "reviewer membership is restricted to humans",
+        )
       }
       if find_membership_v1(projection, principal) is Some(_) ||
         projection.memberships.any(value => value.membership_id == membership_id) {
@@ -348,12 +338,7 @@ pub fn add_membership_v1(
         updated_at: recorded_at,
       })
       let event = collaboration_event_v1(
-        mutation_id,
-        "membership-added",
-        actor,
-        expected_head,
-        payload_digest,
-        recorded_at,
+        mutation_id, "membership-added", actor, expected_head, payload_digest, recorded_at,
       )
       let updated = append_collaboration_event_v1(
         projection,
@@ -379,15 +364,11 @@ pub fn set_membership_status_v1(
   recorded_at : String,
 ) -> CollaborationMutationResultV1 {
   let detail = "\{principal.canonical_text()}|\{status.id()}"
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "membership-status-set",
-    actor,
-    expected_head,
-    detail,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "membership-status-set", actor, expected_head, detail,
+      recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
@@ -399,29 +380,37 @@ pub fn set_membership_status_v1(
         return CollaborationDenied("membership does not exist")
       }
       if target.status == status {
-        return CollaborationDenied("membership already has the requested status")
+        return CollaborationDenied(
+          "membership already has the requested status",
+        )
       }
       if target.roles.contains(Owner) && status != Active {
-        let active_owner_count = projection.memberships.fold(init=0, fn(count, item) {
-          if membership_has_role_v1(item, Owner) { count + 1 } else { count }
+        let active_owner_count = projection.memberships.fold(init=0, fn(
+          count,
+          item,
+        ) {
+          if membership_has_role_v1(item, Owner) {
+            count + 1
+          } else {
+            count
+          }
         })
         if active_owner_count <= 1 {
           return CollaborationDenied("the last active owner cannot be disabled")
         }
       }
-      let memberships = projection.memberships.map(item =>
-        if item.principal == principal {
-          MembershipV1::{ ..item, status, updated_at: recorded_at }
-        } else {
-          item
-        }
-      ).iter().to_array()
+      let memberships = projection.memberships
+        .map(item => {
+          if item.principal == principal {
+            MembershipV1::{ ..item, status, updated_at: recorded_at }
+          } else {
+            item
+          }
+        })
+        .iter()
+        .to_array()
       let event = collaboration_event_v1(
-        mutation_id,
-        "membership-status-set",
-        actor,
-        expected_head,
-        payload_digest,
+        mutation_id, "membership-status-set", actor, expected_head, payload_digest,
         recorded_at,
       )
       let updated = append_collaboration_event_v1(
@@ -485,7 +474,8 @@ pub fn active_assignment_claim_v1(
 ) -> AssignmentClaimV1? {
   match latest_assignment_claim_v1(projection, assignment_id) {
     Some(claim) if @capability.wire_timestamp_is_canonical(at) &&
-      claim.acquired_at <= at && at < claim.expires_at => Some(claim)
+      claim.acquired_at <= at &&
+      at < claim.expires_at => Some(claim)
     _ => None
   }
 }
@@ -505,15 +495,11 @@ pub fn claim_assignment_v1(
   recorded_at : String,
 ) -> CollaborationMutationResultV1 {
   let detail = "\{assignment_id}|\{lease_id}|\{holder.canonical_text()}|\{expires_at}"
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "assignment-claimed",
-    holder,
-    expected_head,
-    detail,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "assignment-claimed", holder, expected_head, detail,
+      recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
@@ -521,16 +507,22 @@ pub fn claim_assignment_v1(
       guard find_assignment_v1(projection, assignment_id) is Some(assignment) else {
         return CollaborationDenied("assignment does not exist")
       }
-      if assignment.state == Completed || assignment.state == Cancelled ||
-        holder != assignment.assignee || !actor_is_active_v1(projection, holder) {
-        return CollaborationDenied("only the active assignee may claim open work")
+      if assignment.state == Completed ||
+        assignment.state == Cancelled ||
+        holder != assignment.assignee ||
+        !actor_is_active_v1(projection, holder) {
+        return CollaborationDenied(
+          "only the active assignee may claim open work",
+        )
       }
       if !@capability.identifier_component_is_canonical(lease_id) ||
         projection.claims.any(value => value.lease_id == lease_id) ||
         !@capability.wire_timestamp_is_canonical(expires_at) ||
         expires_at <= recorded_at ||
         (assignment.due_at is Some(due_at) && expires_at > due_at) {
-        return CollaborationDenied("assignment lease id or bounded expiry is invalid")
+        return CollaborationDenied(
+          "assignment lease id or bounded expiry is invalid",
+        )
       }
       let previous = latest_assignment_claim_v1(projection, assignment_id)
       if previous is Some(current) && recorded_at < current.expires_at {
@@ -547,11 +539,7 @@ pub fn claim_assignment_v1(
         mutation_id,
       }
       let event = collaboration_event_v1(
-        mutation_id,
-        "assignment-claimed",
-        holder,
-        expected_head,
-        payload_digest,
+        mutation_id, "assignment-claimed", holder, expected_head, payload_digest,
         recorded_at,
       )
       let claims = projection.claims.iter().to_array()
@@ -588,32 +576,36 @@ pub fn create_assignment_v1(
 ) -> CollaborationMutationResultV1 {
   let due = due_at.unwrap_or("-")
   let detail = "\{assignment_id}|\{assignee.canonical_text()}|\{operation.format()}|\{subject_digest.text()}|\{due}"
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "assignment-created",
-    actor,
-    expected_head,
-    detail,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "assignment-created", actor, expected_head, detail,
+      recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
     MutationProceed(payload_digest) => {
       if !actor_can_contribute_v1(projection, actor) {
-        return CollaborationDenied("only an active contributor may create an assignment")
+        return CollaborationDenied(
+          "only an active contributor may create an assignment",
+        )
       }
       if !@capability.identifier_component_is_canonical(assignment_id) ||
         find_assignment_v1(projection, assignment_id) is Some(_) {
         return CollaborationDenied("assignment id is invalid or already exists")
       }
-      guard find_membership_v1(projection, assignee) is Some(assignee_membership) &&
+      guard find_membership_v1(projection, assignee)
+        is Some(assignee_membership) &&
         assignee_membership.status == Active else {
-        return CollaborationDenied("assignee must be an active workspace member")
+        return CollaborationDenied(
+          "assignee must be an active workspace member",
+        )
       }
       if due_at is Some(value) &&
-        (!@capability.wire_timestamp_is_canonical(value) || value <= recorded_at) {
+        (
+          !@capability.wire_timestamp_is_canonical(value) ||
+          value <= recorded_at
+        ) {
         return CollaborationDenied("assignment due_at must follow creation")
       }
       let assignments = unchanged_assignments_v1(projection)
@@ -629,11 +621,7 @@ pub fn create_assignment_v1(
         updated_at: recorded_at,
       })
       let event = collaboration_event_v1(
-        mutation_id,
-        "assignment-created",
-        actor,
-        expected_head,
-        payload_digest,
+        mutation_id, "assignment-created", actor, expected_head, payload_digest,
         recorded_at,
       )
       let updated = append_collaboration_event_v1(
@@ -675,19 +663,15 @@ pub fn transition_assignment_v1(
   approval_review_id? : String,
 ) -> CollaborationMutationResultV1 {
   let artifact_digest = submitted_artifact
-  .map(value => value.evidence_digest())
-  .unwrap_or("-")
+    .map(value => value.evidence_digest())
+    .unwrap_or("-")
   let review_ref = approval_review_id.unwrap_or("-")
   let detail = "\{assignment_id}|\{to_state.id()}|\{artifact_digest}|\{review_ref}"
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "assignment-transitioned",
-    actor,
-    expected_head,
-    detail,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "assignment-transitioned", actor, expected_head, detail,
+      recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
@@ -701,14 +685,20 @@ pub fn transition_assignment_v1(
         )
       }
       if recorded_at < assignment.updated_at {
-        return CollaborationDenied("assignment transition predates current state")
+        return CollaborationDenied(
+          "assignment transition predates current state",
+        )
       }
       if latest_assignment_claim_v1(projection, assignment_id) is Some(claim) {
         if recorded_at >= claim.expires_at {
-          return CollaborationDenied("assignment lease is stale; acquire a new lease first")
+          return CollaborationDenied(
+            "assignment lease is stale; acquire a new lease first",
+          )
         }
         if actor != claim.holder {
-          return CollaborationDenied("assignment is leased to another principal")
+          return CollaborationDenied(
+            "assignment is leased to another principal",
+          )
         }
       }
       let mut next_artifact = assignment.submitted_artifact
@@ -717,10 +707,14 @@ pub fn transition_assignment_v1(
         InProgress => {
           if actor != assignment.assignee ||
             !actor_is_active_v1(projection, actor) {
-            return CollaborationDenied("only the active assignee may start or resume work")
+            return CollaborationDenied(
+              "only the active assignee may start or resume work",
+            )
           }
           if submitted_artifact is Some(_) || approval_review_id is Some(_) {
-            return CollaborationDenied("in-progress transition cannot attach acceptance data")
+            return CollaborationDenied(
+              "in-progress transition cannot attach acceptance data",
+            )
           }
           next_artifact = None
           next_review = None
@@ -728,27 +722,37 @@ pub fn transition_assignment_v1(
         Submitted => {
           if actor != assignment.assignee ||
             !actor_is_active_v1(projection, actor) {
-            return CollaborationDenied("only the active assignee may submit work")
+            return CollaborationDenied(
+              "only the active assignee may submit work",
+            )
           }
           guard submitted_artifact is Some(artifact) else {
-            return CollaborationDenied("submitted work requires a content-addressed artifact")
+            return CollaborationDenied(
+              "submitted work requires a content-addressed artifact",
+            )
           }
           if approval_review_id is Some(_) {
-            return CollaborationDenied("submission cannot claim an approval review")
+            return CollaborationDenied(
+              "submission cannot claim an approval review",
+            )
           }
           next_artifact = Some(artifact)
           next_review = None
         }
         Completed => {
           if submitted_artifact is Some(_) {
-            return CollaborationDenied("completion reuses the immutable submitted artifact")
+            return CollaborationDenied(
+              "completion reuses the immutable submitted artifact",
+            )
           }
           guard approval_review_id is Some(review_id) &&
             find_review_v1(projection, review_id) is Some(review) else {
             return CollaborationDenied("completion requires an existing review")
           }
           guard assignment.submitted_artifact is Some(accepted_artifact) else {
-            return CollaborationDenied("completed assignment has no submitted artifact")
+            return CollaborationDenied(
+              "completed assignment has no submitted artifact",
+            )
           }
           if review.state != Approved ||
             review.subject_digest.text() != accepted_artifact.evidence_digest() ||
@@ -764,34 +768,39 @@ pub fn transition_assignment_v1(
         Cancelled => {
           if actor != assignment.assignee &&
             !actor_has_role_v1(projection, actor, Owner) {
-            return CollaborationDenied("only the assignee or an owner may cancel work")
+            return CollaborationDenied(
+              "only the assignee or an owner may cancel work",
+            )
           }
           if submitted_artifact is Some(_) || approval_review_id is Some(_) {
-            return CollaborationDenied("cancellation cannot attach acceptance data")
+            return CollaborationDenied(
+              "cancellation cannot attach acceptance data",
+            )
           }
         }
         Assigned =>
-          return CollaborationDenied("assignment cannot transition back to assigned")
+          return CollaborationDenied(
+            "assignment cannot transition back to assigned",
+          )
       }
-      let assignments = projection.assignments.map(item =>
-        if item.assignment_id == assignment_id {
-          AssignmentV1::{
-            ..item,
-            state: to_state,
-            submitted_artifact: next_artifact,
-            approval_review_id: next_review,
-            updated_at: recorded_at,
+      let assignments = projection.assignments
+        .map(item => {
+          if item.assignment_id == assignment_id {
+            AssignmentV1::{
+              ..item,
+              state: to_state,
+              submitted_artifact: next_artifact,
+              approval_review_id: next_review,
+              updated_at: recorded_at,
+            }
+          } else {
+            item
           }
-        } else {
-          item
-        }
-      ).iter().to_array()
+        })
+        .iter()
+        .to_array()
       let event = collaboration_event_v1(
-        mutation_id,
-        "assignment-transitioned",
-        actor,
-        expected_head,
-        payload_digest,
+        mutation_id, "assignment-transitioned", actor, expected_head, payload_digest,
         recorded_at,
       )
       let updated = append_collaboration_event_v1(
@@ -824,15 +833,11 @@ pub fn add_anchored_comment_v1(
 ) -> CollaborationMutationResultV1 {
   let mention_text = mentions.map(value => value.canonical_text()).join(",")
   let detail = "\{comment_id}|\{subject_digest.text()}|\{anchor_ref}|\{body.evidence_ref()}|\{body.evidence_digest()}|\{mention_text}"
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "comment-anchored",
-    actor,
-    expected_head,
-    detail,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "comment-anchored", actor, expected_head, detail,
+      recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
@@ -868,12 +873,7 @@ pub fn add_anchored_comment_v1(
         created_at: recorded_at,
       })
       let event = collaboration_event_v1(
-        mutation_id,
-        "comment-anchored",
-        actor,
-        expected_head,
-        payload_digest,
-        recorded_at,
+        mutation_id, "comment-anchored", actor, expected_head, payload_digest, recorded_at,
       )
       let updated = append_collaboration_event_v1(
         projection,
@@ -901,37 +901,39 @@ pub fn request_review_v1(
   recorded_at : String,
 ) -> CollaborationMutationResultV1 {
   let detail = "\{review_id}|\{subject_digest.text()}|\{assigned_reviewer.canonical_text()}|\{requirement_id}"
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "review-requested",
-    actor,
-    expected_head,
-    detail,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "review-requested", actor, expected_head, detail,
+      recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
     MutationProceed(payload_digest) => {
       if !actor_can_contribute_v1(projection, actor) {
-        return CollaborationDenied("only an active contributor may request review")
+        return CollaborationDenied(
+          "only an active contributor may request review",
+        )
       }
       if !@capability.identifier_component_is_canonical(review_id) ||
         !@capability.identifier_component_is_canonical(requirement_id) ||
         find_review_v1(projection, review_id) is Some(_) {
-        return CollaborationDenied("review identity is invalid or already exists")
+        return CollaborationDenied(
+          "review identity is invalid or already exists",
+        )
       }
-      guard find_membership_v1(
-        projection,
-        assigned_reviewer,
-      ) is Some(reviewer_membership) &&
+      guard find_membership_v1(projection, assigned_reviewer)
+        is Some(reviewer_membership) &&
         membership_has_role_v1(reviewer_membership, Reviewer) &&
         assigned_reviewer.kind() == @capability.PrincipalKindV1::Human else {
-        return CollaborationDenied("assigned reviewer must be an active human reviewer")
+        return CollaborationDenied(
+          "assigned reviewer must be an active human reviewer",
+        )
       }
       if actor == assigned_reviewer {
-        return CollaborationDenied("submitter and reviewer must be different principals")
+        return CollaborationDenied(
+          "submitter and reviewer must be different principals",
+        )
       }
       let reviews = unchanged_reviews_v1(projection)
       reviews.push({
@@ -945,12 +947,7 @@ pub fn request_review_v1(
         updated_at: recorded_at,
       })
       let event = collaboration_event_v1(
-        mutation_id,
-        "review-requested",
-        actor,
-        expected_head,
-        payload_digest,
-        recorded_at,
+        mutation_id, "review-requested", actor, expected_head, payload_digest, recorded_at,
       )
       let updated = append_collaboration_event_v1(
         projection,
@@ -974,15 +971,11 @@ pub fn begin_review_v1(
   expected_head : @capability.DigestRefV1,
   recorded_at : String,
 ) -> CollaborationMutationResultV1 {
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "review-started",
-    actor,
-    expected_head,
-    review_id,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "review-started", actor, expected_head, review_id,
+      recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
@@ -990,24 +983,29 @@ pub fn begin_review_v1(
       guard find_review_v1(projection, review_id) is Some(review) else {
         return CollaborationDenied("review does not exist")
       }
-      if review.state != Requested || actor != review.assigned_reviewer ||
+      if review.state != Requested ||
+        actor != review.assigned_reviewer ||
         !actor_is_active_v1(projection, actor) {
-        return CollaborationDenied("only the active assigned reviewer may begin review")
+        return CollaborationDenied(
+          "only the active assigned reviewer may begin review",
+        )
       }
-      let reviews = projection.reviews.map(item =>
-        if item.review_id == review_id {
-          ReviewInboxItemV1::{ ..item, state: InReview, updated_at: recorded_at }
-        } else {
-          item
-        }
-      ).iter().to_array()
+      let reviews = projection.reviews
+        .map(item => {
+          if item.review_id == review_id {
+            ReviewInboxItemV1::{
+              ..item,
+              state: InReview,
+              updated_at: recorded_at,
+            }
+          } else {
+            item
+          }
+        })
+        .iter()
+        .to_array()
       let event = collaboration_event_v1(
-        mutation_id,
-        "review-started",
-        actor,
-        expected_head,
-        payload_digest,
-        recorded_at,
+        mutation_id, "review-started", actor, expected_head, payload_digest, recorded_at,
       )
       let updated = append_collaboration_event_v1(
         projection,
@@ -1036,21 +1034,18 @@ pub fn decide_review_v1(
   recorded_at : String,
 ) -> CollaborationMutationResultV1 {
   let detail = "\{review_id}|\{decision.id()}|\{evidence.evidence_ref()}|\{evidence.evidence_digest()}"
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "review-decided",
-    actor,
-    expected_head,
-    detail,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "review-decided", actor, expected_head, detail, recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
     MutationProceed(payload_digest) => {
       if decision != Approved && decision != ChangesRequested {
-        return CollaborationDenied("review decision must approve or request changes")
+        return CollaborationDenied(
+          "review decision must approve or request changes",
+        )
       }
       guard find_review_v1(projection, review_id) is Some(review) else {
         return CollaborationDenied("review does not exist")
@@ -1064,25 +1059,23 @@ pub fn decide_review_v1(
           "review decision requires the independent active assigned human reviewer",
         )
       }
-      let reviews = projection.reviews.map(item =>
-        if item.review_id == review_id {
-          ReviewInboxItemV1::{
-            ..item,
-            state: decision,
-            decision_evidence: Some(evidence),
-            updated_at: recorded_at,
+      let reviews = projection.reviews
+        .map(item => {
+          if item.review_id == review_id {
+            ReviewInboxItemV1::{
+              ..item,
+              state: decision,
+              decision_evidence: Some(evidence),
+              updated_at: recorded_at,
+            }
+          } else {
+            item
           }
-        } else {
-          item
-        }
-      ).iter().to_array()
+        })
+        .iter()
+        .to_array()
       let event = collaboration_event_v1(
-        mutation_id,
-        "review-decided",
-        actor,
-        expected_head,
-        payload_digest,
-        recorded_at,
+        mutation_id, "review-decided", actor, expected_head, payload_digest, recorded_at,
       )
       let updated = append_collaboration_event_v1(
         projection,
@@ -1106,15 +1099,11 @@ pub fn withdraw_review_v1(
   expected_head : @capability.DigestRefV1,
   recorded_at : String,
 ) -> CollaborationMutationResultV1 {
-  match guard_collaboration_mutation_v1(
-    projection,
-    mutation_id,
-    "review-withdrawn",
-    actor,
-    expected_head,
-    review_id,
-    recorded_at,
-  ) {
+  match
+    guard_collaboration_mutation_v1(
+      projection, mutation_id, "review-withdrawn", actor, expected_head, review_id,
+      recorded_at,
+    ) {
     MutationReplay(receipt) => return CollaborationIdempotent(receipt)
     MutationHeadConflict(receipt) => return CollaborationConflict(receipt)
     MutationInvalid(reason) => return CollaborationDenied(reason)
@@ -1125,22 +1114,26 @@ pub fn withdraw_review_v1(
       if (review.state != Requested && review.state != InReview) ||
         actor != review.submitted_by ||
         !actor_is_active_v1(projection, actor) {
-        return CollaborationDenied("only the active submitter may withdraw an open review")
+        return CollaborationDenied(
+          "only the active submitter may withdraw an open review",
+        )
       }
-      let reviews = projection.reviews.map(item =>
-        if item.review_id == review_id {
-          ReviewInboxItemV1::{ ..item, state: Withdrawn, updated_at: recorded_at }
-        } else {
-          item
-        }
-      ).iter().to_array()
+      let reviews = projection.reviews
+        .map(item => {
+          if item.review_id == review_id {
+            ReviewInboxItemV1::{
+              ..item,
+              state: Withdrawn,
+              updated_at: recorded_at,
+            }
+          } else {
+            item
+          }
+        })
+        .iter()
+        .to_array()
       let event = collaboration_event_v1(
-        mutation_id,
-        "review-withdrawn",
-        actor,
-        expected_head,
-        payload_digest,
-        recorded_at,
+        mutation_id, "review-withdrawn", actor, expected_head, payload_digest, recorded_at,
       )
       let updated = append_collaboration_event_v1(
         projection,

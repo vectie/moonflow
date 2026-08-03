@@ -27,7 +27,9 @@ pub fn HandoverStateV1::id(self : HandoverStateV1) -> String {
 }
 
 ///|
-fn handover_state_v1_from_id(value : String) -> HandoverStateV1 raise CollaborationError {
+fn handover_state_v1_from_id(
+  value : String,
+) -> HandoverStateV1 raise CollaborationError {
   match value {
     "draft" => Draft
     "sealed" => Sealed
@@ -417,7 +419,10 @@ pub fn advance_handover_v1(
     guard authority is Some(decision) else {
       return Denied("import requires a fresh receiver authority decision")
     }
-    if !decision.is_fresh_for(projection.envelope.recipient_principal(), recorded_at) {
+    if !decision.is_fresh_for(
+        projection.envelope.recipient_principal(),
+        recorded_at,
+      ) {
       return Denied("import authority is stale or bound to another principal")
     }
     if projection.bundle.requires_quarantine() {
@@ -429,7 +434,9 @@ pub fn advance_handover_v1(
       }
     }
   } else if authority is Some(_) || quarantine is Some(_) {
-    return Denied("authority and quarantine evidence are accepted only at import")
+    return Denied(
+      "authority and quarantine evidence are accepted only at import",
+    )
   }
   let resulting_head = resulting_head_v1(expected_head, payload_digest)
   let transition = HandoverTransitionV1::{

@@ -31,10 +31,8 @@ fn collab_test_start(owner : @capability.PrincipalRefV1) -> Json raise {
 ///|
 test "operator mutations replay idempotently and snapshot restart verifies" {
   let owner = collab_test_human("owner")
-  guard apply_collaboration_operator_mutation_v1(
-    None,
-    collab_test_start(owner),
-  ) is OperatorApplied(started, _) else {
+  guard apply_collaboration_operator_mutation_v1(None, collab_test_start(owner))
+    is OperatorApplied(started, _) else {
     fail("start mutation was not applied")
   }
   let added_principal = collab_test_human("member")
@@ -52,16 +50,12 @@ test "operator mutations replay idempotently and snapshot restart verifies" {
       "roles": ["contributor"],
     },
   }
-  guard apply_collaboration_operator_mutation_v1(
-    Some(started),
-    add,
-  ) is OperatorApplied(updated, _) else {
+  guard apply_collaboration_operator_mutation_v1(Some(started), add)
+    is OperatorApplied(updated, _) else {
     fail("member mutation was not applied")
   }
-  guard apply_collaboration_operator_mutation_v1(
-    Some(updated),
-    add,
-  ) is OperatorIdempotent(_, receipt) else {
+  guard apply_collaboration_operator_mutation_v1(Some(updated), add)
+    is OperatorIdempotent(_, receipt) else {
     fail("exact retry did not become idempotent")
   }
   assert_true(receipt.idempotent())
@@ -74,10 +68,8 @@ test "operator mutations replay idempotently and snapshot restart verifies" {
 ///|
 test "backdated mutations and non-member comments fail closed" {
   let owner = collab_test_human("owner-two")
-  guard apply_collaboration_operator_mutation_v1(
-    None,
-    collab_test_start(owner),
-  ) is OperatorApplied(started, _) else {
+  guard apply_collaboration_operator_mutation_v1(None, collab_test_start(owner))
+    is OperatorApplied(started, _) else {
     fail("start mutation was not applied")
   }
   let outsider = collab_test_human("outsider")
@@ -98,10 +90,8 @@ test "backdated mutations and non-member comments fail closed" {
       "mentions": [],
     },
   }
-  guard apply_collaboration_operator_mutation_v1(
-    Some(started),
-    comment,
-  ) is OperatorDenied(_) else {
+  guard apply_collaboration_operator_mutation_v1(Some(started), comment)
+    is OperatorDenied(_) else {
     fail("non-member comment was accepted")
   }
   let backdated : Json = {
@@ -118,10 +108,8 @@ test "backdated mutations and non-member comments fail closed" {
       "roles": ["viewer"],
     },
   }
-  guard apply_collaboration_operator_mutation_v1(
-    Some(started),
-    backdated,
-  ) is OperatorDenied(_) else {
+  guard apply_collaboration_operator_mutation_v1(Some(started), backdated)
+    is OperatorDenied(_) else {
     fail("backdated mutation was accepted")
   }
 }

@@ -20,8 +20,8 @@ jobs:
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
-      - name: Install pinned module dependencies
-        run: moon install
+      - name: Resolve pinned module dependencies
+        run: moon update
 
       - name: Run FLOW-2 compatibility and FLOW-3 boundary gates
         run: ./conformance/run.sh

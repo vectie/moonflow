@@ -110,12 +110,12 @@ fn assignment_wire_v1(value : AssignmentV1) -> AssignmentWireV1 {
     subject_digest: value.subject_digest.text(),
     state: value.state.id(),
     due_at: value.due_at,
-    submitted_artifact_ref: value.submitted_artifact.map(item =>
+    submitted_artifact_ref: value.submitted_artifact.map(item => {
       item.evidence_ref()
-    ),
-    submitted_artifact_digest: value.submitted_artifact.map(item =>
+    }),
+    submitted_artifact_digest: value.submitted_artifact.map(item => {
       item.evidence_digest()
-    ),
+    }),
     approval_review_id: value.approval_review_id,
     updated_at: value.updated_at,
   }
@@ -144,15 +144,18 @@ fn anchored_comment_wire_v1(value : AnchoredCommentV1) -> AnchoredCommentWireV1 
     anchor_ref: value.anchor_ref,
     body_ref: value.body.evidence_ref(),
     body_digest: value.body.evidence_digest(),
-    mentions: value.mentions.map(mentioned =>
-      @capability.encode_principal_ref_v1(mentioned)
-    ).iter().to_array(),
+    mentions: value.mentions
+    .map(mentioned => @capability.encode_principal_ref_v1(mentioned))
+    .iter()
+    .to_array(),
     created_at: value.created_at,
   }
 }
 
 ///|
-fn review_inbox_item_wire_v1(value : ReviewInboxItemV1) -> ReviewInboxItemWireV1 {
+fn review_inbox_item_wire_v1(
+  value : ReviewInboxItemV1,
+) -> ReviewInboxItemWireV1 {
   {
     review_id: value.review_id,
     subject_digest: value.subject_digest.text(),
@@ -162,12 +165,12 @@ fn review_inbox_item_wire_v1(value : ReviewInboxItemV1) -> ReviewInboxItemWireV1
     ),
     requirement_id: value.requirement_id,
     state: value.state.id(),
-    decision_evidence_ref: value.decision_evidence.map(item =>
+    decision_evidence_ref: value.decision_evidence.map(item => {
       item.evidence_ref()
-    ),
-    decision_evidence_digest: value.decision_evidence.map(item =>
+    }),
+    decision_evidence_digest: value.decision_evidence.map(item => {
       item.evidence_digest()
-    ),
+    }),
     updated_at: value.updated_at,
   }
 }
@@ -193,24 +196,30 @@ fn collaboration_snapshot_payload_v1(
 ) -> CollaborationSnapshotPayloadWireV1 {
   {
     workspace_ref: @capability.encode_workspace_ref_v1(projection.workspace),
-    memberships: projection.memberships.map(value =>
-      membership_wire_v1(value)
-    ).iter().to_array(),
-    assignments: projection.assignments.map(value =>
-      assignment_wire_v1(value)
-    ).iter().to_array(),
-    claims: projection.claims.map(value =>
-      assignment_claim_wire_v1(value)
-    ).iter().to_array(),
-    comments: projection.comments.map(value =>
-      anchored_comment_wire_v1(value)
-    ).iter().to_array(),
-    reviews: projection.reviews.map(value =>
-      review_inbox_item_wire_v1(value)
-    ).iter().to_array(),
-    events: projection.events.map(value =>
-      collaboration_event_wire_v1(value)
-    ).iter().to_array(),
+    memberships: projection.memberships
+    .map(value => membership_wire_v1(value))
+    .iter()
+    .to_array(),
+    assignments: projection.assignments
+    .map(value => assignment_wire_v1(value))
+    .iter()
+    .to_array(),
+    claims: projection.claims
+    .map(value => assignment_claim_wire_v1(value))
+    .iter()
+    .to_array(),
+    comments: projection.comments
+    .map(value => anchored_comment_wire_v1(value))
+    .iter()
+    .to_array(),
+    reviews: projection.reviews
+    .map(value => review_inbox_item_wire_v1(value))
+    .iter()
+    .to_array(),
+    events: projection.events
+    .map(value => collaboration_event_wire_v1(value))
+    .iter()
+    .to_array(),
     head_digest: projection.head_digest.text(),
   }
 }
@@ -258,12 +267,14 @@ fn decode_optional_evidence_v1(
   }
   match (reference, digest) {
     (Some(ref_value), Some(digest_value)) =>
-      Some(@capability.content_addressed_evidence_ref(
-        ref_value,
-        digest_value,
-      ) catch {
-        _ => raise SnapshotDecode("invalid content-addressed evidence in \{field}")
-      })
+      Some(
+        @capability.content_addressed_evidence_ref(ref_value, digest_value) catch {
+          _ =>
+            raise SnapshotDecode(
+              "invalid content-addressed evidence in \{field}",
+            )
+        },
+      )
     _ => None
   }
 }
@@ -277,8 +288,10 @@ fn decode_membership_wire_v1(
   if !@capability.identifier_component_is_canonical(wire.membership_id) ||
     !roles_are_canonical_v1(roles) ||
     !@capability.wire_timestamp_is_canonical(wire.updated_at) ||
-    (roles.contains(Reviewer) &&
-    principal.kind() != @capability.PrincipalKindV1::Human) {
+    (
+      roles.contains(Reviewer) &&
+      principal.kind() != @capability.PrincipalKindV1::Human
+    ) {
     raise SnapshotDecode("invalid membership snapshot record")
   }
   {
@@ -303,8 +316,10 @@ fn decode_assignment_wire_v1(
   )
   if !@capability.identifier_component_is_canonical(wire.assignment_id) ||
     !@capability.wire_timestamp_is_canonical(wire.updated_at) ||
-    (wire.due_at is Some(value) &&
-    !@capability.wire_timestamp_is_canonical(value)) ||
+    (
+      wire.due_at is Some(value) &&
+      !@capability.wire_timestamp_is_canonical(value)
+    ) ||
     ((state == Submitted || state == Completed) && submitted_artifact is None) ||
     (state == Completed && wire.approval_review_id is None) ||
     (state != Completed && wire.approval_review_id is Some(_)) {
@@ -376,9 +391,11 @@ fn decode_comment_wire_v1(
     ) catch {
       _ => raise SnapshotDecode("invalid anchored comment body")
     },
-    mentions: ReadOnlyArray::from_array(wire.mentions.map(value =>
-      decode_snapshot_principal_v1(value, "comment.mention")
-    )),
+    mentions: ReadOnlyArray::from_array(
+      wire.mentions.map(value => {
+        decode_snapshot_principal_v1(value, "comment.mention")
+      }),
+    ),
     created_at: wire.created_at,
   }
 }
@@ -406,9 +423,14 @@ fn decode_review_wire_v1(
     !@capability.wire_timestamp_is_canonical(wire.updated_at) ||
     submitted_by == assigned_reviewer ||
     assigned_reviewer.kind() != @capability.PrincipalKindV1::Human ||
-    ((state == Approved || state == ChangesRequested) && decision_evidence is None) ||
-    ((state == Requested || state == InReview || state == Withdrawn) &&
-    decision_evidence is Some(_)) {
+    (
+      (state == Approved || state == ChangesRequested) &&
+      decision_evidence is None
+    ) ||
+    (
+      (state == Requested || state == InReview || state == Withdrawn) &&
+      decision_evidence is Some(_)
+    ) {
     raise SnapshotDecode("invalid review inbox snapshot record")
   }
   {
@@ -439,7 +461,10 @@ fn decode_collaboration_event_wire_v1(
     mutation_id: wire.mutation_id,
     event_kind: wire.event_kind,
     actor: decode_snapshot_principal_v1(wire.actor, "event.actor"),
-    expected_head: decode_snapshot_digest_v1(wire.expected_head, "event.expected_head"),
+    expected_head: decode_snapshot_digest_v1(
+      wire.expected_head,
+      "event.expected_head",
+    ),
     payload_digest: decode_snapshot_digest_v1(
       wire.payload_digest,
       "event.payload_digest",
@@ -510,7 +535,8 @@ pub fn decode_collaboration_snapshot_v1(
     _ => raise SnapshotDecode("collaboration snapshot is not valid JSON")
   }
   if wire.contract_id != "moonflow.collaboration-snapshot.v1" ||
-    collaboration_digest_v1(wire.payload.stringify()).text() != wire.content_digest {
+    collaboration_digest_v1(wire.payload.stringify()).text() !=
+    wire.content_digest {
     raise SnapshotDecode("collaboration snapshot content digest mismatch")
   }
   let payload : CollaborationSnapshotPayloadWireV1 = @json.from_json(
@@ -521,57 +547,66 @@ pub fn decode_collaboration_snapshot_v1(
   let workspace = @capability.decode_workspace_ref_v1(payload.workspace_ref) catch {
     _ => raise SnapshotDecode("collaboration workspace reference is invalid")
   }
-  let memberships = payload.memberships.map(value =>
+  let memberships = payload.memberships.map(value => {
     decode_membership_wire_v1(value)
-  )
-  let assignments = payload.assignments.map(value =>
+  })
+  let assignments = payload.assignments.map(value => {
     decode_assignment_wire_v1(value)
-  )
-  let claims = payload.claims.map(value => decode_assignment_claim_wire_v1(value))
+  })
+  let claims = payload.claims.map(value => {
+    decode_assignment_claim_wire_v1(value)
+  })
   let comments = payload.comments.map(value => decode_comment_wire_v1(value))
   let reviews = payload.reviews.map(value => decode_review_wire_v1(value))
-  let events = payload.events.map(value =>
+  let events = payload.events.map(value => {
     decode_collaboration_event_wire_v1(value)
-  )
+  })
   require_unique_collaboration_ids_v1(
-    memberships,
-    assignments,
-    claims,
-    comments,
-    reviews,
+    memberships, assignments, claims, comments, reviews,
   )
   if !memberships.any(value => membership_has_role_v1(value, Owner)) ||
     events.is_empty() {
-    raise SnapshotDecode("collaboration snapshot requires an active owner and event log")
+    raise SnapshotDecode(
+      "collaboration snapshot requires an active owner and event log",
+    )
   }
   for assignment in assignments {
-    if !memberships.any(value =>
-      value.principal == assignment.assignee && value.status == Active
-    ) {
-      raise SnapshotDecode("assignment refers to an inactive or missing assignee")
+    if !memberships.any(value => {
+        value.principal == assignment.assignee && value.status == Active
+      }) {
+      raise SnapshotDecode(
+        "assignment refers to an inactive or missing assignee",
+      )
     }
     if assignment.approval_review_id is Some(review_id) &&
-      !reviews.any(review =>
+      !reviews.any(review => {
         review.review_id == review_id &&
         review.state == Approved &&
         assignment.submitted_artifact is Some(accepted_artifact) &&
         review.subject_digest.text() == accepted_artifact.evidence_digest() &&
         review.assigned_reviewer != assignment.assignee
-      ) {
+      }) {
       raise SnapshotDecode("completed assignment lacks an independent approval")
     }
   }
   for index, claim in claims {
-    if !assignments.any(value =>
-      value.assignment_id == claim.assignment_id && value.assignee == claim.holder
-    ) ||
-      !memberships.any(value =>
+    if !assignments.any(value => {
+        value.assignment_id == claim.assignment_id &&
+        value.assignee == claim.holder
+      }) ||
+      !memberships.any(value => {
         value.principal == claim.holder && value.status == Active
-      ) ||
-      (claim.previous_lease_id is Some(previous_id) &&
-      (index == 0 || !claims[:index].any(value =>
-        value.lease_id == previous_id && value.expires_at <= claim.acquired_at
-      ))) {
+      }) ||
+      (
+        claim.previous_lease_id is Some(previous_id) &&
+        (
+          index == 0 ||
+          !claims[:index].any(value => {
+            value.lease_id == previous_id &&
+            value.expires_at <= claim.acquired_at
+          })
+        )
+      ) {
       raise SnapshotDecode("assignment claim history is invalid")
     }
   }
@@ -580,19 +615,19 @@ pub fn decode_collaboration_snapshot_v1(
     for mentioned in comment.mentions {
       let identity = mentioned.canonical_text()
       if mention_ids.contains(identity) ||
-        !memberships.any(value =>
+        !memberships.any(value => {
           value.principal == mentioned && value.status == Active
-        ) {
+        }) {
         raise SnapshotDecode("comment mention is not a unique active member")
       }
       mention_ids.push(identity)
     }
   }
   for review in reviews {
-    if !memberships.any(value =>
-      value.principal == review.assigned_reviewer &&
-      membership_has_role_v1(value, Reviewer)
-    ) {
+    if !memberships.any(value => {
+        value.principal == review.assigned_reviewer &&
+        membership_has_role_v1(value, Reviewer)
+      }) {
       raise SnapshotDecode("review refers to an inactive or missing reviewer")
     }
   }
@@ -603,10 +638,8 @@ pub fn decode_collaboration_snapshot_v1(
   for index, event in events {
     if mutation_ids.contains(event.mutation_id) ||
       event.expected_head != expected ||
-      event.resulting_head != collaboration_resulting_head_v1(
-        expected,
-        event.payload_digest,
-      ) ||
+      event.resulting_head !=
+      collaboration_resulting_head_v1(expected, event.payload_digest) ||
       (index == 0 && event.event_kind != "collaboration-started") {
       raise SnapshotDecode("collaboration event chain does not replay")
     }
@@ -614,7 +647,9 @@ pub fn decode_collaboration_snapshot_v1(
     expected = event.resulting_head
   }
   if expected.text() != payload.head_digest {
-    raise SnapshotDecode("collaboration terminal head does not match event replay")
+    raise SnapshotDecode(
+      "collaboration terminal head does not match event replay",
+    )
   }
   {
     workspace,

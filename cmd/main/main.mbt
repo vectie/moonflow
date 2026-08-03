@@ -87,16 +87,13 @@ async fn apply_collaboration_command(
   let safe_workspace_id = safe_id(workspace_id, "workspace_id")
   let directory = collaboration_snapshot_directory(workspace)
   let writer_lock = @flow_host.acquire_named_writer_lock_v1(
-    directory,
-    safe_workspace_id,
+    directory, safe_workspace_id,
   )
   defer @flow_host.release_named_writer_lock_v1(writer_lock)
   let snapshot_path = collaboration_snapshot_path(workspace, safe_workspace_id)
   let current = if @fs.exists(snapshot_path) {
     Some(
-      @collaboration.decode_collaboration_snapshot_v1(
-        read_json(snapshot_path),
-      ),
+      @collaboration.decode_collaboration_snapshot_v1(read_json(snapshot_path)),
     )
   } else {
     None
@@ -110,35 +107,35 @@ async fn apply_collaboration_command(
       if projection.workspace().workspace_id() != safe_workspace_id {
         fail("collaboration mutation produced a different workspace")
       }
-      let snapshot = @collaboration.encode_collaboration_snapshot_v1(
-        projection,
-      )
+      let snapshot = @collaboration.encode_collaboration_snapshot_v1(projection)
       @flow_host.atomic_replace_named_json_v1(
         directory,
         safe_workspace_id + ".json",
         snapshot.stringify(indent=2),
       )
       println(
-        ({
-          "status": "applied",
-          "receipt": @collaboration.encode_collaboration_operator_receipt_v1(
-            receipt,
-          ),
-          "snapshot": snapshot,
-        } : Json).stringify(indent=2),
+        (
+          {
+            "status": "applied",
+            "receipt": @collaboration.encode_collaboration_operator_receipt_v1(
+              receipt,
+            ),
+            "snapshot": snapshot,
+          } : Json).stringify(indent=2),
       )
     }
     OperatorIdempotent(projection, receipt) =>
       println(
-        ({
-          "status": "idempotent",
-          "receipt": @collaboration.encode_collaboration_operator_receipt_v1(
-            receipt,
-          ),
-          "snapshot": @collaboration.encode_collaboration_snapshot_v1(
-            projection,
-          ),
-        } : Json).stringify(indent=2),
+        (
+          {
+            "status": "idempotent",
+            "receipt": @collaboration.encode_collaboration_operator_receipt_v1(
+              receipt,
+            ),
+            "snapshot": @collaboration.encode_collaboration_snapshot_v1(
+              projection,
+            ),
+          } : Json).stringify(indent=2),
       )
     OperatorConflict(receipt) => {
       println(
@@ -153,7 +150,10 @@ async fn apply_collaboration_command(
 }
 
 ///|
-fn handover_snapshot_path(workspace : String, handover_id : String) -> String raise {
+fn handover_snapshot_path(
+  workspace : String,
+  handover_id : String,
+) -> String raise {
   let safe_handover_id = safe_id(handover_id, "handover_id")
   let root = @moonflow.normalize_workspace_path(workspace)
   let path = root +
@@ -215,21 +215,19 @@ async fn list_handovers_command(workspace : String) -> Unit {
           "valid": true,
         }
       } catch {
-        _ => {
-          "handover_id": handover_id,
-          "state": "quarantined",
-          "valid": false,
-        }
+        _ =>
+          { "handover_id": handover_id, "state": "quarantined", "valid": false }
       }
       entries.push(entry)
     }
   }
-  entries.sort_by(fn(left, right) { left.stringify().compare(right.stringify()) })
+  entries.sort_by(fn(left, right) {
+    left.stringify().compare(right.stringify())
+  })
   println(
-    ({
-      "contract_id": "moonflow.handover-catalog.v1",
-      "handovers": entries,
-    } : Json).stringify(indent=2),
+    (
+      { "contract_id": "moonflow.handover-catalog.v1", "handovers": entries } :
+      Json).stringify(indent=2),
   )
 }
 
@@ -242,8 +240,7 @@ async fn apply_handover_command(
   let safe_handover_id = safe_id(handover_id, "handover_id")
   let directory = handover_snapshot_directory(workspace)
   let writer_lock = @flow_host.acquire_named_writer_lock_v1(
-    directory,
-    safe_handover_id,
+    directory, safe_handover_id,
   )
   defer @flow_host.release_named_writer_lock_v1(writer_lock)
   let snapshot_path = handover_snapshot_path(workspace, safe_handover_id)
@@ -252,10 +249,11 @@ async fn apply_handover_command(
   } else {
     None
   }
-  match @collaboration.apply_handover_operator_mutation_v1(
-    current,
-    read_json(mutation_path),
-  ) {
+  match
+    @collaboration.apply_handover_operator_mutation_v1(
+      current,
+      read_json(mutation_path),
+    ) {
     HandoverOperatorApplied(projection, receipt) => {
       let snapshot = @collaboration.encode_handover_snapshot_v1(projection)
       @flow_host.atomic_replace_named_json_v1(
@@ -264,34 +262,35 @@ async fn apply_handover_command(
         snapshot.stringify(indent=2),
       )
       println(
-        ({
-          "status": "applied",
-          "receipt": @collaboration.encode_handover_operator_receipt_v1(
-            receipt,
-          ),
-          "snapshot": snapshot,
-        } : Json).stringify(indent=2),
+        (
+          {
+            "status": "applied",
+            "receipt": @collaboration.encode_handover_operator_receipt_v1(
+              receipt,
+            ),
+            "snapshot": snapshot,
+          } : Json).stringify(indent=2),
       )
     }
     HandoverOperatorIdempotent(projection, receipt) =>
       println(
-        ({
-          "status": "idempotent",
-          "receipt": @collaboration.encode_handover_operator_receipt_v1(
-            receipt,
-          ),
-          "snapshot": @collaboration.encode_handover_snapshot_v1(projection),
-        } : Json).stringify(indent=2),
+        (
+          {
+            "status": "idempotent",
+            "receipt": @collaboration.encode_handover_operator_receipt_v1(
+              receipt,
+            ),
+            "snapshot": @collaboration.encode_handover_snapshot_v1(projection),
+          } : Json).stringify(indent=2),
       )
     HandoverOperatorConflict(receipt) => {
       println(
-        @collaboration.encode_handover_conflict_v1(receipt).stringify(
-          indent=2,
-        ),
+        @collaboration.encode_handover_conflict_v1(receipt).stringify(indent=2),
       )
       fail("handover expected-head conflict")
     }
-    HandoverOperatorDenied(reason) => fail("handover mutation denied: \{reason}")
+    HandoverOperatorDenied(reason) =>
+      fail("handover mutation denied: \{reason}")
   }
 }
 
@@ -1336,11 +1335,7 @@ async fn main {
     ["collaboration", "inspect", workspace, workspace_id] =>
       inspect_collaboration_command(workspace, workspace_id)
     ["collaboration", "apply", workspace, workspace_id, mutation_path] =>
-      apply_collaboration_command(
-        workspace,
-        workspace_id,
-        mutation_path,
-      )
+      apply_collaboration_command(workspace, workspace_id, mutation_path)
     ["handover", "inspect", workspace, handover_id] =>
       inspect_handover_command(workspace, handover_id)
     ["handover", "list", workspace] => list_handovers_command(workspace)

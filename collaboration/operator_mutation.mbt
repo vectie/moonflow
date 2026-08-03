@@ -86,21 +86,30 @@ pub(all) enum CollaborationOperatorMutationResultV1 {
 } derive(Debug)
 
 ///|
-fn[T : FromJson] operator_decode_v1(value : Json, label : String) -> T raise CollaborationError {
+fn[T : FromJson] operator_decode_v1(
+  value : Json,
+  label : String,
+) -> T raise CollaborationError {
   @json.from_json(value) catch {
     _ => raise SnapshotDecode("invalid \{label}")
   }
 }
 
 ///|
-fn operator_principal_v1(value : Json, label : String) -> @capability.PrincipalRefV1 raise CollaborationError {
+fn operator_principal_v1(
+  value : Json,
+  label : String,
+) -> @capability.PrincipalRefV1 raise CollaborationError {
   @capability.decode_principal_ref_v1(value) catch {
     _ => raise SnapshotDecode("invalid principal in \{label}")
   }
 }
 
 ///|
-fn operator_digest_v1(value : String, label : String) -> @capability.DigestRefV1 raise CollaborationError {
+fn operator_digest_v1(
+  value : String,
+  label : String,
+) -> @capability.DigestRefV1 raise CollaborationError {
   @capability.digest_ref_v1(value) catch {
     _ => raise SnapshotDecode("invalid digest in \{label}")
   }
@@ -112,7 +121,10 @@ fn require_operator_head_v1(
 ) -> @capability.DigestRefV1 raise CollaborationError {
   match wire.expected_head {
     Some(value) => operator_digest_v1(value, "expected_head")
-    None => raise SnapshotDecode("non-start collaboration mutation requires expected_head")
+    None =>
+      raise SnapshotDecode(
+        "non-start collaboration mutation requires expected_head",
+      )
   }
 }
 
@@ -136,7 +148,9 @@ fn apply_existing_collaboration_mutation_v1(
   actor : @capability.PrincipalRefV1,
 ) -> CollaborationOperatorMutationResultV1 raise CollaborationError {
   if projection.workspace.workspace_id() != wire.workspace_id {
-    return OperatorDenied("mutation workspace does not match durable projection")
+    return OperatorDenied(
+      "mutation workspace does not match durable projection",
+    )
   }
   let expected_head = require_operator_head_v1(wire)
   let result = match wire.action {
@@ -161,9 +175,7 @@ fn apply_existing_collaboration_mutation_v1(
         wire.payload,
         "assignment payload",
       )
-      let operation = @capability.decode_operation_ref_v1(
-        payload.operation,
-      ) catch {
+      let operation = @capability.decode_operation_ref_v1(payload.operation) catch {
         _ => raise SnapshotDecode("invalid assignment operation")
       }
       create_assignment_v1(
@@ -205,19 +217,19 @@ fn apply_existing_collaboration_mutation_v1(
         payload.comment_id,
         operator_digest_v1(payload.subject_digest, "comment subject"),
         payload.anchor_ref,
-        (@capability.content_addressed_evidence_ref(
+        @capability.content_addressed_evidence_ref(
           payload.body_ref,
           payload.body_digest,
         ) catch {
           _ => raise SnapshotDecode("invalid comment body evidence")
-        }),
+        },
         actor,
         wire.mutation_id,
         expected_head,
         wire.recorded_at,
-        mentions=payload.mentions.map(value =>
+        mentions=payload.mentions.map(value => {
           operator_principal_v1(value, "comment mention")
-        ),
+        }),
       )
     }
     "review" => {
@@ -259,12 +271,12 @@ fn apply_existing_collaboration_mutation_v1(
         projection,
         payload.review_id,
         review_state_v1_from_id(payload.decision),
-        (@capability.content_addressed_evidence_ref(
+        @capability.content_addressed_evidence_ref(
           payload.evidence_ref,
           payload.evidence_digest,
         ) catch {
           _ => raise SnapshotDecode("invalid review decision evidence")
-        }),
+        },
         actor,
         wire.mutation_id,
         expected_head,
@@ -306,8 +318,7 @@ pub fn apply_collaboration_operator_mutation_v1(
   value : Json,
 ) -> CollaborationOperatorMutationResultV1 raise CollaborationError {
   let wire : CollaborationOperatorMutationWireV1 = operator_decode_v1(
-    value,
-    "moonflow.collaboration-operator-mutation.v1",
+    value, "moonflow.collaboration-operator-mutation.v1",
   )
   if wire.contract_id != "moonflow.collaboration-operator-mutation.v1" ||
     !@capability.identifier_component_is_canonical(wire.workspace_id) {
@@ -318,14 +329,14 @@ pub fn apply_collaboration_operator_mutation_v1(
     guard wire.workspace_ref is Some(encoded_workspace) else {
       raise SnapshotDecode("start mutation requires workspace_ref")
     }
-    let workspace = @capability.decode_workspace_ref_v1(
-      encoded_workspace,
-    ) catch {
+    let workspace = @capability.decode_workspace_ref_v1(encoded_workspace) catch {
       _ => raise SnapshotDecode("start mutation workspace_ref is invalid")
     }
     if workspace.workspace_id() != wire.workspace_id ||
       wire.expected_head is Some(_) {
-      return OperatorDenied("start mutation workspace or expected_head is invalid")
+      return OperatorDenied(
+        "start mutation workspace or expected_head is invalid",
+      )
     }
     let payload : StartPayloadV1 = operator_decode_v1(
       wire.payload,
@@ -349,7 +360,9 @@ pub fn apply_collaboration_operator_mutation_v1(
           existing.events.any(item => item == event) {
           OperatorIdempotent(existing, collaboration_receipt_v1(event, true))
         } else {
-          OperatorDenied("collaboration already exists with a different genesis")
+          OperatorDenied(
+            "collaboration already exists with a different genesis",
+          )
         }
       }
     }

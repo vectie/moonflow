@@ -17,7 +17,9 @@ pub fn MembershipRoleV1::id(self : MembershipRoleV1) -> String {
 }
 
 ///|
-fn membership_role_v1_from_id(value : String) -> MembershipRoleV1 raise CollaborationError {
+fn membership_role_v1_from_id(
+  value : String,
+) -> MembershipRoleV1 raise CollaborationError {
   match value {
     "owner" => Owner
     "contributor" => Contributor
@@ -110,7 +112,9 @@ pub fn AssignmentStateV1::id(self : AssignmentStateV1) -> String {
 }
 
 ///|
-fn assignment_state_v1_from_id(value : String) -> AssignmentStateV1 raise CollaborationError {
+fn assignment_state_v1_from_id(
+  value : String,
+) -> AssignmentStateV1 raise CollaborationError {
   match value {
     "assigned" => Assigned
     "in-progress" => InProgress
@@ -171,9 +175,7 @@ pub fn AssignmentClaimV1::expires_at(self : AssignmentClaimV1) -> String {
 }
 
 ///|
-pub fn AssignmentClaimV1::reclaimed_expired(
-  self : AssignmentClaimV1,
-) -> Bool {
+pub fn AssignmentClaimV1::reclaimed_expired(self : AssignmentClaimV1) -> Bool {
   self.reclaimed_expired
 }
 
@@ -276,7 +278,9 @@ pub fn ReviewStateV1::id(self : ReviewStateV1) -> String {
 }
 
 ///|
-fn review_state_v1_from_id(value : String) -> ReviewStateV1 raise CollaborationError {
+fn review_state_v1_from_id(
+  value : String,
+) -> ReviewStateV1 raise CollaborationError {
   match value {
     "requested" => Requested
     "in-review" => InReview
@@ -391,7 +395,10 @@ pub fn CollaborationConflictReceiptV1::actual_head(
 
 ///|
 pub(all) enum CollaborationMutationResultV1 {
-  CollaborationApplied(CollaborationProjectionV1, CollaborationMutationReceiptV1)
+  CollaborationApplied(
+    CollaborationProjectionV1,
+    CollaborationMutationReceiptV1
+  )
   CollaborationIdempotent(CollaborationMutationReceiptV1)
   CollaborationConflict(CollaborationConflictReceiptV1)
   CollaborationDenied(String)
