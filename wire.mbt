@@ -439,6 +439,13 @@ pub fn ready_events(
   let events : Array[RuntimeEvent] = []
   let mut sequence = projection.last_sequence + 1
   for item in projection.items {
+    // Waiting or blocked work can still own an unresolved adapter attempt.
+    // Keep its reconciliation path instead of proposing a fresh submission.
+    if item.attempt_status == "submitted" ||
+      item.attempt_status == "running" ||
+      item.attempt_status == "unknown" {
+      continue
+    }
     if item.status == Proposed ||
       item.status == Waiting ||
       item.status == Blocked {
