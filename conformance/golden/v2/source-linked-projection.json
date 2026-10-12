@@ -92,5 +92,67 @@
       "artifacts": [],
       "approvals": []
     }
-  ]
+  ],
+  "owner_summary": {
+    "contract_id": "moonflow.owner-summary.v1",
+    "run_id": "flow-source-linked-fixture-r1",
+    "book_id": "source-linked-fixture",
+    "declaration_revision": "r1",
+    "source_digest": "sha256:7c83693394b7d8dfd98d8a3c7217cbddfa44e4b7ba5ef88c513d6da403e32f9c",
+    "last_sequence": 3,
+    "last_event_id": "event-flow-source-linked-fixture-r1-ready-work-research",
+    "recorded_at": "2026-07-11T00:00:00Z",
+    "outcome": "ready",
+    "outcome_label": "Work is ready for governed execution",
+    "next_action": "Continue through the existing execution controls",
+    "next_role": "run operator",
+    "actions": [
+      {
+        "work_item_id": "work-research",
+        "product_id": "moonwiki",
+        "status": "ready",
+        "action": "Continue through the existing execution controls",
+        "next_role": "run operator",
+        "reasons": [
+          "Dependencies are accepted; execution remains subject to existing authority checks"
+        ],
+        "depends_on": []
+      },
+      {
+        "work_item_id": "work-validate",
+        "product_id": "moonmoon",
+        "status": "proposed",
+        "action": "Resolve the unmet dependencies",
+        "reasons": [
+          "Waiting for work-research: ready"
+        ],
+        "depends_on": [
+          "work-research"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "work_item_id": "work-research",
+        "attempt_id": "",
+        "result_id": "",
+        "output_digest": "",
+        "artifacts": [],
+        "review_id": "",
+        "review_artifact": "",
+        "reviewer_id": ""
+      },
+      {
+        "work_item_id": "work-validate",
+        "attempt_id": "",
+        "result_id": "",
+        "output_digest": "",
+        "artifacts": [],
+        "review_id": "",
+        "review_artifact": "",
+        "reviewer_id": ""
+      }
+    ],
+    "acceptance_boundary": "Internal work acceptance does not establish customer approval, delivery acceptance or payment"
+  }
 }

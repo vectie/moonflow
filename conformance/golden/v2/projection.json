@@ -97,5 +97,60 @@
       ],
       "approvals": []
     }
-  ]
+  ],
+  "owner_summary": {
+    "contract_id": "moonflow.owner-summary.v1",
+    "run_id": "flow2-golden-v2",
+    "book_id": "flow2-generic-source",
+    "declaration_revision": "r2",
+    "source_digest": "sha256:flow2-generic-source-r2",
+    "last_sequence": 9,
+    "last_event_id": "event-flow2-golden-v2-adapter-result-result-validate-1",
+    "recorded_at": "2026-07-16T00:00:05Z",
+    "outcome": "review",
+    "outcome_label": "Output awaits internal review",
+    "next_action": "Review the output against the acceptance criteria",
+    "next_role": "reviewer",
+    "actions": [
+      {
+        "work_item_id": "work-validate",
+        "product_id": "synthetic-validator",
+        "status": "review",
+        "action": "Review the output against the acceptance criteria",
+        "next_role": "reviewer",
+        "reasons": [
+          "Internal review is required; execution success is not acceptance"
+        ],
+        "depends_on": []
+      }
+    ],
+    "evidence": [
+      {
+        "work_item_id": "work-observe",
+        "attempt_id": "attempt-observe-1",
+        "result_id": "result-observe-1",
+        "output_digest": "sha256:observe-output",
+        "artifacts": [
+          "artifacts/observe-evidence.json",
+          "reviews/observe-review.json"
+        ],
+        "review_id": "review-observe-1",
+        "review_artifact": "reviews/observe-review.json",
+        "reviewer_id": "review-authority-flow2"
+      },
+      {
+        "work_item_id": "work-validate",
+        "attempt_id": "attempt-validate-1",
+        "result_id": "result-validate-1",
+        "output_digest": "sha256:validate-output",
+        "artifacts": [
+          "artifacts/validate-evidence.json"
+        ],
+        "review_id": "",
+        "review_artifact": "",
+        "reviewer_id": ""
+      }
+    ],
+    "acceptance_boundary": "Internal work acceptance does not establish customer approval, delivery acceptance or payment"
+  }
 }
