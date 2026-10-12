@@ -1,0 +1,10 @@
+{
+  "contract_id": "moonflow.input-rebindings.v1",
+  "worksheet_sha256": "sha256:080aa3288d990ec013eeae25f2a8ccc8f5cdf95267a37b6d266f241c6581d3cb",
+  "replacements": [
+    {
+      "from": "references/finish-v1.json",
+      "to": "references/finish-v2.json"
+    }
+  ]
+}

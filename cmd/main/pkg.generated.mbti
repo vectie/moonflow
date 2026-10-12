@@ -1,13 +1,23 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "vectie/moonflow/cmd/main"
 
+import {
+  "moonbitlang/core/json",
+}
+
 // Values
 
 // Errors
 
 // Types and methods
+type DirectoryPlanScan derive(ToJson)
+
+type PlanInputCapture derive(ToJson, @json.FromJson)
+
+type SingleStepConfig derive(@json.FromJson)
+
+type SingleStepSafety
 
 // Type aliases
 
 // Traits
-

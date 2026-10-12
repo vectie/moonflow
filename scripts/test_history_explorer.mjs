@@ -1,0 +1,18 @@
+import {execFileSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const page=execFileSync('python3',['-B','-c',`import sys;sys.path.insert(0,'scripts');import history_explorer;from pathlib import Path;print(history_explorer.render(Path('examples/history-explorer/history.json').read_bytes()))`],{encoding:'utf8'});
+const raw=page.match(/<script id="timeline-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
+const script=page.match(/<script>([\s\S]*?)<\/script>/)[1];
+const element=()=>({value:'',hidden:false,textContent:'',listeners:{},addEventListener(k,f){this.listeners[k]=f;}});
+const ids=Object.fromEntries(['item','kind','search','reset','count','empty','timeline-data'].map(k=>[k,element()]));ids['timeline-data'].textContent=raw;
+const cards=JSON.parse(raw).map(element);const nav=element();nav.hidden=true;
+vm.runInNewContext(script,{document:{getElementById:id=>ids[id],querySelectorAll:()=>cards,querySelector:()=>nav}});
+assert.equal(nav.hidden,false);assert.equal(cards.filter(c=>!c.hidden).length,4);
+ids.item.value='1';ids.item.listeners.input();assert.equal(cards.filter(c=>!c.hidden).length,3);
+ids.kind.value='3';ids.kind.listeners.input();assert.equal(cards.filter(c=>!c.hidden).length,1);
+ids.search.value='outputs/result.txt';ids.search.listeners.input();assert.equal(cards.filter(c=>!c.hidden).length,1);
+ids.search.value='not present';ids.search.listeners.input();assert.equal(ids.empty.hidden,false);
+ids.reset.listeners.click();assert.equal(cards.filter(c=>!c.hidden).length,4);
+console.log('History page script: item/kind/search intersection, empty and reset passed');

@@ -1,0 +1,81 @@
+{
+  "contract_id": "moonflow.declared-graph-map.v1",
+  "graph_id": "publication-routes-r1",
+  "source_graph_digest": "sha256:5ed5a5428e26bd636cde6168495e39af1f451e9d7f9f8def67dbb7416c3f5628",
+  "nodes": [
+    {
+      "work_item_id": "capture",
+      "product_id": "moonmold",
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "depends_on": [],
+      "layer": 0
+    },
+    {
+      "work_item_id": "model",
+      "product_id": "moonmold",
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "depends_on": [
+        "capture"
+      ],
+      "layer": 1
+    },
+    {
+      "work_item_id": "texture",
+      "product_id": "moonmold",
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "depends_on": [
+        "capture"
+      ],
+      "layer": 1
+    },
+    {
+      "work_item_id": "publish",
+      "product_id": "moonmold",
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "depends_on": [
+        "model",
+        "texture",
+        "license"
+      ],
+      "layer": 2
+    },
+    {
+      "work_item_id": "license",
+      "product_id": "moonmold",
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "depends_on": [],
+      "layer": 0
+    },
+    {
+      "work_item_id": "independent",
+      "product_id": "moonmold",
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "depends_on": [],
+      "layer": 0
+    }
+  ],
+  "layers": [
+    [
+      "capture",
+      "license",
+      "independent"
+    ],
+    [
+      "model",
+      "texture"
+    ],
+    [
+      "publish"
+    ]
+  ],
+  "root_item_ids": [
+    "capture",
+    "license",
+    "independent"
+  ],
+  "leaf_item_ids": [
+    "publish",
+    "independent"
+  ],
+  "edge_count": 5
+}

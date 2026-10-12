@@ -1,0 +1,8 @@
+{
+  "contract_id": "moonflow.directory-plan-selection.v1",
+  "directory_ref": "requests",
+  "template_work_item_id": "make-model",
+  "suffixes": [".json"],
+  "recursive": true,
+  "id_prefix": "model"
+}

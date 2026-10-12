@@ -1,0 +1,23 @@
+{
+  "export_name": "synthetic design-study work queue",
+  "data": {
+    "jobs": [
+      {
+        "ticket": {"key": "compact-study", "title": "Compact chair model"},
+        "work": {"files": ["requests/compact.json"], "after": [], "timeout_ms": 45000},
+        "review": {"checklist": ["Review compact model, millimetre units and coordinate frame"]}
+      },
+      {
+        "ticket": {"key": "display-study", "title": "Compare both studies"},
+        "work": {"files": ["requests/display.json", "requests/compact.json", "requests/wide.json"], "after": ["compact-study", "wide-study"], "timeout_ms": 90000},
+        "review": {"checklist": ["Review the two study names", "Check both models have the intended dimensions"]}
+      },
+      {
+        "ticket": {"key": "wide-study", "title": "Wide chair model"},
+        "work": {"files": ["requests/wide.json"], "after": [], "timeout_ms": 75000},
+        "review": {"checklist": ["Review wide model, millimetre units and coordinate frame"]}
+      }
+    ]
+  },
+  "next_page": null
+}

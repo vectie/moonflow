@@ -1,0 +1,22 @@
+{
+  "contract_id": "moonmold.spatial-operation-request.v1",
+  "request_id": "subgraph-frame",
+  "idempotency_key": "subgraph-frame",
+  "project_id": "synthetic-furniture-range",
+  "model_id": "frame",
+  "expected_parent_digest": "mm1-empty-scene",
+  "authority": "WorkspaceMutation",
+  "intent": "Create synthetic frame study",
+  "constraints": [
+    "Synthetic digital reference only; no physical authority"
+  ],
+  "backend_preference": "mock-reference",
+  "operation": {
+    "method": "scene.create-model",
+    "params": {
+      "name": "synthetic frame study",
+      "units": "mm",
+      "coordinateFrame": "z-up-right-handed"
+    }
+  }
+}

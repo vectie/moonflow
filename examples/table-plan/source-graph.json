@@ -1,0 +1,38 @@
+{
+  "contract_id": "moonsuite.work-model.v1",
+  "graph_id": "paired-design-study-r1",
+  "book_id": "synthetic-paired-design-study",
+  "declaration_revision": "r1",
+  "source_digest": "sha256:synthetic-paired-design-study-r1",
+  "recorded_at": "2026-07-31T00:00:00Z",
+  "items": [
+    {
+      "work_item_id": "model",
+      "declaration_id": "model",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": ["Review the main model"],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": ["moonmold/spatial-operation-request@1.0.0"],
+      "output_contracts": ["moonmold/spatial-operation-receipt@1.0.0"],
+      "required_claim": "digital-artifact",
+      "input_artifacts": ["requests/compact-model.json"],
+      "timeout_ms": 60000,
+      "depends_on": []
+    },
+    {
+      "work_item_id": "companion",
+      "declaration_id": "companion",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": ["Review the companion model after accepting the main model"],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": ["moonmold/spatial-operation-request@1.0.0"],
+      "output_contracts": ["moonmold/spatial-operation-receipt@1.0.0"],
+      "required_claim": "digital-artifact",
+      "input_artifacts": ["requests/compact-companion.json"],
+      "timeout_ms": 90000,
+      "depends_on": ["model"]
+    }
+  ]
+}

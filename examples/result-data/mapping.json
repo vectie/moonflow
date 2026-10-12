@@ -1,0 +1,35 @@
+{
+  "contract_id": "moonflow.result-data-mapping.v1",
+  "operation": "synthetic-metrics/evaluate@1",
+  "output_artifact_index": 1,
+  "columns": [
+    {
+      "name": "score",
+      "pointer": "/metrics/score"
+    },
+    {
+      "name": "label",
+      "pointer": "/label"
+    },
+    {
+      "name": "passed",
+      "pointer": "/passed"
+    },
+    {
+      "name": "metadata",
+      "pointer": "/metadata"
+    },
+    {
+      "name": "note",
+      "pointer": "/note"
+    },
+    {
+      "name": "tags",
+      "pointer": "/tags"
+    },
+    {
+      "name": "escaped",
+      "pointer": "/a~1b/~0/0"
+    }
+  ]
+}

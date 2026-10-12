@@ -107,6 +107,22 @@ fn checkpoint_identity_issue(
   if parent.acceptance_criteria != child.acceptance_criteria {
     return Some("acceptance criteria changed")
   }
+  if parent.operation != child.operation {
+    return Some("operation changed")
+  }
+  if parent.input_contracts != child.input_contracts ||
+    parent.output_contracts != child.output_contracts {
+    return Some("operation schemas changed")
+  }
+  if parent.required_claim != child.required_claim {
+    return Some("required claim changed")
+  }
+  if parent.input_artifacts != child.input_artifacts {
+    return Some("input artifact bindings changed")
+  }
+  if parent.timeout_ms != child.timeout_ms {
+    return Some("timeout changed")
+  }
   for
     pair in [
       ("result identity", parent.result_id),
@@ -135,6 +151,28 @@ fn checkpoint_dependencies_accepted(
       None => false
     }
   })
+}
+
+///|
+fn checkpoint_dependency_identity_matches(
+  parent_item : RuntimeItem,
+  child_item : RuntimeItem,
+  parent : RunProjection,
+  child : RunProjection,
+) -> Bool {
+  let parent_declarations : Array[String] = []
+  let child_declarations : Array[String] = []
+  for id in parent_item.depends_on {
+    guard parent.find_item(id) is Some(item) else { return false }
+    parent_declarations.push(item.declaration_id)
+  }
+  for id in child_item.depends_on {
+    guard child.find_item(id) is Some(item) else { return false }
+    child_declarations.push(item.declaration_id)
+  }
+  parent_declarations.sort()
+  child_declarations.sort()
+  parent_declarations == child_declarations
 }
 
 ///|
@@ -190,6 +228,7 @@ pub fn revise_run(
   migration_id : String,
   revision_proposal_ref : String,
   recorded_at : String,
+  input_digests? : Map[String, String] = Map([]),
 ) -> RunRevisionResult raise {
   if parent.run_id.trim().is_empty() ||
     parent.declaration_revision.trim().is_empty() {
@@ -221,6 +260,14 @@ pub fn revise_run(
         continue
       }
       if checkpoint_identity_issue(parent_item, child_item) is None &&
+        (
+          input_digests.get(child_item.work_item_id) is None ||
+          input_digests.get(child_item.work_item_id) ==
+          Some(parent_item.input_digest)
+        ) &&
+        checkpoint_dependency_identity_matches(
+          parent_item, child_item, parent, child,
+        ) &&
         checkpoint_dependencies_accepted(child_item, child) {
         let event = checkpoint_reuse_event(
           parent, child, parent_item, child_item, recorded_at,
@@ -271,7 +318,12 @@ pub fn revise_run(
             declaration_id: child_item.declaration_id,
             decision: "invalidated",
             reason: checkpoint_identity_issue(parent_item, child_item).unwrap_or(
-              "a dependency checkpoint changed or was not reusable",
+              if input_digests.get(child_item.work_item_id) is Some(digest) &&
+                digest != parent_item.input_digest {
+                "captured input bytes do not match the accepted checkpoint"
+              } else {
+                "a dependency checkpoint changed or was not reusable"
+              },
             ),
             evidence_refs: parent_item.artifacts.copy(),
           })
@@ -298,5 +350,5 @@ pub fn revise_run(
   if !issues.is_empty() {
     fail("invalid run migration: \{issues.join("; ")}")
   }
-  { events, receipt }
+  { events, receipt, }
 }

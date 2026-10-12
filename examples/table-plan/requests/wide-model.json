@@ -1,0 +1,22 @@
+{
+  "contract_id": "moonmold.spatial-operation-request.v1",
+  "request_id": "table-wide-model",
+  "idempotency_key": "table-wide-model",
+  "project_id": "synthetic-paired-design-study",
+  "model_id": "wide-model",
+  "expected_parent_digest": "mm1-empty-scene",
+  "authority": "WorkspaceMutation",
+  "intent": "Create synthetic wide model study",
+  "constraints": [
+    "Synthetic digital reference only; no physical authority"
+  ],
+  "backend_preference": "mock-reference",
+  "operation": {
+    "method": "scene.create-model",
+    "params": {
+      "name": "wide model study",
+      "units": "mm",
+      "coordinateFrame": "z-up-right-handed"
+    }
+  }
+}

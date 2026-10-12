@@ -1,0 +1,41 @@
+{
+  "contract_id": "moonflow.worksheet-input-rebind-preview.v1",
+  "worksheet_sha256": "sha256:080aa3288d990ec013eeae25f2a8ccc8f5cdf95267a37b6d266f241c6581d3cb",
+  "mapping_sha256": "sha256:e5c267a417060f1da4911041bbaecaba9b2e6523736b9c8ae7f4e8738db889a8",
+  "source_graph_digest": "sha256:8abd669b0a81a950b8fa861b6f06e44e32f0774865f23c4e2c8735f25e3f31e5",
+  "output_sha256": "sha256:4f2dc512c295e8a87da8bd29c17ee0603c525b316380f5d16827abd2bedfd858",
+  "output_bytes": 1081,
+  "changed_item_ids": [
+    "left",
+    "right"
+  ],
+  "replacement_count": 1,
+  "changes": [
+    {
+      "work_item_id": "left",
+      "product_id": "moonmold",
+      "before": [
+        "requests/left.json",
+        "references/finish-v1.json"
+      ],
+      "after": [
+        "requests/left.json",
+        "references/finish-v2.json"
+      ]
+    },
+    {
+      "work_item_id": "right",
+      "product_id": "moonmold",
+      "before": [
+        "requests/right.json",
+        "references/finish-v1.json"
+      ],
+      "after": [
+        "requests/right.json",
+        "references/finish-v2.json"
+      ]
+    }
+  ],
+  "payloads_read": false,
+  "dispatched": false
+}

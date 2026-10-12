@@ -720,6 +720,24 @@ async fn show_status(workspace : String, run_id : String) -> Unit {
 }
 
 ///|
+async fn show_owner_summary(
+  workspace : String,
+  run_id : String,
+  text : Bool,
+) -> Unit {
+  let summary = @moonflow.owner_summary_v1(
+    @moonflow.replay(run_id, load_events(workspace, run_id)),
+  )
+  println(
+    if text {
+      @moonflow.owner_summary_text_v1(summary)
+    } else {
+      summary.to_json().stringify(indent=2)
+    },
+  )
+}
+
+///|
 async fn append_transition(
   workspace : String,
   run_id : String,
@@ -1176,8 +1194,48 @@ async fn run_ordered_http_json(
 fn usage() -> Unit {
   println(
     "MoonFlow usage:\n" +
+    "  moonflow execute-one <workspace> <run-id> <item-id> <request-id> <configuration-ref> <recorded-at>\n" +
+    "  moonflow reconcile-one <workspace> <run-id> <item-id> <request-id> <configuration-ref> <recorded-at>\n" +
+    "  moonflow plan start <workspace> <source-graph-ref> <draft-id> <existing-graph|product-preset> <recorded-at>\n" +
+    "  moonflow plan inspect <workspace> <draft-id>\n" +
+    "  moonflow plan from-form <workspace> <form-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-directory <workspace> <source-graph-ref> <selection-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-directory <workspace> <source-graph-ref> <selection-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan export-worksheet <workspace> <source-graph-ref>\n" +
+    "  moonflow plan preview-worksheet <workspace> <source-graph-ref> <csv-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-worksheet <workspace> <source-graph-ref> <csv-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-csv <workspace> <source-graph-ref> <template-item-id> <csv-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-csv <workspace> <source-graph-ref> <template-item-id> <csv-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-queue <workspace> <source-graph-ref> <mapping-ref> <queue-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-queue <workspace> <source-graph-ref> <mapping-ref> <queue-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-matrix <workspace> <source-graph-ref> <matrix-ref> <request-template-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-matrix <workspace> <source-graph-ref> <matrix-ref> <request-template-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-payloads <workspace> <source-graph-ref> <mapping-ref> <request-template-ref> <records-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-payloads <workspace> <source-graph-ref> <mapping-ref> <request-template-ref> <records-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-records <workspace> <source-graph-ref> <mapping-ref> <records-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-records <workspace> <source-graph-ref> <mapping-ref> <records-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-table <workspace> <source-graph-ref> <template-ref> <csv-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-table <workspace> <source-graph-ref> <template-ref> <csv-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan impact <workspace> <source-graph-ref> <changed-item-id>...\n" +
+    "  moonflow plan preview-subgraph <workspace> <source-graph-ref> <draft-id> <recorded-at> <target-item-id>...\n" +
+    "  moonflow plan from-subgraph <workspace> <source-graph-ref> <draft-id> <recorded-at> <target-item-id>...\n" +
+    "  moonflow plan export <workspace> <draft-id>\n" +
+    "  moonflow plan edit <workspace> <draft-id> <edit-artifact>\n" +
+    "  moonflow plan prepare <workspace> <draft-id> <catalog-ref> <evaluated-at>\n" +
+    "  moonflow plan prepare-form <workspace> <form-ref> <catalog-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan apply-prepared <workspace> <preparation-id> <catalog-ref> <evaluated-at>\n" +
     "  moonflow import-graph <workspace> <graph.json>\n" +
     "  moonflow status <workspace> <run-id>\n" +
+    "  moonflow compare-runs <workspace> <before-run-id> <after-run-id> <--json|--text>\n" +
+    "  moonflow run-history <workspace> <run-id> <--json|--text> [work-item-id]\n" +
+    "  moonflow graph-timing <workspace> <source-graph-ref> <estimates-ref> <--json|--csv>\n" +
+    "  moonflow compare-graphs <workspace> <before-graph-ref> <after-graph-ref> <--json|--text>\n" +
+    "  moonflow graph-route <workspace> <source-graph-ref> <from-item-id> <to-item-id> <--json|--text>\n" +
+    "  moonflow graph-map <workspace> <source-graph-ref> <--json|--dot>\n" +
+    "  moonflow graph-compose <workspace> <manifest-ref> <--json|--graph>\n" +
+    "  moonflow result-data <workspace> <mapping-ref> <--csv|--json> <run-id>...\n" +
+    "  moonflow results-table <workspace> <--csv|--json> <run-id>...\n" +
+    "  moonflow owner-summary <workspace> <run-id> [--text]\n" +
     "  moonflow control <workspace> <run-id> <pause|resume|cancel|narrow-authority> <recorded-at> [reason-or-authority]\n" +
     "  moonflow transition <workspace> <run-id> <work-item-id> <action> <recorded-at> [detail]\n" +
     "  moonflow advance <workspace> <run-id> <recorded-at>\n" +
@@ -1219,9 +1277,340 @@ fn usage() -> Unit {
 async fn main {
   let args = @env.args()
   match args[1:] {
+    [
+      "execute-one",
+      workspace,
+      run_id,
+      item_id,
+      request_id,
+      config_ref,
+      recorded_at,
+    ] =>
+      single_step_command(
+        workspace, run_id, item_id, request_id, config_ref, recorded_at, false,
+      )
+    [
+      "reconcile-one",
+      workspace,
+      run_id,
+      item_id,
+      request_id,
+      config_ref,
+      recorded_at,
+    ] =>
+      single_step_command(
+        workspace, run_id, item_id, request_id, config_ref, recorded_at, true,
+      )
+    ["plan", "impact", workspace, source_ref, .. changed_ids] =>
+      plan_change_impact_command(workspace, source_ref, changed_ids.to_array())
+    ["plan", "start", workspace, source_ref, draft_id, source_kind, recorded_at] =>
+      plan_start_command(
+        workspace, source_ref, draft_id, source_kind, recorded_at,
+      )
+    ["plan", "inspect", workspace, draft_id] =>
+      plan_inspect_command(workspace, draft_id)
+    ["plan", "from-form", workspace, form_ref, draft_id, recorded_at] =>
+      plan_from_form_command(workspace, form_ref, draft_id, recorded_at)
+    [
+      "plan",
+      "preview-directory",
+      workspace,
+      source_ref,
+      selection_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_directory_command(
+        workspace, source_ref, selection_ref, draft_id, recorded_at, false,
+      )
+    [
+      "plan",
+      "from-directory",
+      workspace,
+      source_ref,
+      selection_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_directory_command(
+        workspace, source_ref, selection_ref, draft_id, recorded_at, true,
+      )
+    ["plan", "export-worksheet", workspace, source_ref] =>
+      plan_export_worksheet_command(workspace, source_ref)
+    [
+      "plan",
+      "preview-worksheet",
+      workspace,
+      source_ref,
+      csv_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_worksheet_command(
+        workspace, source_ref, csv_ref, draft_id, recorded_at, false,
+      )
+    [
+      "plan",
+      "from-worksheet",
+      workspace,
+      source_ref,
+      csv_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_worksheet_command(
+        workspace, source_ref, csv_ref, draft_id, recorded_at, true,
+      )
+    [
+      "plan",
+      "preview-csv",
+      workspace,
+      source_ref,
+      template_id,
+      csv_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_csv_command(
+        workspace, source_ref, template_id, csv_ref, draft_id, recorded_at, false,
+      )
+    [
+      "plan",
+      "from-csv",
+      workspace,
+      source_ref,
+      template_id,
+      csv_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_csv_command(
+        workspace, source_ref, template_id, csv_ref, draft_id, recorded_at, true,
+      )
+    ["plan", "export", workspace, draft_id] =>
+      plan_export_command(workspace, draft_id)
+    [
+      "plan",
+      "preview-queue",
+      workspace,
+      source_ref,
+      mapping_ref,
+      queue_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_queue_command(
+        workspace, source_ref, mapping_ref, queue_ref, draft_id, recorded_at, false,
+      )
+    [
+      "plan",
+      "from-queue",
+      workspace,
+      source_ref,
+      mapping_ref,
+      queue_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_queue_command(
+        workspace, source_ref, mapping_ref, queue_ref, draft_id, recorded_at, true,
+      )
+    [
+      "plan",
+      "preview-matrix",
+      workspace,
+      source_ref,
+      matrix_ref,
+      template_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_matrix_command(
+        workspace, source_ref, matrix_ref, template_ref, draft_id, recorded_at, false,
+      )
+    [
+      "plan",
+      "from-matrix",
+      workspace,
+      source_ref,
+      matrix_ref,
+      template_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_matrix_command(
+        workspace, source_ref, matrix_ref, template_ref, draft_id, recorded_at, true,
+      )
+    [
+      "plan",
+      "preview-payloads",
+      workspace,
+      source_ref,
+      mapping_ref,
+      template_ref,
+      records_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_payloads_command(
+        workspace, source_ref, mapping_ref, template_ref, records_ref, draft_id,
+        recorded_at, false,
+      )
+    [
+      "plan",
+      "from-payloads",
+      workspace,
+      source_ref,
+      mapping_ref,
+      template_ref,
+      records_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_payloads_command(
+        workspace, source_ref, mapping_ref, template_ref, records_ref, draft_id,
+        recorded_at, true,
+      )
+    [
+      "plan",
+      "preview-records",
+      workspace,
+      source_ref,
+      mapping_ref,
+      records_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_records_command(
+        workspace, source_ref, mapping_ref, records_ref, draft_id, recorded_at, false,
+      )
+    [
+      "plan",
+      "from-records",
+      workspace,
+      source_ref,
+      mapping_ref,
+      records_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_records_command(
+        workspace, source_ref, mapping_ref, records_ref, draft_id, recorded_at, true,
+      )
+    [
+      "plan",
+      "preview-table",
+      workspace,
+      source_ref,
+      template_ref,
+      csv_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_table_command(
+        workspace, source_ref, template_ref, csv_ref, draft_id, recorded_at, false,
+      )
+    [
+      "plan",
+      "from-table",
+      workspace,
+      source_ref,
+      template_ref,
+      csv_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_table_command(
+        workspace, source_ref, template_ref, csv_ref, draft_id, recorded_at, true,
+      )
+    ["plan", "edit", workspace, draft_id, edit_ref] =>
+      plan_edit_command(workspace, draft_id, edit_ref)
+    [
+      "plan",
+      "preview-subgraph",
+      workspace,
+      source_ref,
+      draft_id,
+      recorded_at,
+      .. targets,
+    ] =>
+      plan_subgraph_command(
+        workspace,
+        source_ref,
+        draft_id,
+        recorded_at,
+        targets.to_array(),
+        false,
+      )
+    [
+      "plan",
+      "from-subgraph",
+      workspace,
+      source_ref,
+      draft_id,
+      recorded_at,
+      .. targets,
+    ] =>
+      plan_subgraph_command(
+        workspace,
+        source_ref,
+        draft_id,
+        recorded_at,
+        targets.to_array(),
+        true,
+      )
+    ["plan", "prepare", workspace, draft_id, catalog_ref, evaluated_at] =>
+      plan_prepare_command(workspace, draft_id, catalog_ref, evaluated_at)
+    [
+      "plan",
+      "prepare-form",
+      workspace,
+      form_ref,
+      catalog_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_prepare_form_command(
+        workspace, form_ref, catalog_ref, draft_id, recorded_at,
+      )
+    [
+      "plan",
+      "apply-prepared",
+      workspace,
+      preparation_id,
+      catalog_ref,
+      evaluated_at,
+    ] =>
+      plan_apply_prepared_command(
+        workspace, preparation_id, catalog_ref, evaluated_at,
+      )
     ["import-graph", workspace, graph_path] =>
       import_graph(workspace, graph_path)
+    ["graph-compose", workspace, manifest_ref, format] =>
+      compose_graph_command(workspace, manifest_ref, format)
+    ["graph-timing", workspace, source_ref, estimates_ref, format] =>
+      show_graph_timing(workspace, source_ref, estimates_ref, format)
+    ["compare-graphs", workspace, before_ref, after_ref, format] =>
+      show_graph_comparison(workspace, before_ref, after_ref, format)
+    ["graph-route", workspace, source_ref, from_id, to_id, format] =>
+      show_graph_route(workspace, source_ref, from_id, to_id, format)
+    ["graph-map", workspace, source_ref, format] =>
+      show_graph_map(workspace, source_ref, format)
+    ["result-data", workspace, mapping_ref, format, .. run_ids] =>
+      show_result_data(workspace, mapping_ref, format, run_ids.to_owned())
+    ["results-table", workspace, format, .. run_ids] =>
+      show_results_table(workspace, format, run_ids.to_owned())
+    ["compare-runs", workspace, before_run_id, after_run_id, format] =>
+      show_run_comparison(workspace, before_run_id, after_run_id, format)
+    ["run-history", workspace, run_id, format] =>
+      show_run_history(workspace, run_id, format, None)
+    ["run-history", workspace, run_id, format, item_id] =>
+      show_run_history(workspace, run_id, format, Some(item_id))
     ["status", workspace, run_id] => show_status(workspace, run_id)
+    ["owner-summary", workspace, run_id] =>
+      show_owner_summary(workspace, run_id, false)
+    ["owner-summary", workspace, run_id, "--text"] =>
+      show_owner_summary(workspace, run_id, true)
     ["control", workspace, run_id, action, recorded_at, detail] =>
       write_run_control(workspace, run_id, action, recorded_at, detail)
     ["control", workspace, run_id, action, recorded_at] =>

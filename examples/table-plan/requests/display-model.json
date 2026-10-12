@@ -1,0 +1,22 @@
+{
+  "contract_id": "moonmold.spatial-operation-request.v1",
+  "request_id": "table-display-model",
+  "idempotency_key": "table-display-model",
+  "project_id": "synthetic-paired-design-study",
+  "model_id": "display-model",
+  "expected_parent_digest": "mm1-empty-scene",
+  "authority": "WorkspaceMutation",
+  "intent": "Create synthetic display model study",
+  "constraints": [
+    "Synthetic digital reference only; no physical authority"
+  ],
+  "backend_preference": "mock-reference",
+  "operation": {
+    "method": "scene.create-model",
+    "params": {
+      "name": "display model study",
+      "units": "mm",
+      "coordinateFrame": "z-up-right-handed"
+    }
+  }
+}

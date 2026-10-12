@@ -1,0 +1,72 @@
+{
+  "contract_id": "moonflow.matrix-plan.v1",
+  "item_prefix": "study",
+  "template_work_item_id": "make-model",
+  "axes": [
+    {
+      "name": "label",
+      "values": [
+        {
+          "key": "cafe",
+          "value": "Café, \"red\" 雪"
+        },
+        {
+          "key": "wide",
+          "value": "Wide model"
+        }
+      ]
+    },
+    {
+      "name": "units",
+      "values": [
+        {
+          "key": "mm",
+          "value": "mm"
+        },
+        {
+          "key": "cm",
+          "value": "cm"
+        }
+      ]
+    },
+    {
+      "name": "frame",
+      "values": [
+        {
+          "key": "z",
+          "value": "z-up-right-handed"
+        },
+        {
+          "key": "y",
+          "value": "y-up-right-handed"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "target_pointer": "/request_id",
+      "value_pointer": "/id"
+    },
+    {
+      "target_pointer": "/idempotency_key",
+      "value_pointer": "/id"
+    },
+    {
+      "target_pointer": "/model_id",
+      "value_pointer": "/id"
+    },
+    {
+      "target_pointer": "/operation/params/name",
+      "value_pointer": "/parameters/label"
+    },
+    {
+      "target_pointer": "/operation/params/units",
+      "value_pointer": "/parameters/units"
+    },
+    {
+      "target_pointer": "/operation/params/coordinateFrame",
+      "value_pointer": "/parameters/frame"
+    }
+  ]
+}

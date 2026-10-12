@@ -1,0 +1,15 @@
+{
+  "contract_id": "moonmold.spatial-operation-request.v1",
+  "request_id": "csv-display-model",
+  "idempotency_key": "csv-display-model",
+  "project_id": "synthetic-furniture-study",
+  "model_id": "display",
+  "expected_parent_digest": "mm1-empty-scene",
+  "authority": "WorkspaceMutation",
+  "intent": "Create the display study after both variant studies are reviewed",
+  "constraints": ["Synthetic digital reference only; no physical authority"],
+  "backend_preference": "mock-reference",
+  "operation": {"method": "scene.create-model", "params": {
+    "name": "Furniture study display", "units": "mm", "coordinateFrame": "z-up-right-handed"
+  }}
+}

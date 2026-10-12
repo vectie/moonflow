@@ -1,0 +1,129 @@
+{
+  "contract_id": "moonsuite.work-model.v1",
+  "graph_id": "timing-α, \"release\"\nworksheet",
+  "book_id": "timing-fixture",
+  "declaration_revision": "r1",
+  "source_digest": "sha256:fixture",
+  "recorded_at": "2026-10-10T00:00:00Z",
+  "items": [
+    {
+      "work_item_id": "isolated",
+      "declaration_id": "isolated",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review exact artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "missing/isolated.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": []
+    },
+    {
+      "work_item_id": "join",
+      "declaration_id": "join",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review exact artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "missing/join.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": [
+        "root",
+        "left",
+        "left",
+        "right"
+      ]
+    },
+    {
+      "work_item_id": "right",
+      "declaration_id": "right",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review exact artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "missing/right.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": [
+        "root"
+      ]
+    },
+    {
+      "work_item_id": "left",
+      "declaration_id": "left",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review exact artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "missing/left.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": [
+        "root"
+      ]
+    },
+    {
+      "work_item_id": "root",
+      "declaration_id": "root",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review exact artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "missing/root.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": []
+    }
+  ]
+}

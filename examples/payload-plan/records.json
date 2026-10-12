@@ -1,0 +1,34 @@
+{
+  "jobs": [
+    {
+      "id": "compact",
+      "request_id": "payload-compact-model",
+      "name": "Compact café, \"red\" 雪",
+      "after": [],
+      "review": [
+        "Review the compact model and coordinate frame"
+      ]
+    },
+    {
+      "id": "wide",
+      "request_id": "payload-wide-model",
+      "name": "Wide model",
+      "after": [],
+      "review": [
+        "Review the wide model and coordinate frame"
+      ]
+    },
+    {
+      "id": "display",
+      "request_id": "payload-display-model",
+      "name": "Display model",
+      "after": [
+        "compact",
+        "wide"
+      ],
+      "review": [
+        "Review display after both models"
+      ]
+    }
+  ]
+}

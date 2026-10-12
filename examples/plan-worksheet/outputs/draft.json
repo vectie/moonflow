@@ -1,0 +1,62 @@
+{
+  "contract_id": "moonflow.declared-plan-draft.v1",
+  "draft_id": "revised-study",
+  "source_kind": "existing-graph",
+  "source_graph_json": "{\"items\":[{\"operation\":\"moonmold/spatial.operation.execute@0.2.0\",\"depends_on\":[],\"product_id\":\"moonmold\",\"timeout_ms\":60000,\"work_item_id\":\"root\",\"declaration_id\":\"root\",\"required_claim\":\"digital-artifact\",\"input_artifacts\":[\"requests/root.json\"],\"input_contracts\":[\"moonmold/spatial-operation-request@1.0.0\"],\"output_contracts\":[\"moonmold/spatial-operation-receipt@1.0.0\"],\"acceptance_criteria\":[\"Review the exact root artifact\"],\"requested_authority\":\"workspace-mutation\"},{\"operation\":\"moonmold/spatial.operation.execute@0.2.0\",\"depends_on\":[\"root\"],\"product_id\":\"moonmold\",\"timeout_ms\":60000,\"work_item_id\":\"left\",\"declaration_id\":\"left\",\"required_claim\":\"digital-artifact\",\"input_artifacts\":[\"requests/left.json\"],\"input_contracts\":[\"moonmold/spatial-operation-request@1.0.0\"],\"output_contracts\":[\"moonmold/spatial-operation-receipt@1.0.0\"],\"acceptance_criteria\":[\"Review the exact left artifact\"],\"requested_authority\":\"workspace-mutation\"},{\"operation\":\"moonmold/spatial.operation.execute@0.2.0\",\"depends_on\":[\"root\"],\"product_id\":\"moonmold\",\"timeout_ms\":60000,\"work_item_id\":\"right\",\"declaration_id\":\"right\",\"required_claim\":\"digital-artifact\",\"input_artifacts\":[\"requests/right.json\"],\"input_contracts\":[\"moonmold/spatial-operation-request@1.0.0\"],\"output_contracts\":[\"moonmold/spatial-operation-receipt@1.0.0\"],\"acceptance_criteria\":[\"Review the exact right artifact\"],\"requested_authority\":\"workspace-mutation\"},{\"operation\":\"moonmold/spatial.operation.execute@0.2.0\",\"depends_on\":[\"left\",\"right\"],\"product_id\":\"moonmold\",\"timeout_ms\":60000,\"work_item_id\":\"join\",\"declaration_id\":\"join\",\"required_claim\":\"digital-artifact\",\"input_artifacts\":[\"requests/join.json\"],\"input_contracts\":[\"moonmold/spatial-operation-request@1.0.0\"],\"output_contracts\":[\"moonmold/spatial-operation-receipt@1.0.0\"],\"acceptance_criteria\":[\"Review the exact join artifact\"],\"requested_authority\":\"workspace-mutation\"}],\"book_id\":\"synthetic-worksheet-design\",\"graph_id\":\"worksheet-design-r1\",\"contract_id\":\"moonsuite.work-model.v1\",\"recorded_at\":\"2026-07-31T00:00:00Z\",\"source_digest\":\"sha256:synthetic-worksheet-design-r1\",\"declaration_revision\":\"r1\"}",
+  "source_graph_digest": "sha256:8abd669b0a81a950b8fa861b6f06e44e32f0774865f23c4e2c8735f25e3f31e5",
+  "recorded_at": "2026-07-31T00:00:00Z",
+  "edits": [
+    {
+      "work_item_id": "root",
+      "input_artifacts": [
+        "requests/root.json"
+      ],
+      "depends_on": [
+        "left"
+      ],
+      "acceptance_criteria": [
+        "Review the exact root artifact"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "work_item_id": "left",
+      "input_artifacts": [
+        "requests/left-v2.json"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Review café, \"revised\" shape\nincluding joints",
+        " Keep outer spaces "
+      ],
+      "timeout_ms": 90000
+    },
+    {
+      "work_item_id": "right",
+      "input_artifacts": [
+        "requests/right.json"
+      ],
+      "depends_on": [
+        "root"
+      ],
+      "acceptance_criteria": [
+        "Review the exact right artifact"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "work_item_id": "join",
+      "input_artifacts": [
+        "requests/join.json"
+      ],
+      "depends_on": [
+        "left",
+        "right"
+      ],
+      "acceptance_criteria": [
+        "Review the exact join artifact"
+      ],
+      "timeout_ms": 60000
+    }
+  ]
+}

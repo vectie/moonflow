@@ -1,0 +1,22 @@
+{
+  "contract_id": "moonmold.spatial-operation-request.v1",
+  "request_id": "subgraph-back",
+  "idempotency_key": "subgraph-back",
+  "project_id": "synthetic-furniture-range",
+  "model_id": "back",
+  "expected_parent_digest": "mm1-empty-scene",
+  "authority": "WorkspaceMutation",
+  "intent": "Create synthetic back study",
+  "constraints": [
+    "Synthetic digital reference only; no physical authority"
+  ],
+  "backend_preference": "mock-reference",
+  "operation": {
+    "method": "scene.create-model",
+    "params": {
+      "name": "synthetic back study",
+      "units": "mm",
+      "coordinateFrame": "z-up-right-handed"
+    }
+  }
+}

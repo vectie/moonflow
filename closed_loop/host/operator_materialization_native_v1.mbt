@@ -39,6 +39,21 @@ pub async fn atomic_replace_named_json_v1(
   name : String,
   canonical_json : String,
 ) -> Unit {
+  atomic_replace_named_bytes_v1(
+    directory,
+    name,
+    @utf8.encode(canonical_json + "\n"),
+  )
+}
+
+///|
+/// Same crash-safe write primitive for retained input artifacts, including
+/// binary evidence. Callers validate confinement and immutable identity first.
+pub async fn atomic_replace_named_bytes_v1(
+  directory : String,
+  name : String,
+  bytes : Bytes,
+) -> Unit {
   if !directory.has_prefix("/") ||
     name.is_blank() ||
     name.contains("/") ||
@@ -53,7 +68,6 @@ pub async fn atomic_replace_named_json_v1(
   if canonical_directory != directory {
     fail("atomic JSON directory must be canonical")
   }
-  let bytes = @utf8.encode(canonical_json + "\n")
   let digest = @contracts.sha256_digest(bytes)
   let target = directory + "/" + name
   let temporary = directory + "/." + name + "." + digest.hex() + ".tmp"

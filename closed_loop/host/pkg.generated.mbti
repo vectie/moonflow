@@ -13,6 +13,8 @@ pub fn advance_configured_pack_run_json_v1(Json, Bytes) -> PackRunApplicationRec
 
 pub fn advance_configured_pack_run_v1(ConfiguredPackRunApplicationV1, Bytes) -> PackRunApplicationReceiptV1 raise
 
+pub async fn atomic_replace_named_bytes_v1(String, String, Bytes) -> Unit
+
 pub async fn atomic_replace_named_json_v1(String, String, String) -> Unit
 
 pub fn commit_configured_pack_handoff_json_v1(Json, Bytes) -> @orchestration.PackHostReceiptV1 raise
@@ -107,4 +109,3 @@ pub fn PackRunApplicationReceiptV1::to_json(Self) -> Json
 // Type aliases
 
 // Traits
-

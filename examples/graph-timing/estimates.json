@@ -1,0 +1,11 @@
+{
+  "contract_id": "moonflow.duration-estimates.v1",
+  "graph_id": "timing-α, \"release\"\nworksheet",
+  "durations_seconds": {
+    "root": 10,
+    "left": 20,
+    "right": 5,
+    "join": 3,
+    "isolated": 8
+  }
+}

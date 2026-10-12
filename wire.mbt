@@ -256,6 +256,7 @@ pub fn projection_json(projection : RunProjection) -> Json {
     "outcome": projection.outcome,
     "runnable_item_ids": projection.runnable_item_ids().to_json(),
     "items": items,
+    "owner_summary": owner_summary_v1(projection).to_json(),
   }
 }
 

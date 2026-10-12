@@ -1,0 +1,10 @@
+{
+  "contract_id": "moonflow.records-plan-mapping.v1",
+  "records_pointer": "/data/jobs",
+  "template_work_item_id": "make-model",
+  "work_item_id_pointer": "/ticket/key",
+  "input_artifacts_pointer": "/work/files",
+  "depends_on_pointer": "/work/after",
+  "acceptance_criteria_pointer": "/review/checklist",
+  "timeout_ms_pointer": "/work/timeout_ms"
+}

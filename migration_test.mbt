@@ -15,7 +15,11 @@ fn accepted_checkpoint(
     },
     requested_authority: "sandbox-execution",
     acceptance_criteria: [criterion],
-    operation: declaration_id,
+    operation: if declaration_id == "research" {
+      "query-evidence"
+    } else {
+      "build"
+    },
     input_contracts: ["test.input.v1"],
     output_contracts: ["test.output.v1"],
     required_claim: "research-evidence",

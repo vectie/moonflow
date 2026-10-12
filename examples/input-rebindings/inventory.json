@@ -1,0 +1,64 @@
+{
+  "contract_id": "moonflow.worksheet-input-inventory.v1",
+  "worksheet_sha256": "sha256:080aa3288d990ec013eeae25f2a8ccc8f5cdf95267a37b6d266f241c6581d3cb",
+  "source_graph_digest": "sha256:8abd669b0a81a950b8fa861b6f06e44e32f0774865f23c4e2c8735f25e3f31e5",
+  "work_item_count": 4,
+  "reference_count": 6,
+  "unique_input_count": 5,
+  "shared_input_count": 1,
+  "inputs": [
+    {
+      "artifact_ref": "requests/root.json",
+      "work_item_ids": [
+        "root"
+      ],
+      "product_ids": [
+        "moonmold"
+      ],
+      "shared": false
+    },
+    {
+      "artifact_ref": "requests/left.json",
+      "work_item_ids": [
+        "left"
+      ],
+      "product_ids": [
+        "moonmold"
+      ],
+      "shared": false
+    },
+    {
+      "artifact_ref": "references/finish-v1.json",
+      "work_item_ids": [
+        "left",
+        "right"
+      ],
+      "product_ids": [
+        "moonmold"
+      ],
+      "shared": true
+    },
+    {
+      "artifact_ref": "requests/right.json",
+      "work_item_ids": [
+        "right"
+      ],
+      "product_ids": [
+        "moonmold"
+      ],
+      "shared": false
+    },
+    {
+      "artifact_ref": "requests/join.json",
+      "work_item_ids": [
+        "join"
+      ],
+      "product_ids": [
+        "moonmold"
+      ],
+      "shared": false
+    }
+  ],
+  "payloads_read": false,
+  "dispatched": false
+}

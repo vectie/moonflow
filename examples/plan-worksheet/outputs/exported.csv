@@ -1,0 +1,5 @@
+source_graph_digest,work_item_id,product_id,operation,input_artifacts,depends_on,acceptance_criteria,timeout_ms
+"sha256:8abd669b0a81a950b8fa861b6f06e44e32f0774865f23c4e2c8735f25e3f31e5","root","moonmold","moonmold/spatial.operation.execute@0.2.0","[""requests/root.json""]","[]","[""Review the exact root artifact""]","60000"
+"sha256:8abd669b0a81a950b8fa861b6f06e44e32f0774865f23c4e2c8735f25e3f31e5","left","moonmold","moonmold/spatial.operation.execute@0.2.0","[""requests/left.json""]","[""root""]","[""Review the exact left artifact""]","60000"
+"sha256:8abd669b0a81a950b8fa861b6f06e44e32f0774865f23c4e2c8735f25e3f31e5","right","moonmold","moonmold/spatial.operation.execute@0.2.0","[""requests/right.json""]","[""root""]","[""Review the exact right artifact""]","60000"
+"sha256:8abd669b0a81a950b8fa861b6f06e44e32f0774865f23c4e2c8735f25e3f31e5","join","moonmold","moonmold/spatial.operation.execute@0.2.0","[""requests/join.json""]","[""left"",""right""]","[""Review the exact join artifact""]","60000"

@@ -1,0 +1,316 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>MoonFlow recorded timeline</title><style>body{font:16px system-ui;max-width:1100px;margin:2rem auto;padding:1rem}article{border-top:2px solid #888;margin-top:2rem}pre{white-space:pre-wrap;overflow-wrap:anywhere}td,th{border:1px solid #aaa;padding:.4rem;vertical-align:top}table{border-collapse:collapse;width:100%}label{display:inline-block;margin:.5rem}[hidden]{display:none}@media print{article[hidden]{display:block}nav{display:none}}</style>
+<h1>publication: recorded timeline</h1><p>Read-only exported evidence. No replay, execution, current-state verification or acceptance is performed. Order is canonical sequence, never elapsed time.</p>
+<p>Exact report SHA-256: 71d29c2c0cfccfd8e1cebc229b71d7423e6115ad528dae04f7778f9063701898</p><p>Selected export scope: All items. Supplied events: 5; canonical: 4; duplicate deliveries omitted: 1.</p>
+<details><summary>Complete recorded run head</summary><pre>{
+  &quot;run_id&quot;: &quot;publication&quot;,
+  &quot;book_id&quot;: &quot;fixture-book&quot;,
+  &quot;declaration_revision&quot;: &quot;draft-1&quot;,
+  &quot;source_digest&quot;: &quot;fixture-source&quot;,
+  &quot;last_sequence&quot;: 3,
+  &quot;last_event_id&quot;: &quot;e3&quot;,
+  &quot;recorded_at&quot;: &quot;2026-10-12T00:00:00Z&quot;,
+  &quot;run_outcome&quot;: &quot;review&quot;
+}</pre></details>
+<p>Retained artifacts and approvals in snapshots are cumulative. They are not newly produced by this event. References are displayed as text and never opened.</p>
+<nav hidden><label>Item <select id="item"><option value="">All items</option><option value="0">Run-level</option><option value="1">check</option></select></label><label>Event kind <select id="kind"><option value="">All kinds</option><option value="0">run-created</option><option value="1">item-registered</option><option value="2">attempt-submitted</option><option value="3">attempt-reconciled</option></select></label><label>Search event and snapshots <input id="search" type="search"></label><button id="reset">Reset</button></nav>
+<p id="count" aria-live="polite">4 events</p><p id="empty" hidden>No events in this view.</p><article id="event-0" data-index="0"><h2><a href="#event-0">#0</a> run-created · Run-level</h2>
+<p>Event e0 · Recorded 2026-10-12T00:00:03Z</p>
+<p>Item: No item snapshot → No item snapshot; run: proposed → proposed</p>
+<table><caption>Changed snapshot fields (JSON null also represents an absent field here; complete snapshots below)</caption><thead><tr><th>Field</th><th>Before</th><th>After</th></tr></thead><tbody></tbody></table>
+<details><summary>This event only</summary><pre>{
+  &quot;sequence&quot;: 0,
+  &quot;event_id&quot;: &quot;e0&quot;,
+  &quot;run_id&quot;: &quot;publication&quot;,
+  &quot;work_item_id&quot;: &quot;&quot;,
+  &quot;kind&quot;: &quot;run-created&quot;,
+  &quot;product_id&quot;: &quot;&quot;,
+  &quot;declaration_id&quot;: &quot;&quot;,
+  &quot;book_id&quot;: &quot;&quot;,
+  &quot;declaration_revision&quot;: &quot;&quot;,
+  &quot;source_digest&quot;: &quot;&quot;,
+  &quot;requested_authority&quot;: &quot;&quot;,
+  &quot;acceptance_criteria&quot;: [],
+  &quot;operation&quot;: &quot;&quot;,
+  &quot;input_contracts&quot;: [],
+  &quot;output_contracts&quot;: [],
+  &quot;required_claim&quot;: &quot;&quot;,
+  &quot;input_artifacts&quot;: [],
+  &quot;timeout_ms&quot;: 0,
+  &quot;request_id&quot;: &quot;&quot;,
+  &quot;result_id&quot;: &quot;&quot;,
+  &quot;attempt_id&quot;: &quot;&quot;,
+  &quot;idempotency_key&quot;: &quot;&quot;,
+  &quot;external_job_id&quot;: &quot;&quot;,
+  &quot;attempt_status&quot;: &quot;&quot;,
+  &quot;input_digest&quot;: &quot;&quot;,
+  &quot;output_digest&quot;: &quot;&quot;,
+  &quot;output_artifacts&quot;: [],
+  &quot;error_kind&quot;: &quot;&quot;,
+  &quot;compensable&quot;: false,
+  &quot;depends_on&quot;: [],
+  &quot;detail&quot;: &quot;&quot;,
+  &quot;artifact_id&quot;: &quot;&quot;,
+  &quot;authority_id&quot;: &quot;&quot;,
+  &quot;recorded_at&quot;: &quot;2026-10-12T00:00:03Z&quot;
+}</pre></details><details><summary>Complete before snapshot</summary><pre>null</pre></details><details><summary>Complete after snapshot</summary><pre>null</pre></details></article><article id="event-1" data-index="1"><h2><a href="#event-1">#1</a> item-registered · check</h2>
+<p>Event e1 · Recorded 2026-10-12T00:00:02Z</p>
+<p>Item: No item snapshot → proposed; run: proposed → proposed</p>
+<table><caption>Changed snapshot fields (JSON null also represents an absent field here; complete snapshots below)</caption><thead><tr><th>Field</th><th>Before</th><th>After</th></tr></thead><tbody><tr><th>declaration_id</th><td><pre>null</pre></td><td><pre>&quot;check&quot;</pre></td></tr><tr><th>product_id</th><td><pre>null</pre></td><td><pre>&quot;fixture&quot;</pre></td></tr><tr><th>operation</th><td><pre>null</pre></td><td><pre>&quot;fixture/check@1&quot;</pre></td></tr><tr><th>status</th><td><pre>null</pre></td><td><pre>&quot;proposed&quot;</pre></td></tr><tr><th>attempt_count</th><td><pre>null</pre></td><td><pre>0</pre></td></tr><tr><th>request_id</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>attempt_id</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>idempotency_key</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>external_job_id</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>attempt_status</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>input_digest</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>result_id</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>output_digest</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>error_kind</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>compensable</th><td><pre>null</pre></td><td><pre>false</pre></td></tr><tr><th>blocker</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>review_id</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>review_artifact</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>reviewer_id</th><td><pre>null</pre></td><td><pre>&quot;&quot;</pre></td></tr><tr><th>retained_artifacts</th><td><pre>null</pre></td><td><pre>[]</pre></td></tr><tr><th>recorded_approvals</th><td><pre>null</pre></td><td><pre>[]</pre></td></tr></tbody></table>
+<details><summary>This event only</summary><pre>{
+  &quot;sequence&quot;: 1,
+  &quot;event_id&quot;: &quot;e1&quot;,
+  &quot;run_id&quot;: &quot;publication&quot;,
+  &quot;work_item_id&quot;: &quot;check&quot;,
+  &quot;kind&quot;: &quot;item-registered&quot;,
+  &quot;product_id&quot;: &quot;&quot;,
+  &quot;declaration_id&quot;: &quot;&quot;,
+  &quot;book_id&quot;: &quot;&quot;,
+  &quot;declaration_revision&quot;: &quot;&quot;,
+  &quot;source_digest&quot;: &quot;&quot;,
+  &quot;requested_authority&quot;: &quot;&quot;,
+  &quot;acceptance_criteria&quot;: [],
+  &quot;operation&quot;: &quot;&quot;,
+  &quot;input_contracts&quot;: [],
+  &quot;output_contracts&quot;: [],
+  &quot;required_claim&quot;: &quot;&quot;,
+  &quot;input_artifacts&quot;: [],
+  &quot;timeout_ms&quot;: 0,
+  &quot;request_id&quot;: &quot;&quot;,
+  &quot;result_id&quot;: &quot;&quot;,
+  &quot;attempt_id&quot;: &quot;&quot;,
+  &quot;idempotency_key&quot;: &quot;&quot;,
+  &quot;external_job_id&quot;: &quot;&quot;,
+  &quot;attempt_status&quot;: &quot;&quot;,
+  &quot;input_digest&quot;: &quot;&quot;,
+  &quot;output_digest&quot;: &quot;&quot;,
+  &quot;output_artifacts&quot;: [],
+  &quot;error_kind&quot;: &quot;&quot;,
+  &quot;compensable&quot;: false,
+  &quot;depends_on&quot;: [],
+  &quot;detail&quot;: &quot;&quot;,
+  &quot;artifact_id&quot;: &quot;&quot;,
+  &quot;authority_id&quot;: &quot;&quot;,
+  &quot;recorded_at&quot;: &quot;2026-10-12T00:00:02Z&quot;
+}</pre></details><details><summary>Complete before snapshot</summary><pre>null</pre></details><details><summary>Complete after snapshot</summary><pre>{
+  &quot;declaration_id&quot;: &quot;check&quot;,
+  &quot;product_id&quot;: &quot;fixture&quot;,
+  &quot;operation&quot;: &quot;fixture/check@1&quot;,
+  &quot;status&quot;: &quot;proposed&quot;,
+  &quot;attempt_count&quot;: 0,
+  &quot;request_id&quot;: &quot;&quot;,
+  &quot;attempt_id&quot;: &quot;&quot;,
+  &quot;idempotency_key&quot;: &quot;&quot;,
+  &quot;external_job_id&quot;: &quot;&quot;,
+  &quot;attempt_status&quot;: &quot;&quot;,
+  &quot;input_digest&quot;: &quot;&quot;,
+  &quot;result_id&quot;: &quot;&quot;,
+  &quot;output_digest&quot;: &quot;&quot;,
+  &quot;error_kind&quot;: &quot;&quot;,
+  &quot;compensable&quot;: false,
+  &quot;blocker&quot;: &quot;&quot;,
+  &quot;review_id&quot;: &quot;&quot;,
+  &quot;review_artifact&quot;: &quot;&quot;,
+  &quot;reviewer_id&quot;: &quot;&quot;,
+  &quot;retained_artifacts&quot;: [],
+  &quot;recorded_approvals&quot;: []
+}</pre></details></article><article id="event-2" data-index="2"><h2><a href="#event-2">#2</a> attempt-submitted · check</h2>
+<p>Event e2 · Recorded 2026-10-12T00:00:01Z</p>
+<p>Item: proposed → active; run: active → active</p>
+<table><caption>Changed snapshot fields (JSON null also represents an absent field here; complete snapshots below)</caption><thead><tr><th>Field</th><th>Before</th><th>After</th></tr></thead><tbody><tr><th>status</th><td><pre>&quot;proposed&quot;</pre></td><td><pre>&quot;active&quot;</pre></td></tr><tr><th>attempt_count</th><td><pre>0</pre></td><td><pre>1</pre></td></tr><tr><th>attempt_id</th><td><pre>&quot;&quot;</pre></td><td><pre>&quot;try-1&quot;</pre></td></tr></tbody></table>
+<details><summary>This event only</summary><pre>{
+  &quot;sequence&quot;: 2,
+  &quot;event_id&quot;: &quot;e2&quot;,
+  &quot;run_id&quot;: &quot;publication&quot;,
+  &quot;work_item_id&quot;: &quot;check&quot;,
+  &quot;kind&quot;: &quot;attempt-submitted&quot;,
+  &quot;product_id&quot;: &quot;&quot;,
+  &quot;declaration_id&quot;: &quot;&quot;,
+  &quot;book_id&quot;: &quot;&quot;,
+  &quot;declaration_revision&quot;: &quot;&quot;,
+  &quot;source_digest&quot;: &quot;&quot;,
+  &quot;requested_authority&quot;: &quot;&quot;,
+  &quot;acceptance_criteria&quot;: [],
+  &quot;operation&quot;: &quot;&quot;,
+  &quot;input_contracts&quot;: [],
+  &quot;output_contracts&quot;: [],
+  &quot;required_claim&quot;: &quot;&quot;,
+  &quot;input_artifacts&quot;: [],
+  &quot;timeout_ms&quot;: 0,
+  &quot;request_id&quot;: &quot;&quot;,
+  &quot;result_id&quot;: &quot;&quot;,
+  &quot;attempt_id&quot;: &quot;&quot;,
+  &quot;idempotency_key&quot;: &quot;&quot;,
+  &quot;external_job_id&quot;: &quot;&quot;,
+  &quot;attempt_status&quot;: &quot;&quot;,
+  &quot;input_digest&quot;: &quot;&quot;,
+  &quot;output_digest&quot;: &quot;&quot;,
+  &quot;output_artifacts&quot;: [],
+  &quot;error_kind&quot;: &quot;&quot;,
+  &quot;compensable&quot;: false,
+  &quot;depends_on&quot;: [],
+  &quot;detail&quot;: &quot;&quot;,
+  &quot;artifact_id&quot;: &quot;&quot;,
+  &quot;authority_id&quot;: &quot;&quot;,
+  &quot;recorded_at&quot;: &quot;2026-10-12T00:00:01Z&quot;
+}</pre></details><details><summary>Complete before snapshot</summary><pre>{
+  &quot;declaration_id&quot;: &quot;check&quot;,
+  &quot;product_id&quot;: &quot;fixture&quot;,
+  &quot;operation&quot;: &quot;fixture/check@1&quot;,
+  &quot;status&quot;: &quot;proposed&quot;,
+  &quot;attempt_count&quot;: 0,
+  &quot;request_id&quot;: &quot;&quot;,
+  &quot;attempt_id&quot;: &quot;&quot;,
+  &quot;idempotency_key&quot;: &quot;&quot;,
+  &quot;external_job_id&quot;: &quot;&quot;,
+  &quot;attempt_status&quot;: &quot;&quot;,
+  &quot;input_digest&quot;: &quot;&quot;,
+  &quot;result_id&quot;: &quot;&quot;,
+  &quot;output_digest&quot;: &quot;&quot;,
+  &quot;error_kind&quot;: &quot;&quot;,
+  &quot;compensable&quot;: false,
+  &quot;blocker&quot;: &quot;&quot;,
+  &quot;review_id&quot;: &quot;&quot;,
+  &quot;review_artifact&quot;: &quot;&quot;,
+  &quot;reviewer_id&quot;: &quot;&quot;,
+  &quot;retained_artifacts&quot;: [],
+  &quot;recorded_approvals&quot;: []
+}</pre></details><details><summary>Complete after snapshot</summary><pre>{
+  &quot;declaration_id&quot;: &quot;check&quot;,
+  &quot;product_id&quot;: &quot;fixture&quot;,
+  &quot;operation&quot;: &quot;fixture/check@1&quot;,
+  &quot;status&quot;: &quot;active&quot;,
+  &quot;attempt_count&quot;: 1,
+  &quot;request_id&quot;: &quot;&quot;,
+  &quot;attempt_id&quot;: &quot;try-1&quot;,
+  &quot;idempotency_key&quot;: &quot;&quot;,
+  &quot;external_job_id&quot;: &quot;&quot;,
+  &quot;attempt_status&quot;: &quot;&quot;,
+  &quot;input_digest&quot;: &quot;&quot;,
+  &quot;result_id&quot;: &quot;&quot;,
+  &quot;output_digest&quot;: &quot;&quot;,
+  &quot;error_kind&quot;: &quot;&quot;,
+  &quot;compensable&quot;: false,
+  &quot;blocker&quot;: &quot;&quot;,
+  &quot;review_id&quot;: &quot;&quot;,
+  &quot;review_artifact&quot;: &quot;&quot;,
+  &quot;reviewer_id&quot;: &quot;&quot;,
+  &quot;retained_artifacts&quot;: [],
+  &quot;recorded_approvals&quot;: []
+}</pre></details></article><article id="event-3" data-index="3"><h2><a href="#event-3">#3</a> attempt-reconciled · check</h2>
+<p>Event e3 · Recorded 2026-10-12T00:00:00Z</p>
+<p>Item: active → review; run: active → review</p>
+<table><caption>Changed snapshot fields (JSON null also represents an absent field here; complete snapshots below)</caption><thead><tr><th>Field</th><th>Before</th><th>After</th></tr></thead><tbody><tr><th>status</th><td><pre>&quot;active&quot;</pre></td><td><pre>&quot;review&quot;</pre></td></tr><tr><th>attempt_status</th><td><pre>&quot;&quot;</pre></td><td><pre>&quot;succeeded&quot;</pre></td></tr><tr><th>result_id</th><td><pre>&quot;&quot;</pre></td><td><pre>&quot;result-1&quot;</pre></td></tr><tr><th>retained_artifacts</th><td><pre>[]</pre></td><td><pre>[
+  &quot;outputs/result.txt&quot;
+]</pre></td></tr></tbody></table>
+<details><summary>This event only</summary><pre>{
+  &quot;sequence&quot;: 3,
+  &quot;event_id&quot;: &quot;e3&quot;,
+  &quot;run_id&quot;: &quot;publication&quot;,
+  &quot;work_item_id&quot;: &quot;check&quot;,
+  &quot;kind&quot;: &quot;attempt-reconciled&quot;,
+  &quot;product_id&quot;: &quot;&quot;,
+  &quot;declaration_id&quot;: &quot;&quot;,
+  &quot;book_id&quot;: &quot;&quot;,
+  &quot;declaration_revision&quot;: &quot;&quot;,
+  &quot;source_digest&quot;: &quot;&quot;,
+  &quot;requested_authority&quot;: &quot;&quot;,
+  &quot;acceptance_criteria&quot;: [],
+  &quot;operation&quot;: &quot;&quot;,
+  &quot;input_contracts&quot;: [],
+  &quot;output_contracts&quot;: [],
+  &quot;required_claim&quot;: &quot;&quot;,
+  &quot;input_artifacts&quot;: [],
+  &quot;timeout_ms&quot;: 0,
+  &quot;request_id&quot;: &quot;&quot;,
+  &quot;result_id&quot;: &quot;&quot;,
+  &quot;attempt_id&quot;: &quot;&quot;,
+  &quot;idempotency_key&quot;: &quot;&quot;,
+  &quot;external_job_id&quot;: &quot;&quot;,
+  &quot;attempt_status&quot;: &quot;&quot;,
+  &quot;input_digest&quot;: &quot;&quot;,
+  &quot;output_digest&quot;: &quot;&quot;,
+  &quot;output_artifacts&quot;: [],
+  &quot;error_kind&quot;: &quot;&quot;,
+  &quot;compensable&quot;: false,
+  &quot;depends_on&quot;: [],
+  &quot;detail&quot;: &quot;&quot;,
+  &quot;artifact_id&quot;: &quot;&quot;,
+  &quot;authority_id&quot;: &quot;&quot;,
+  &quot;recorded_at&quot;: &quot;2026-10-12T00:00:00Z&quot;
+}</pre></details><details><summary>Complete before snapshot</summary><pre>{
+  &quot;declaration_id&quot;: &quot;check&quot;,
+  &quot;product_id&quot;: &quot;fixture&quot;,
+  &quot;operation&quot;: &quot;fixture/check@1&quot;,
+  &quot;status&quot;: &quot;active&quot;,
+  &quot;attempt_count&quot;: 1,
+  &quot;request_id&quot;: &quot;&quot;,
+  &quot;attempt_id&quot;: &quot;try-1&quot;,
+  &quot;idempotency_key&quot;: &quot;&quot;,
+  &quot;external_job_id&quot;: &quot;&quot;,
+  &quot;attempt_status&quot;: &quot;&quot;,
+  &quot;input_digest&quot;: &quot;&quot;,
+  &quot;result_id&quot;: &quot;&quot;,
+  &quot;output_digest&quot;: &quot;&quot;,
+  &quot;error_kind&quot;: &quot;&quot;,
+  &quot;compensable&quot;: false,
+  &quot;blocker&quot;: &quot;&quot;,
+  &quot;review_id&quot;: &quot;&quot;,
+  &quot;review_artifact&quot;: &quot;&quot;,
+  &quot;reviewer_id&quot;: &quot;&quot;,
+  &quot;retained_artifacts&quot;: [],
+  &quot;recorded_approvals&quot;: []
+}</pre></details><details><summary>Complete after snapshot</summary><pre>{
+  &quot;declaration_id&quot;: &quot;check&quot;,
+  &quot;product_id&quot;: &quot;fixture&quot;,
+  &quot;operation&quot;: &quot;fixture/check@1&quot;,
+  &quot;status&quot;: &quot;review&quot;,
+  &quot;attempt_count&quot;: 1,
+  &quot;request_id&quot;: &quot;&quot;,
+  &quot;attempt_id&quot;: &quot;try-1&quot;,
+  &quot;idempotency_key&quot;: &quot;&quot;,
+  &quot;external_job_id&quot;: &quot;&quot;,
+  &quot;attempt_status&quot;: &quot;succeeded&quot;,
+  &quot;input_digest&quot;: &quot;&quot;,
+  &quot;result_id&quot;: &quot;result-1&quot;,
+  &quot;output_digest&quot;: &quot;&quot;,
+  &quot;error_kind&quot;: &quot;&quot;,
+  &quot;compensable&quot;: false,
+  &quot;blocker&quot;: &quot;&quot;,
+  &quot;review_id&quot;: &quot;&quot;,
+  &quot;review_artifact&quot;: &quot;&quot;,
+  &quot;reviewer_id&quot;: &quot;&quot;,
+  &quot;retained_artifacts&quot;: [
+    &quot;outputs/result.txt&quot;
+  ],
+  &quot;recorded_approvals&quot;: []
+}</pre></details></article>
+<script id="timeline-data" type="application/json">[{"item": 0, "kind": 0, "text": "{\"event\": {\"sequence\": 0, \"event_id\": \"e0\", \"run_id\": \"publication\", \"work_item_id\": \"\", \"kind\": \"run-created\", \"product_id\": \"\", \"declaration_id\": \"\", \"book_id\": \"\", \"declaration_revision\": \"\", \"source_digest\": \"\", \"requested_authority\": \"\", \"acceptance_criteria\": [], \"operation\": \"\", \"input_contracts\": [], \"output_contracts\": [], \"required_claim\": \"\", \"input_artifacts\": [], \"timeout_ms\": 0, \"request_id\": \"\", \"result_id\": \"\", \"attempt_id\": \"\", \"idempotency_key\": \"\", \"external_job_id\": \"\", \"attempt_status\": \"\", \"input_digest\": \"\", \"output_digest\": \"\", \"output_artifacts\": [], \"error_kind\": \"\", \"compensable\": false, \"depends_on\": [], \"detail\": \"\", \"artifact_id\": \"\", \"authority_id\": \"\", \"recorded_at\": \"2026-10-12T00:00:03Z\"}, \"before\": null, \"after\": null, \"run_outcome_before\": \"proposed\", \"run_outcome_after\": \"proposed\"}"}, {"item": 1, "kind": 1, "text": "{\"event\": {\"sequence\": 1, \"event_id\": \"e1\", \"run_id\": \"publication\", \"work_item_id\": \"check\", \"kind\": \"item-registered\", \"product_id\": \"\", \"declaration_id\": \"\", \"book_id\": \"\", \"declaration_revision\": \"\", \"source_digest\": \"\", \"requested_authority\": \"\", \"acceptance_criteria\": [], \"operation\": \"\", \"input_contracts\": [], \"output_contracts\": [], \"required_claim\": \"\", \"input_artifacts\": [], \"timeout_ms\": 0, \"request_id\": \"\", \"result_id\": \"\", \"attempt_id\": \"\", \"idempotency_key\": \"\", \"external_job_id\": \"\", \"attempt_status\": \"\", \"input_digest\": \"\", \"output_digest\": \"\", \"output_artifacts\": [], \"error_kind\": \"\", \"compensable\": false, \"depends_on\": [], \"detail\": \"\", \"artifact_id\": \"\", \"authority_id\": \"\", \"recorded_at\": \"2026-10-12T00:00:02Z\"}, \"before\": null, \"after\": {\"declaration_id\": \"check\", \"product_id\": \"fixture\", \"operation\": \"fixture/check@1\", \"status\": \"proposed\", \"attempt_count\": 0, \"request_id\": \"\", \"attempt_id\": \"\", \"idempotency_key\": \"\", \"external_job_id\": \"\", \"attempt_status\": \"\", \"input_digest\": \"\", \"result_id\": \"\", \"output_digest\": \"\", \"error_kind\": \"\", \"compensable\": false, \"blocker\": \"\", \"review_id\": \"\", \"review_artifact\": \"\", \"reviewer_id\": \"\", \"retained_artifacts\": [], \"recorded_approvals\": []}, \"run_outcome_before\": \"proposed\", \"run_outcome_after\": \"proposed\"}"}, {"item": 1, "kind": 2, "text": "{\"event\": {\"sequence\": 2, \"event_id\": \"e2\", \"run_id\": \"publication\", \"work_item_id\": \"check\", \"kind\": \"attempt-submitted\", \"product_id\": \"\", \"declaration_id\": \"\", \"book_id\": \"\", \"declaration_revision\": \"\", \"source_digest\": \"\", \"requested_authority\": \"\", \"acceptance_criteria\": [], \"operation\": \"\", \"input_contracts\": [], \"output_contracts\": [], \"required_claim\": \"\", \"input_artifacts\": [], \"timeout_ms\": 0, \"request_id\": \"\", \"result_id\": \"\", \"attempt_id\": \"\", \"idempotency_key\": \"\", \"external_job_id\": \"\", \"attempt_status\": \"\", \"input_digest\": \"\", \"output_digest\": \"\", \"output_artifacts\": [], \"error_kind\": \"\", \"compensable\": false, \"depends_on\": [], \"detail\": \"\", \"artifact_id\": \"\", \"authority_id\": \"\", \"recorded_at\": \"2026-10-12T00:00:01Z\"}, \"before\": {\"declaration_id\": \"check\", \"product_id\": \"fixture\", \"operation\": \"fixture/check@1\", \"status\": \"proposed\", \"attempt_count\": 0, \"request_id\": \"\", \"attempt_id\": \"\", \"idempotency_key\": \"\", \"external_job_id\": \"\", \"attempt_status\": \"\", \"input_digest\": \"\", \"result_id\": \"\", \"output_digest\": \"\", \"error_kind\": \"\", \"compensable\": false, \"blocker\": \"\", \"review_id\": \"\", \"review_artifact\": \"\", \"reviewer_id\": \"\", \"retained_artifacts\": [], \"recorded_approvals\": []}, \"after\": {\"declaration_id\": \"check\", \"product_id\": \"fixture\", \"operation\": \"fixture/check@1\", \"status\": \"active\", \"attempt_count\": 1, \"request_id\": \"\", \"attempt_id\": \"try-1\", \"idempotency_key\": \"\", \"external_job_id\": \"\", \"attempt_status\": \"\", \"input_digest\": \"\", \"result_id\": \"\", \"output_digest\": \"\", \"error_kind\": \"\", \"compensable\": false, \"blocker\": \"\", \"review_id\": \"\", \"review_artifact\": \"\", \"reviewer_id\": \"\", \"retained_artifacts\": [], \"recorded_approvals\": []}, \"run_outcome_before\": \"active\", \"run_outcome_after\": \"active\"}"}, {"item": 1, "kind": 3, "text": "{\"event\": {\"sequence\": 3, \"event_id\": \"e3\", \"run_id\": \"publication\", \"work_item_id\": \"check\", \"kind\": \"attempt-reconciled\", \"product_id\": \"\", \"declaration_id\": \"\", \"book_id\": \"\", \"declaration_revision\": \"\", \"source_digest\": \"\", \"requested_authority\": \"\", \"acceptance_criteria\": [], \"operation\": \"\", \"input_contracts\": [], \"output_contracts\": [], \"required_claim\": \"\", \"input_artifacts\": [], \"timeout_ms\": 0, \"request_id\": \"\", \"result_id\": \"\", \"attempt_id\": \"\", \"idempotency_key\": \"\", \"external_job_id\": \"\", \"attempt_status\": \"\", \"input_digest\": \"\", \"output_digest\": \"\", \"output_artifacts\": [], \"error_kind\": \"\", \"compensable\": false, \"depends_on\": [], \"detail\": \"\", \"artifact_id\": \"\", \"authority_id\": \"\", \"recorded_at\": \"2026-10-12T00:00:00Z\"}, \"before\": {\"declaration_id\": \"check\", \"product_id\": \"fixture\", \"operation\": \"fixture/check@1\", \"status\": \"active\", \"attempt_count\": 1, \"request_id\": \"\", \"attempt_id\": \"try-1\", \"idempotency_key\": \"\", \"external_job_id\": \"\", \"attempt_status\": \"\", \"input_digest\": \"\", \"result_id\": \"\", \"output_digest\": \"\", \"error_kind\": \"\", \"compensable\": false, \"blocker\": \"\", \"review_id\": \"\", \"review_artifact\": \"\", \"reviewer_id\": \"\", \"retained_artifacts\": [], \"recorded_approvals\": []}, \"after\": {\"declaration_id\": \"check\", \"product_id\": \"fixture\", \"operation\": \"fixture/check@1\", \"status\": \"review\", \"attempt_count\": 1, \"request_id\": \"\", \"attempt_id\": \"try-1\", \"idempotency_key\": \"\", \"external_job_id\": \"\", \"attempt_status\": \"succeeded\", \"input_digest\": \"\", \"result_id\": \"result-1\", \"output_digest\": \"\", \"error_kind\": \"\", \"compensable\": false, \"blocker\": \"\", \"review_id\": \"\", \"review_artifact\": \"\", \"reviewer_id\": \"\", \"retained_artifacts\": [\"outputs/result.txt\"], \"recorded_approvals\": []}, \"run_outcome_before\": \"active\", \"run_outcome_after\": \"review\"}"}]</script><script>/* This portable view never fetches, executes references, or writes storage. */
+(() => {
+  'use strict';
+  const rows = JSON.parse(document.getElementById('timeline-data').textContent);
+  const cards = [...document.querySelectorAll('article[data-index]')];
+  const item = document.getElementById('item');
+  const kind = document.getElementById('kind');
+  const search = document.getElementById('search');
+  function update() {
+    const query = search.value.toLowerCase();
+    let visible = 0;
+    rows.forEach((row, i) => {
+      const show = (item.value === '' || String(row.item) === item.value)
+        && (kind.value === '' || String(row.kind) === kind.value)
+        && row.text.toLowerCase().includes(query);
+      cards[i].hidden = !show;
+      if (show) visible += 1;
+    });
+    document.getElementById('count').textContent = `${visible} of ${rows.length} events`;
+    document.getElementById('empty').hidden = visible !== 0;
+  }
+  [item, kind, search].forEach(control => control.addEventListener('input', update));
+  document.getElementById('reset').addEventListener('click', () => {
+    item.value = ''; kind.value = ''; search.value = ''; update();
+  });
+  document.querySelector('nav').hidden = false;
+  update();
+})();
+</script></html>

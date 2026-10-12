@@ -1,0 +1,152 @@
+{
+  "contract_id": "moonsuite.work-model.v1",
+  "graph_id": "furniture-range-r1",
+  "book_id": "synthetic-furniture-range",
+  "declaration_revision": "r1",
+  "source_digest": "sha256:synthetic-furniture-range-r1",
+  "recorded_at": "2026-07-31T00:00:00Z",
+  "items": [
+    {
+      "work_item_id": "frame",
+      "declaration_id": "frame",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review the exact frame artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "requests/frame.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": []
+    },
+    {
+      "work_item_id": "seat",
+      "declaration_id": "seat",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review the exact seat artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "requests/seat.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": [
+        "frame"
+      ]
+    },
+    {
+      "work_item_id": "back",
+      "declaration_id": "back",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review the exact back artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "requests/back.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": [
+        "frame"
+      ]
+    },
+    {
+      "work_item_id": "chair",
+      "declaration_id": "chair",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review the exact chair artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "requests/chair.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": [
+        "seat",
+        "back"
+      ]
+    },
+    {
+      "work_item_id": "lamp",
+      "declaration_id": "lamp",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review the exact lamp artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "requests/lamp.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": []
+    },
+    {
+      "work_item_id": "catalog",
+      "declaration_id": "catalog",
+      "product_id": "moonmold",
+      "requested_authority": "workspace-mutation",
+      "acceptance_criteria": [
+        "Review the exact catalog artifact"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/spatial-operation-request@1.0.0"
+      ],
+      "output_contracts": [
+        "moonmold/spatial-operation-receipt@1.0.0"
+      ],
+      "required_claim": "digital-artifact",
+      "input_artifacts": [
+        "requests/catalog.json"
+      ],
+      "timeout_ms": 60000,
+      "depends_on": [
+        "chair",
+        "lamp"
+      ]
+    }
+  ]
+}

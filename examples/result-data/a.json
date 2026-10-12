@@ -1,0 +1,20 @@
+{
+  "metrics": {
+    "score": 9.5
+  },
+  "label": "=résumé, \"A\"\n第二行",
+  "passed": true,
+  "metadata": {
+    "version": 1
+  },
+  "note": null,
+  "tags": [
+    "blue",
+    2
+  ],
+  "a/b": {
+    "~": [
+      "first"
+    ]
+  }
+}

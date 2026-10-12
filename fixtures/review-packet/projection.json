@@ -1,0 +1,109 @@
+{
+  "protocol": "moonflow.run-projection.v3",
+  "run_id": "prototype-r1",
+  "book_id": "prototype-book",
+  "declaration_revision": "revision-1",
+  "source_digest": "sha256:270c0d536da1e328c882cda409fc95a131d86851b817f538836313cad3b9ed03",
+  "last_sequence": 6,
+  "outcome": "review",
+  "runnable_item_ids": [],
+  "items": [
+    {
+      "work_item_id": "inspect-prototype",
+      "declaration_id": "declaration-inspect",
+      "product_id": "moonmold",
+      "requested_authority": "sandbox-execution",
+      "acceptance_criteria": [
+        "Width is 120 mm.",
+        "Inspect the finish and record any visible defects."
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/operation@1"
+      ],
+      "output_contracts": [
+        "moonmold/result@1"
+      ],
+      "required_claim": "artifact",
+      "input_artifacts": [
+        "inputs/request.json"
+      ],
+      "timeout_ms": 30000,
+      "depends_on": [],
+      "status": "review",
+      "attempt_count": 1,
+      "request_id": "request-1",
+      "result_id": "result-1",
+      "active_attempt_id": "attempt-1",
+      "idempotency_key": "key-1",
+      "external_job_id": "local-1",
+      "attempt_status": "succeeded",
+      "input_digest": "sha256:1f58b9145b24d108d7ac38887338b3ea3229833b9c1e418250343f907bfd1047",
+      "output_digest": "sha256:04476c7b856305ca360453dbeae477d8a8abc16dad9b5b5f381698690d26c4f4",
+      "error_kind": "",
+      "compensable": true,
+      "blocker": "",
+      "acceptance_review_id": "",
+      "acceptance_review_artifact": "",
+      "acceptance_reviewer_id": "",
+      "artifacts": [
+        "evidence/old-not-current.txt",
+        "outputs/summary.txt",
+        "outputs/metrics.json",
+        "outputs/thumbnail.png",
+        "evidence/operator-note.txt"
+      ],
+      "approvals": [
+        "scope-1"
+      ]
+    },
+    {
+      "work_item_id": "unselected-item",
+      "declaration_id": "unselected-declaration",
+      "product_id": "moonmold",
+      "requested_authority": "sandbox-execution",
+      "acceptance_criteria": [
+        "Unselected private criterion"
+      ],
+      "operation": "moonmold/spatial.operation.execute@0.2.0",
+      "input_contracts": [
+        "moonmold/operation@1"
+      ],
+      "output_contracts": [
+        "moonmold/result@1"
+      ],
+      "required_claim": "artifact",
+      "input_artifacts": [
+        "inputs/request.json"
+      ],
+      "timeout_ms": 30000,
+      "depends_on": [],
+      "status": "review",
+      "attempt_count": 1,
+      "request_id": "request-1",
+      "result_id": "result-1",
+      "active_attempt_id": "attempt-1",
+      "idempotency_key": "key-1",
+      "external_job_id": "local-1",
+      "attempt_status": "succeeded",
+      "input_digest": "sha256:1f58b9145b24d108d7ac38887338b3ea3229833b9c1e418250343f907bfd1047",
+      "output_digest": "sha256:8882540a4b3a61b0aa5efaf93f1d2ef567ac625c71ad7bb657102e27c589058c",
+      "error_kind": "",
+      "compensable": true,
+      "blocker": "",
+      "acceptance_review_id": "",
+      "acceptance_review_artifact": "",
+      "acceptance_reviewer_id": "",
+      "artifacts": [
+        "evidence/old-not-current.txt",
+        "outputs/summary.txt",
+        "outputs/metrics.json",
+        "evidence/operator-note.txt"
+      ],
+      "approvals": [
+        "scope-1"
+      ]
+    }
+  ],
+  "owner_summary": {}
+}

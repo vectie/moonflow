@@ -38,15 +38,59 @@ pub fn capability_source_bundle_contract_v1() -> String
 
 pub fn claim_class_rank(String) -> Int?
 
+pub fn compare_declared_graphs_v1(Json, Json) -> DeclaredGraphComparisonV1 raise
+
+pub fn compare_run_events_v1(String, Array[RuntimeEvent], String, Array[RuntimeEvent]) -> RunComparisonV1 raise
+
 pub fn compile_capability_catalog_v1(Json) -> CapabilityCatalogV1 raise
 
 pub fn compile_work_graph_capabilities_at_v1(Json, CapabilityCatalogV1, String) -> GraphCapabilityReportV1 raise
 
 pub fn compile_work_graph_capabilities_v1(Json, CapabilityCatalogV1) -> GraphCapabilityReportV1 raise
 
+pub fn compose_declared_graph_v1(Json) -> Json raise
+
 pub fn conformant_events_from_work_graph_at_v1(Json, CapabilityCatalogV1, String) -> Array[RuntimeEvent] raise
 
 pub fn conformant_events_from_work_graph_v1(Json, CapabilityCatalogV1) -> Array[RuntimeEvent] raise
+
+pub fn declared_change_impact_v1(Json, Array[String]) -> ChangeImpactV1 raise
+
+pub fn declared_graph_comparison_text_v1(DeclaredGraphComparisonV1) -> String
+
+pub fn declared_graph_dot_v1(Json) -> String raise
+
+pub fn declared_graph_map_v1(Json) -> DeclaredGraphMapV1 raise
+
+pub fn declared_graph_route_text_v1(DeclaredGraphRouteV1) -> String
+
+pub fn declared_graph_route_v1(Json, String, String) -> DeclaredGraphRouteV1 raise
+
+pub fn declared_graph_timing_v1(Json, Json) -> GraphTimingV1 raise
+
+pub fn declared_plan_form_v1(DeclaredPlanDraftV1) -> Json raise
+
+pub fn declared_plan_from_csv_v1(Json, String, String, String, String) -> CsvPlanImportV1 raise
+
+pub fn declared_plan_from_directory_v1(Json, Json, Array[String], String, String) -> DirectoryPlanImportV1 raise
+
+pub fn declared_plan_from_form_v1(Json, String, String) -> DeclaredPlanDraftV1 raise
+
+pub fn declared_plan_from_matrix_v1(Json, Json, Json, String, String) -> MatrixPlanImportV1 raise
+
+pub fn declared_plan_from_payloads_v1(Json, Json, Json, String, String, String) -> PayloadPlanImportV1 raise
+
+pub fn declared_plan_from_queue_v1(Json, Json, String, String, String) -> QueuePlanImportV1 raise
+
+pub fn declared_plan_from_records_v1(Json, Json, String, String, String) -> RecordsPlanImportV1 raise
+
+pub fn declared_plan_from_subgraph_v1(Json, Array[String], String, String) -> SubgraphPlanSelectionV1 raise
+
+pub fn declared_plan_from_table_v1(Json, Json, String, String, String) -> TablePlanExpansionV1 raise
+
+pub fn declared_plan_from_worksheet_v1(Json, String, String, String) -> PlanWorksheetImportV1 raise
+
+pub fn declared_plan_worksheet_csv_v1(Json) -> String raise
 
 pub fn decode_acceptance_review_receipt(Json) -> AcceptanceReviewReceipt raise
 
@@ -74,13 +118,19 @@ pub fn decode_capability_observation_v1(Json) -> CapabilityObservationV1 raise
 
 pub fn decode_capability_settlement_request_v1(Json) -> CapabilitySettlementRequestV1 raise
 
+pub fn decode_declared_plan_draft_v1(Json) -> DeclaredPlanDraftV1 raise
+
 pub fn decode_director_requirement(Json) -> DirectorRequirement raise
+
+pub fn decode_directory_plan_selection_v1(Json) -> DirectoryPlanSelectionV1 raise
 
 pub fn decode_event_array(Json) -> Array[RuntimeEvent] raise
 
 pub fn decode_evidence_bundle_spec(Json) -> EvidenceBundleSpec raise
 
 pub fn decode_pack_capability_manifest_v1(Json) -> PackCapabilityManifestV1 raise
+
+pub fn decode_plan_item_edit_v1(Json) -> PlanItemEditV1 raise
 
 pub fn decode_runtime_event(Json) -> RuntimeEvent raise
 
@@ -96,6 +146,8 @@ pub fn director_retry_decision(DirectorFailureClass) -> DirectorRetryDecision
 
 pub fn director_success_result_for_item(RuntimeItem, String, Array[String], String) -> AdapterResult
 
+pub fn edit_declared_plan_item_v1(DeclaredPlanDraftV1, PlanItemEditV1) -> DeclaredPlanDraftV1 raise
+
 pub fn empty_projection(String) -> RunProjection
 
 pub fn event_array_json(Array[RuntimeEvent]) -> Json
@@ -108,9 +160,21 @@ pub fn evidence_bundle_manifest(EvidenceBundleSpec, Array[EvidenceBundleEntry], 
 
 pub fn graph_capability_report_contract_v1() -> String
 
+pub fn graph_timing_csv_v1(GraphTimingV1) -> String
+
 pub fn normalize_workspace_path(String) -> String
 
+pub fn owner_summary_is_current_v1(OwnerSummaryV1, RunProjection) -> Bool
+
+pub fn owner_summary_text_v1(OwnerSummaryV1) -> String
+
+pub fn owner_summary_v1(RunProjection) -> OwnerSummaryV1
+
 pub fn path_is_within_workspace(String, String) -> Bool
+
+pub fn prepare_declared_plan_v1(DeclaredPlanDraftV1, CapabilityCatalogV1, String, input_capture_digest? : String) -> PreparedDeclaredPlanV1 raise
+
+pub fn preview_declared_plan_revision_v1(DeclaredPlanDraftV1, PreparedDeclaredPlanV1, RunProjection, String, String, input_digests? : Map[String, String]) -> RunRevisionResult raise
 
 pub fn product_attestation_issues(Json, UnattendedDriver, AdapterRequest, AdapterResult) -> Array[String]
 
@@ -134,13 +198,39 @@ pub fn replay(String, Array[RuntimeEvent]) -> RunProjection raise FlowError
 
 pub fn resolve_capability_v1(CapabilityActivationProjectionV1, scope_id~ : String, participant_id~ : String) -> CapabilityResolutionV1 raise
 
-pub fn revise_run(RunProjection, Json, String, String, String) -> RunRevisionResult raise
+pub fn result_data_csv_v1(ResultDataTableV1) -> String
+
+pub fn result_data_sources_v1(Array[RunProjection], Json) -> Array[String] raise
+
+pub fn result_data_table_v1(Array[RunProjection], Json, Map[String, Bytes]) -> ResultDataTableV1 raise
+
+pub fn results_table_csv_v1(ResultsTableV1) -> String
+
+pub fn results_table_v1(Array[RunProjection]) -> ResultsTableV1 raise
+
+pub fn revise_run(RunProjection, Json, String, String, String, input_digests? : Map[String, String]) -> RunRevisionResult raise
+
+pub fn run_comparison_text_v1(RunComparisonV1) -> String raise
+
+pub fn run_history_text_v1(RunHistoryV1) -> String raise
+
+pub fn run_history_v1(String, Array[RuntimeEvent], work_item_id? : String) -> RunHistoryV1 raise
 
 pub fn runtime_event_json(RuntimeEvent) -> Json
 
 pub fn runtime_protocol_id() -> String
 
 pub fn select_adapter(Array[AdapterCapability], DirectorRequirement) -> DirectorDecision
+
+pub fn single_step_mold_item_supported(RuntimeItem) -> Bool
+
+pub fn single_step_mold_receipt_ref(AdapterRequest) -> String
+
+pub fn single_step_request_for_item(RunProjection, RuntimeItem, String, String) -> AdapterRequest raise
+
+pub fn single_step_validate_mold_result(AdapterRequest, AdapterResult, Json, String, Array[String]) -> Unit raise
+
+pub fn start_declared_plan_v1(Json, String, String, String) -> DeclaredPlanDraftV1 raise
 
 pub fn validate_adapter_capability(Json) -> AdapterCapability raise AdapterContractError
 
@@ -446,6 +536,20 @@ pub(all) struct CapabilitySettlementRequestV1 {
   settled_at : Int64
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 
+pub(all) struct ChangeImpactItemV1 {
+  work_item_id : String
+  dependency_distance : Int
+  impacted_prerequisite_ids : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct ChangeImpactV1 {
+  contract_id : String
+  source_graph_digest : String
+  changed_item_ids : Array[String]
+  affected_items : Array[ChangeImpactItemV1]
+  unaffected_item_ids : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+
 pub(all) struct CheckpointMigrationDecision {
   child_work_item_id : String
   source_work_item_id : String
@@ -453,6 +557,76 @@ pub(all) struct CheckpointMigrationDecision {
   decision : String
   reason : String
   evidence_refs : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct CsvPlanImportV1 {
+  contract_id : String
+  template_work_item_id : String
+  csv_digest : String
+  row_count : Int
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DeclaredGraphComparisonV1 {
+  contract_id : String
+  book_id : String
+  before_graph_digest : String
+  after_graph_digest : String
+  graph_fields : Array[GraphFieldChangeV1]
+  declaration_order_changed : Bool
+  items : Array[GraphItemChangeV1]
+  before_impact : ChangeImpactV1
+  after_impact : ChangeImpactV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DeclaredGraphMapV1 {
+  contract_id : String
+  graph_id : String
+  source_graph_digest : String
+  nodes : Array[DeclaredGraphNodeV1]
+  layers : Array[Array[String]]
+  root_item_ids : Array[String]
+  leaf_item_ids : Array[String]
+  edge_count : Int
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DeclaredGraphNodeV1 {
+  work_item_id : String
+  product_id : String
+  operation : String
+  depends_on : Array[String]
+  layer : Int
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DeclaredGraphRouteV1 {
+  contract_id : String
+  graph_id : String
+  source_graph_digest : String
+  from_item_id : String
+  to_item_id : String
+  reachable : Bool
+  shortest_distance : Int?
+  shortest_path : Array[String]
+  corridor_item_ids : Array[String]
+  corridor_edges : Array[DeclaredRouteEdgeV1]
+  outside_prerequisite_edges : Array[DeclaredRouteEdgeV1]
+} derive(Eq, @debug.Debug)
+pub impl ToJson for DeclaredGraphRouteV1
+
+pub struct DeclaredPlanDraftV1 {
+  contract_id : String
+  draft_id : String
+  source_kind : String
+  source_graph_json : String
+  source_graph_digest : String
+  recorded_at : String
+  edits : Array[PlanItemEditV1]
+  added_templates : Map[String, String]?
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct DeclaredRouteEdgeV1 {
+  prerequisite_id : String
+  consumer_id : String
 } derive(Eq, ToJson, @debug.Debug)
 
 pub(all) struct DirectorCandidateReview {
@@ -495,6 +669,28 @@ pub(all) struct DirectorRetryDecision {
   reuses_idempotency_lineage : Bool
   requires_reconciliation : Bool
 } derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DirectoryPlanEntryV1 {
+  work_item_id : String
+  artifact_ref : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DirectoryPlanImportV1 {
+  contract_id : String
+  selection_digest : String
+  inventory_digest : String
+  entries : Array[DirectoryPlanEntryV1]
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct DirectoryPlanSelectionV1 {
+  contract_id : String
+  directory_ref : String
+  template_work_item_id : String
+  suffixes : Array[String]
+  recursive : Bool
+  id_prefix : String
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 
 pub(all) enum EventKind {
   RunCreated
@@ -571,6 +767,97 @@ pub(all) struct GraphCapabilityReportV1 {
   catalog_issues : Array[CapabilityConformanceIssueV1]
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 
+pub(all) struct GraphFieldChangeV1 {
+  field : String
+  before_present : Bool
+  before : Json
+  after_present : Bool
+  after : Json
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct GraphItemChangeV1 {
+  declaration_id : String
+  change : String
+  before : Json
+  after : Json
+  fields : Array[GraphFieldChangeV1]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct GraphTimingEdgeV1 {
+  prerequisite_item_id : String
+  consumer_item_id : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct GraphTimingItemV1 {
+  work_item_id : String
+  duration_seconds : Int
+  earliest_start_seconds : Int
+  earliest_finish_seconds : Int
+  latest_start_seconds : Int
+  latest_finish_seconds : Int
+  slack_seconds : Int
+  critical : Bool
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct GraphTimingV1 {
+  contract_id : String
+  graph_id : String
+  source_graph_digest : String
+  estimates_digest : String
+  minimum_duration_seconds : Int
+  items : Array[GraphTimingItemV1]
+  critical_item_ids : Array[String]
+  critical_edges : Array[GraphTimingEdgeV1]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct MatrixPlanImportV1 {
+  contract_id : String
+  matrix_digest : String
+  combinations : Array[Json]
+  payloads : PayloadPlanImportV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct OwnerActionV1 {
+  work_item_id : String
+  product_id : String
+  status : String
+  action : String
+  next_actor_id : String?
+  next_role : String?
+  reasons : Array[String]
+  depends_on : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct OwnerEvidenceV1 {
+  work_item_id : String
+  attempt_id : String
+  result_id : String
+  output_digest : String
+  artifacts : Array[String]
+  review_id : String
+  review_artifact : String
+  reviewer_id : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct OwnerSummaryV1 {
+  contract_id : String
+  run_id : String
+  book_id : String
+  declaration_revision : String
+  source_digest : String
+  last_sequence : Int
+  last_event_id : String?
+  recorded_at : String?
+  outcome : String
+  outcome_label : String
+  next_action : String
+  next_actor_id : String?
+  next_role : String?
+  actions : Array[OwnerActionV1]
+  evidence : Array[OwnerEvidenceV1]
+  acceptance_boundary : String
+} derive(Eq, ToJson, @debug.Debug)
+
 pub(all) struct PackCapabilityManifestV1 {
   pack_id : String
   product_id : String
@@ -595,6 +882,73 @@ pub(all) struct PackToolDescriptorV1 {
   review_required : Bool
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 
+pub(all) struct PayloadPlanArtifactV1 {
+  work_item_id : String
+  artifact_ref : String
+  sha256 : String
+  json_text : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct PayloadPlanImportV1 {
+  contract_id : String
+  records_digest : String
+  mapping_digest : String
+  template_digest : String
+  artifacts : Array[PayloadPlanArtifactV1]
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct PlanItemEditV1 {
+  work_item_id : String
+  input_artifacts : Array[String]
+  depends_on : Array[String]
+  acceptance_criteria : Array[String]
+  timeout_ms : Int
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct PlanWorksheetImportV1 {
+  contract_id : String
+  csv_digest : String
+  row_count : Int
+  changed_item_ids : Array[String]
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct PreparedDeclaredPlanV1 {
+  contract_id : String
+  preparation_id : String
+  draft_id : String
+  source_graph_id : String
+  source_graph_digest : String
+  graph : Json
+  proposal : Json
+  capability_report : GraphCapabilityReportV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct QueuePlanEntryV1 {
+  line_number : Int
+  work_item_id : String
+  template_work_item_id : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct QueuePlanImportV1 {
+  contract_id : String
+  queue_digest : String
+  mapping_digest : String
+  entries : Array[QueuePlanEntryV1]
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct QueuePlanMappingV1 {
+  contract_id : String
+  template_work_item_id_pointer : String
+  work_item_id_pointer : String
+  input_artifacts_pointer : String
+  depends_on_pointer : String?
+  acceptance_criteria_pointer : String?
+  timeout_ms_pointer : String?
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
 pub(all) enum ReconciliationDecision {
   Pending
   ImportSuccess
@@ -602,6 +956,170 @@ pub(all) enum ReconciliationDecision {
   ImportCancellation
   InvestigateUnknown
 } derive(Compare, Eq, Hash, ToJson, @debug.Debug)
+
+pub(all) struct RecordsPlanImportV1 {
+  contract_id : String
+  records_digest : String
+  mapping_digest : String
+  records_pointer : String
+  template_work_item_id : String
+  record_ids : Array[String]
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct RecordsPlanMappingV1 {
+  contract_id : String
+  records_pointer : String
+  template_work_item_id : String
+  work_item_id_pointer : String
+  input_artifacts_pointer : String
+  depends_on_pointer : String?
+  acceptance_criteria_pointer : String?
+  timeout_ms_pointer : String?
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct ResultDataColumnV1 {
+  name : String
+  pointer : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct ResultDataMappingV1 {
+  contract_id : String
+  operation : String?
+  output_artifact_index : Int
+  columns : Array[ResultDataColumnV1]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct ResultDataRowV1 {
+  source : ResultsRowV1
+  data_status : String
+  result_event_id : String
+  artifact_ref : String
+  observed_sha256 : String
+  observed_size_bytes : Int
+  values : Map[String, Json]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct ResultDataTableV1 {
+  contract_id : String
+  mapping : ResultDataMappingV1
+  mapping_digest : String
+  runs : Array[ResultsRunV1]
+  rows : Array[ResultDataRowV1]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct ResultsRowV1 {
+  run_id : String
+  book_id : String
+  declaration_revision : String
+  source_digest : String
+  last_sequence : Int
+  last_event_id : String
+  recorded_at : String
+  run_outcome : String
+  work_item_id : String
+  declaration_id : String
+  product_id : String
+  operation : String
+  input_artifacts : Array[String]
+  depends_on : Array[String]
+  status : String
+  attempt_status : String
+  attempt_count : Int
+  attempt_id : String
+  input_digest : String
+  result_id : String
+  output_digest : String
+  retained_artifacts : Array[String]
+  review_id : String
+  review_artifact : String
+  reviewer_id : String
+  blocker : String
+  error_kind : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct ResultsRunV1 {
+  run_id : String
+  book_id : String
+  declaration_revision : String
+  source_digest : String
+  last_sequence : Int
+  last_event_id : String
+  recorded_at : String
+  run_outcome : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct ResultsTableV1 {
+  contract_id : String
+  runs : Array[ResultsRunV1]
+  rows : Array[ResultsRowV1]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct RunComparisonRowV1 {
+  declaration_id : String
+  change : String
+  changed_fields : Array[String]
+  before : Json?
+  after : Json?
+  retained_artifacts_added : Array[String]
+  retained_artifacts_removed : Array[String]
+} derive(Eq, @debug.Debug)
+pub impl ToJson for RunComparisonRowV1
+
+pub(all) struct RunComparisonV1 {
+  contract_id : String
+  before_head : ResultsRunV1
+  after_head : ResultsRunV1
+  added_count : Int
+  removed_count : Int
+  changed_count : Int
+  unchanged_count : Int
+  rows : Array[RunComparisonRowV1]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct RunHistoryEntryV1 {
+  event : Json
+  before : RunHistoryStateV1?
+  after : RunHistoryStateV1?
+  run_outcome_before : String
+  run_outcome_after : String
+} derive(Eq, @debug.Debug)
+pub impl ToJson for RunHistoryEntryV1
+
+pub(all) struct RunHistoryStateV1 {
+  declaration_id : String
+  product_id : String
+  operation : String
+  status : String
+  attempt_count : Int
+  request_id : String
+  attempt_id : String
+  idempotency_key : String
+  external_job_id : String
+  attempt_status : String
+  input_digest : String
+  result_id : String
+  output_digest : String
+  error_kind : String
+  compensable : Bool
+  blocker : String
+  review_id : String
+  review_artifact : String
+  reviewer_id : String
+  retained_artifacts : Array[String]
+  recorded_approvals : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct RunHistoryV1 {
+  contract_id : String
+  head : ResultsRunV1
+  selected_work_item_id : String?
+  input_event_count : Int
+  canonical_event_count : Int
+  duplicate_event_count : Int
+  entries : Array[RunHistoryEntryV1]
+} derive(Eq, @debug.Debug)
+pub impl ToJson for RunHistoryV1
 
 pub(all) struct RunMigrationReceipt {
   contract_id : String
@@ -725,6 +1243,34 @@ pub(all) enum RuntimeStatus {
 } derive(Compare, Eq, Hash, ToJson, @debug.Debug)
 pub fn RuntimeStatus::id(Self) -> String
 pub fn RuntimeStatus::is_terminal(Self) -> Bool
+
+pub(all) struct SubgraphPlanSelectionV1 {
+  contract_id : String
+  target_item_ids : Array[String]
+  prerequisite_item_ids : Array[String]
+  omitted_item_ids : Array[String]
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct TablePlanBindingV1 {
+  template_work_item_id : String
+  input_artifacts : Array[String]
+  acceptance_criteria : Array[String]?
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct TablePlanExpansionV1 {
+  contract_id : String
+  csv_digest : String
+  template_digest : String
+  row_keys : Array[String]
+  items_per_row : Int
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct TablePlanTemplateV1 {
+  contract_id : String
+  item_bindings : Array[TablePlanBindingV1]
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 
 pub(all) struct UnattendedDriver {
   adapter_id : String

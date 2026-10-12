@@ -6,6 +6,18 @@
 
 MoonFlow is Moon Suite's generic durable orchestration capability and engine.
 
+For explicit draft editing and immutable child-graph preparation, see
+[`docs/DECLARED_PLAN_AUTHORING.md`](docs/DECLARED_PLAN_AUTHORING.md).
+For spreadsheet workloads, [CSV batch plans](docs/CSV_BATCH_PLANS.md) expand one
+exact declared operation into a previewable, editable batch with explicit input
+files and dependencies. A [complete sample](examples/csv-plan/README.md) is included.
+For repeated multi-step workflows, [table workflow plans](docs/TABLE_WORKFLOW_PLANS.md)
+substitute row values into artifact paths and review criteria while preserving
+each row's complete dependency graph. Try the [paired study sample](examples/table-plan/README.md).
+To prepare only selected deliverables, [subgraph plans](docs/SUBGRAPH_PLANS.md)
+retain their complete prerequisite closure and omit unrelated branches. Try the
+[chair-only sample](examples/subgraph-plan/README.md).
+
 The governed reinforcement and capability-activation loop is documented in
 [`docs/REINFORCEMENT_CAPABILITY_LOOP.md`](docs/REINFORCEMENT_CAPABILITY_LOOP.md).
 The executable ownership boundaries and pure test seams are documented in
@@ -92,6 +104,18 @@ selection is retained as a decision receipt and does not start work.
 verifies workspace-relative output artifacts, derives their aggregate digest,
 materializes the typed result receipt, and reconciles it into review state.
 
+For a read-only event-by-event explanation of a run, use
+[`run-history`](docs/RUN_HISTORY.md). It exports canonical events with before/after
+item, attempt and review state as JSON or a readable text timeline.
+
+For editable graph files before import, [`compare-graphs`](docs/GRAPH_COMPARISON.md)
+shows declaration field changes and potential downstream effects in both versions.
+It records exact input-file digests and writes only JSON or readable text.
+
+For a paired view of two revisions, [`compare-runs`](docs/RUN_COMPARISON.md)
+shows added/removed declarations and exact changes to recorded inputs, outcomes,
+artifacts, attempts and review evidence.
+
 ## Native revision and evidence lineage
 
 `revise-run` creates a child run and never rewrites its parent. It reuses an
@@ -109,12 +133,32 @@ contract, claim, and result provenance.
 
 ## CLI
 
+For a pending result that needs offline inspection, [review packets](docs/REVIEW_PACKETS.md)
+export original criteria, exact current output bytes and a readable index to one
+local ZIP. The Python operator client uses the existing native read commands;
+exporting is not an approval or a sharing action.
+
+For an adapter incident affecting several imported runs, the dependency-free
+[batch-pause operator client](docs/BATCH_PAUSE.md) previews an explicit selection,
+then invokes the existing native pause command and retains per-run outcomes.
+It requires an existing trusted native CLI and coordinated exclusive control;
+it does not interrupt in-flight effects or add an execution runtime.
+
 The CLI is an operator/developer surface for inspecting, driving, and
 diagnosing the engine. It is not a separate agent process or agent runtime.
 
 ```text
 moonflow import-graph <workspace> <graph.json>
+moonflow plan preview-csv <workspace> <source-graph-ref> <template-item-id> <csv-ref> <draft-id> <recorded-at>
+moonflow plan from-csv <workspace> <source-graph-ref> <template-item-id> <csv-ref> <draft-id> <recorded-at>
+moonflow plan preview-table <workspace> <source-graph-ref> <template-ref> <csv-ref> <draft-id> <recorded-at>
+moonflow plan from-table <workspace> <source-graph-ref> <template-ref> <csv-ref> <draft-id> <recorded-at>
+moonflow plan preview-subgraph <workspace> <source-graph-ref> <draft-id> <recorded-at> <target-item-id>...
+moonflow plan from-subgraph <workspace> <source-graph-ref> <draft-id> <recorded-at> <target-item-id>...
 moonflow status <workspace> <run-id>
+moonflow compare-runs <workspace> <before-run-id> <after-run-id> <--json|--text>
+moonflow run-history <workspace> <run-id> <--json|--text> [work-item-id]
+moonflow owner-summary <workspace> <run-id> [--text]
 moonflow transition <workspace> <run-id> <work-item-id> <action> <recorded-at> [detail]
 moonflow advance <workspace> <run-id> <recorded-at>
 moonflow submit-attempt <workspace> <run-id> <request.json>
@@ -246,3 +290,60 @@ moon test --target native --deny-warn
 moon info
 moon fmt
 ```
+
+## Request-template batch plans
+
+Generate per-job JSON requests from a supplied template and typed record mappings,
+preview exact bytes, and save an editable declared batch. See
+[request-template plans](docs/PAYLOAD_TEMPLATE_PLANS.md) and the
+[synthetic example](examples/payload-plan/README.md). No adapter runs during import.
+
+## Compare result values
+
+`result-data <workspace> <mapping-ref> <--csv|--json> <run-id>...` extracts
+explicit JSON Pointer columns from current successful attempt outputs. It keeps
+recorded result/review identities alongside observed file hashes and typed
+values. See [the result-data guide](docs/RESULT_DATA.md) and
+[synthetic sample](examples/result-data/README.md).
+
+## Request-folder batch plans
+
+`plan preview-directory` selects existing request files by explicit folder,
+literal suffixes and recursion; `plan from-directory` saves an ordinary editable
+batch with stable path-derived IDs. See [directory intake](docs/DIRECTORY_PLANS.md)
+and the [synthetic sample](examples/directory-plan/README.md).
+
+### Pairwise dependency routes
+
+Use `moonflow graph-route WORKSPACE graph.json FROM TO --text` to locate all
+connecting declared links, one shortest witness, and other incoming prerequisites.
+See [Graph routes](docs/GRAPH_ROUTES.md) for the JSON report and read-only limits.
+
+### Offline dependency explorer
+
+Render an existing `graph-map --json` export as a single HTML page with work
+search, product filters and selected prerequisite/downstream closure views:
+
+```sh
+python3 scripts/graph_explorer.py graph-map.json graph-explorer.html
+```
+
+See [offline graph exploration](docs/GRAPH_EXPLORER.md) and the
+[synthetic publication example](examples/graph-explorer/README.md). This
+read-only report viewer requires no native invocation, Graphviz or network;
+its declarations are not runtime readiness or acceptance evidence.
+
+### Rebind shared worksheet inputs
+
+Find which steps share an exact input reference, preview simultaneous path
+replacements, and write a new source-bound CSV for the existing native worksheet
+planner:
+
+```sh
+python3 -B scripts/input_rebindings.py inventory worksheet.csv --text
+python3 -B scripts/input_rebindings.py preview worksheet.csv rebindings.json --text
+python3 -B scripts/input_rebindings.py rebind worksheet.csv rebindings.json rebound.csv
+```
+
+See [shared input rebindings](docs/INPUT_REBINDINGS.md) for the exact mapping and
+native preview/save commands. No payloads are read, files moved, or plans run.

@@ -1,0 +1,17 @@
+{
+  "metrics": {
+    "score": 8
+  },
+  "label": "Variant B",
+  "passed": false,
+  "metadata": {
+    "version": 2
+  },
+  "note": "needs review",
+  "tags": [],
+  "a/b": {
+    "~": [
+      "second"
+    ]
+  }
+}

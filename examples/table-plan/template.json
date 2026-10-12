@@ -1,0 +1,15 @@
+{
+  "contract_id": "moonflow.table-plan-template.v1",
+  "item_bindings": [
+    {
+      "template_work_item_id": "model",
+      "input_artifacts": ["requests/{{key}}-model.json"],
+      "acceptance_criteria": ["Review {{label}} model in {{units}} before its companion study"]
+    },
+    {
+      "template_work_item_id": "companion",
+      "input_artifacts": ["requests/{{key}}-companion.json"],
+      "acceptance_criteria": ["Review {{label}} companion after the model is accepted"]
+    }
+  ]
+}

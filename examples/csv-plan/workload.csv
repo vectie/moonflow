@@ -1,0 +1,6 @@
+work_item_id,input_artifacts,depends_on,acceptance_criteria,timeout_ms
+compact-study,requests/compact.json,,"Review the compact study model, with millimetre units",45000
+wide-study,requests/wide.json,,,
+display-study,requests/display.json,"compact-study
+wide-study","Review the display study after both variant models
+Confirm its declared coordinate frame",90000

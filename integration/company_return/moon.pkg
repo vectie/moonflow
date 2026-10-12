@@ -1,0 +1,9 @@
+import {
+  "vectie/moonflow",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/core/json",
+  "moonbitlang/core/env",
+}
+
+supported_targets = "native"

@@ -1,0 +1,26 @@
+{
+  "contract_id": "moonflow.payload-plan-mapping.v1",
+  "records_pointer": "/jobs",
+  "template_work_item_id": "make-model",
+  "work_item_id_pointer": "/id",
+  "depends_on_pointer": "/after",
+  "acceptance_criteria_pointer": "/review",
+  "bindings": [
+    {
+      "target_pointer": "/request_id",
+      "value_pointer": "/request_id"
+    },
+    {
+      "target_pointer": "/idempotency_key",
+      "value_pointer": "/request_id"
+    },
+    {
+      "target_pointer": "/model_id",
+      "value_pointer": "/id"
+    },
+    {
+      "target_pointer": "/operation/params/name",
+      "value_pointer": "/name"
+    }
+  ]
+}

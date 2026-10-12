@@ -1,0 +1,2 @@
+# The review fixture deliberately exercises exact CRLF bytes.
+fixtures/review-packet/workspace/outputs/summary.txt -text -diff
