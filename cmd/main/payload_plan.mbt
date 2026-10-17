@@ -49,8 +49,25 @@ async fn plan_materialize_payloads(
   draft_id : String,
   save : Bool,
 ) -> Unit {
+  plan_materialize_payload_artifacts(
+    root,
+    imported.artifacts,
+    imported.draft,
+    draft_id,
+    save,
+  )
+}
+
+///|
+async fn plan_materialize_payload_artifacts(
+  root : String,
+  artifacts : Array[@moonflow.PayloadPlanArtifactV1],
+  draft : @moonflow.DeclaredPlanDraftV1,
+  draft_id : String,
+  save : Bool,
+) -> Unit {
   // Validate all caller-supplied ancillary files before creating any files.
-  for edit in imported.draft.edits {
+  for edit in draft.edits {
     for index, artifact in edit.input_artifacts {
       if index > 0 {
         ignore(plan_regular_path(root, artifact))
@@ -68,14 +85,14 @@ async fn plan_materialize_payloads(
     defer @flow_host.release_named_writer_lock_v1(lock)
     let exists = @fs.exists(directory + "/" + draft_id + ".json")
     if exists {
-      guard plan_load_draft(root, draft_id) == imported.draft else {
+      guard plan_load_draft(root, draft_id) == draft else {
         fail(
           "draft identity already exists; reopen it or choose a new draft_id",
         )
       }
     }
     // Preflight all existing addressed objects before writing any new object.
-    for artifact in imported.artifacts {
+    for artifact in artifacts {
       if @fs.exists(root + "/" + artifact.artifact_ref) {
         guard plan_read_bytes(root, artifact.artifact_ref) ==
           @utf8.encode(artifact.json_text) else {
@@ -85,7 +102,7 @@ async fn plan_materialize_payloads(
         }
       }
     }
-    for artifact in imported.artifacts {
+    for artifact in artifacts {
       guard plan_capture_bytes(root, @utf8.encode(artifact.json_text)) ==
         artifact.artifact_ref else {
         fail("generated request path does not match content identity")
@@ -95,7 +112,7 @@ async fn plan_materialize_payloads(
       @flow_host.atomic_replace_named_json_v1(
         directory,
         draft_id + ".json",
-        imported.draft.to_json().stringify(indent=2),
+        draft.to_json().stringify(indent=2),
       )
     }
   }

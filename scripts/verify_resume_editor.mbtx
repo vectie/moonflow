@@ -1,0 +1,347 @@
+///|
+import {
+  "moonbitlang/async@0.19.4",
+  "moonbitlang/async@0.19.4/fs",
+  "moonbitlang/async@0.19.4/io",
+  "moonbitlang/async@0.19.4/process",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/x@0.4.50/crypto",
+}
+
+///|
+fn field(value : Json, key : String) -> Json raise {
+  guard value is Object(fields) && fields.get(key) is Some(found) else {
+    fail("missing field: " + key)
+  }
+  found
+}
+
+///|
+fn text(value : Json, key : String) -> String raise {
+  guard field(value, key) is String(found) else {
+    fail("expected string: " + key)
+  }
+  found
+}
+
+///|
+async fn save(path : String, value : &@io.Data) -> Unit {
+  @fs.write_file(path, value, create_mode=@fs.CreateNew)
+}
+
+///|
+struct Runner {
+  workspace : String
+  calls : Array[Json]
+}
+
+///|
+async fn Runner::run(
+  self : Runner,
+  program : String,
+  args : Array[String],
+  fails? : Bool = false,
+) -> String {
+  let (status, out, err) = @process.collect_output(program, args)
+  let index = self.calls.length() + 1
+  save(self.workspace + "/logs/\{index}.stdout", out)
+  save(self.workspace + "/logs/\{index}.stderr", err)
+  self.calls.push({
+    "program": program.to_json(),
+    "args": args.to_json(),
+    "exit": status.to_json(),
+    "expected_failure": fails.to_json(),
+  })
+  @fs.write_file(
+    self.workspace + "/logs/commands.json",
+    self.calls.to_json().stringify(indent=2),
+    create_mode=@fs.CreateOrTruncate,
+  )
+  assert_eq(
+    status != 0,
+    fails,
+    msg=program + " " + args.join(" ") + "\n" + out.text() + err.text(),
+  )
+  out.text()
+}
+
+///|
+async fn main {
+  let args = @env.args()
+  guard args.length() == 4 else {
+    fail("Usage: verify_resume_editor.mbtx CLI SOURCE NEW_WORKSPACE")
+  }
+  let cli = args[1]
+  let source = args[2]
+  let workspace = args[3]
+  assert_true(
+    workspace.has_prefix("/") && source.has_prefix("/") && cli.has_prefix("/"),
+  )
+  assert_false(@fs.exists(workspace))
+  @fs.mkdir(workspace)
+  @fs.mkdir(workspace + "/logs")
+  @fs.mkdir(workspace + "/requests")
+  let originals : Map[String, Bytes] = Map([])
+  for
+    file in [
+      "source-graph.json", "capability-source-bundle.json", "requests/root.json",
+      "requests/left.json", "requests/right.json", "requests/join.json",
+    ] {
+    let raw = @fs.read_file(source + "/examples/plan-worksheet/" + file).binary()
+    originals[file] = raw
+    save(workspace + "/" + file, raw)
+  }
+  let runner = Runner::{ workspace, calls: [], }
+  let scripts = source + "/scripts/"
+  ignore(runner.run("python3", ["-B", scripts + "test_graph_explorer.py"]))
+  ignore(runner.run("python3", ["-B", scripts + "test_dependency_editor.py"]))
+  ignore(runner.run("node", [scripts + "test_graph_explorer.mjs"]))
+  let pin = @json.parse(
+    runner.run("python3", [
+      "-I",
+      "-B",
+      scripts + "verify_shared_table_native.py",
+      "--source",
+      source,
+      "--cli",
+      cli,
+    ]),
+  )
+  assert_eq(field(pin, "native_source_and_config_files_identical"), 412)
+  assert_eq(
+    text(pin, "cli_sha256"),
+    "269fee483db73a215c799845a21ddbbcee4986c269bba3743e41b59ba49b564e",
+  )
+  let render = [
+    "-B",
+    scripts + "graph_explorer.py",
+    workspace + "/source-graph.json",
+  ]
+  let author = ["--author", "--cli", cli]
+  ignore(runner.run("python3", render + [workspace + "/initial.html"] + author))
+  ignore(
+    runner.run("node", [
+      scripts + "test_resume_editor.mjs",
+      "seed",
+      workspace + "/initial.html",
+      workspace + "/saved-form.json",
+    ]),
+  )
+  let saved = @fs.read_file(workspace + "/saved-form.json").binary()
+  let restored = @json.parse(
+    runner.run(
+      "python3",
+      render +
+      [workspace + "/resumed.html"] +
+      author +
+      ["--resume", workspace + "/saved-form.json"],
+    ),
+  )
+  assert_eq(
+    text(restored, "resumed_form_sha256"),
+    "sha256:" + @crypto.bytes_to_hex_string(@crypto.sha256(saved)),
+  )
+  ignore(
+    runner.run("node", [
+      scripts + "test_resume_editor.mjs",
+      "resume",
+      workspace + "/resumed.html",
+      workspace + "/continued-form.json",
+    ]),
+  )
+  ignore(
+    runner.run(
+      "python3",
+      render +
+      [workspace + "/reopened.html"] +
+      author +
+      ["--resume", workspace + "/continued-form.json"],
+    ),
+  )
+  ignore(
+    runner.run("node", [
+      scripts + "test_resume_editor.mjs",
+      "readback",
+      workspace + "/reopened.html",
+      workspace + "/downloaded-again.json",
+    ]),
+  )
+  let continued = @fs.read_file(workspace + "/continued-form.json").binary()
+  assert_eq(
+    continued,
+    @fs.read_file(workspace + "/downloaded-again.json").binary(),
+  )
+  assert_eq(saved, @fs.read_file(workspace + "/saved-form.json").binary())
+  assert_false(@fs.exists(workspace + "/.moonsuite"))
+  // Existing editor journeys run against this exact changed renderer and script.
+  for
+    (script, output) in [
+      ("test_dependency_editor.mjs", "dependency.json"),
+      ("test_timeout_editor.mjs", "timeout.json"),
+      ("test_input_artifact_editor.mjs", "inputs.json"),
+    ] {
+    ignore(
+      runner.run("node", [
+        scripts + script,
+        workspace + "/initial.html",
+        workspace + "/" + output,
+      ]),
+    )
+  }
+  let stamp = "2026-07-31T00:00:00Z"
+  let from_form = [
+    "plan", "from-form", workspace, "continued-form.json", "resumed-study", stamp,
+  ]
+  let draft = @json.parse(runner.run(cli, from_form))
+  assert_eq(
+    draft,
+    @json.parse(
+      runner.run(cli, ["plan", "inspect", workspace, "resumed-study"]),
+    ),
+  )
+  let draft_path = workspace +
+    "/.moonsuite/products/moonflow/plan-drafts/resumed-study.json"
+  let draft_bytes = @fs.read_file(draft_path).binary()
+  assert_eq(draft, @json.parse(runner.run(cli, from_form)))
+  assert_eq(draft_bytes, @fs.read_file(draft_path).binary())
+  guard field(draft, "items") is Array(items) &&
+    field(
+      @json.parse(@fs.read_file(workspace + "/continued-form.json").text()),
+      "edits",
+    )
+    is Array(edits) else {
+    fail("items and edits")
+  }
+  guard field(
+      @json.parse(@fs.read_file(workspace + "/source-graph.json").text()),
+      "items",
+    )
+    is Array(source_items) else {
+    fail("source items")
+  }
+  assert_eq(items.length(), edits.length())
+  for index, item in items {
+    for
+      key in [
+        "work_item_id", "input_artifacts", "depends_on", "acceptance_criteria", "timeout_ms",
+      ] {
+      assert_eq(field(item, key), field(edits[index], key))
+    }
+    for
+      key in [
+        "declaration_id", "product_id", "operation", "requested_authority", "input_contracts",
+        "output_contracts", "required_claim",
+      ] {
+      assert_eq(field(item, key), field(source_items[index], key))
+    }
+  }
+  save(
+    workspace + "/catalog.json",
+    runner.run(cli, [
+      "compile-capability-catalog",
+      workspace + "/capability-source-bundle.json",
+    ]),
+  )
+  let prepare = [
+    "plan", "prepare", workspace, "resumed-study", "catalog.json", stamp,
+  ]
+  let prepared = @json.parse(runner.run(cli, prepare))
+  assert_eq(field(prepared, "dispatched"), false)
+  let child_bytes = @fs.read_file(workspace + "/" + text(prepared, "graph_ref")).binary()
+  assert_eq(
+    field(
+      @json.parse(
+        @fs.read_file(workspace + "/" + text(prepared, "graph_ref")).text(),
+      ),
+      "items",
+    ),
+    items.to_json(),
+  )
+  assert_eq(prepared, @json.parse(runner.run(cli, prepare)))
+  assert_eq(
+    child_bytes,
+    @fs.read_file(workspace + "/" + text(prepared, "graph_ref")).binary(),
+  )
+  ignore(
+    runner.run(
+      cli,
+      [
+        "plan", "prepare", workspace, "resumed-study", "catalog.json", "2026-08-02T00:00:00Z",
+      ],
+      fails=true,
+    ),
+  )
+  assert_eq(
+    child_bytes,
+    @fs.read_file(workspace + "/" + text(prepared, "graph_ref")).binary(),
+  )
+  // A mismatched saved source never produces an HTML output, even when its graph
+  // ID is unchanged. This checks the production renderer, not a validator mock.
+  let wrong = @fs.read_file(workspace + "/continued-form.json")
+    .text()
+    .replace(
+      old="Review the exact root artifact",
+      new="Changed source criterion",
+    )
+  save(workspace + "/wrong-source.json", wrong)
+  ignore(
+    runner.run(
+      "python3",
+      render +
+      [workspace + "/refused.html"] +
+      author +
+      ["--resume", workspace + "/wrong-source.json"],
+      fails=true,
+    ),
+  )
+  assert_false(@fs.exists(workspace + "/refused.html"))
+  // Native rejection remains authoritative after an operator manually changes a form.
+  let bad = @json.parse(
+    @fs.read_file(workspace + "/continued-form.json").text(),
+  )
+  guard field(bad, "edits") is Array(bad_edits) && bad_edits[0] is Object(root) else {
+    fail("bad edit")
+  }
+  root["depends_on"] = ["join"]
+  save(workspace + "/cycle.json", bad.stringify())
+  ignore(
+    runner.run(
+      cli,
+      ["plan", "from-form", workspace, "cycle.json", "cycle", stamp],
+      fails=true,
+    ),
+  )
+  assert_false(
+    @fs.exists(
+      workspace + "/.moonsuite/products/moonflow/plan-drafts/cycle.json",
+    ),
+  )
+  assert_false(@fs.exists(workspace + "/.moonsuite/products/moonflow/runs"))
+  for file, bytes in originals {
+    assert_eq(bytes, @fs.read_file(workspace + "/" + file).binary())
+  }
+  save(
+    workspace + "/RESULT.json",
+    (
+      {
+        "passed": true,
+        "workflow": "save-close-resume-edit-save-reopen-native-prepare",
+        "saved_form_sha256": text(restored, "resumed_form_sha256").to_json(),
+        "continued_form_sha256": ("sha256:" +
+        @crypto.bytes_to_hex_string(@crypto.sha256(continued))).to_json(),
+        "native_cli_sha256": text(pin, "cli_sha256").to_json(),
+        "native_inputs_verified": 412,
+        "native_rebuilt": false,
+        "native_draft_reopened": true,
+        "native_prepare_idempotent": true,
+        "original_inputs_unchanged": true,
+        "runs_created": false,
+        "real_browser_tested": false,
+        "release_qualified": false,
+      } : Json).stringify(indent=2),
+  )
+  println(
+    "Saved plan resume journey passed; no dispatch or browser qualification.",
+  )
+}

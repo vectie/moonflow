@@ -1,0 +1,240 @@
+///|
+import {
+  "moonbitlang/async@0.19.4",
+  "moonbitlang/async@0.19.4/fs",
+  "moonbitlang/async@0.19.4/io",
+  "moonbitlang/async@0.19.4/process",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/x@0.4.50/crypto",
+}
+
+///|
+async fn save(path : String, data : &@io.Data) -> Unit {
+  @fs.write_file(path, data, create_mode=@fs.CreateOrTruncate)
+}
+
+///|
+fn field(value : Json, key : String) -> Json raise {
+  guard value is Object(fields) && fields.get(key) is Some(result) else {
+    fail("missing field: " + key)
+  }
+  result
+}
+
+///|
+fn string(value : Json, key : String) -> String raise {
+  guard field(value, key) is String(value) else {
+    fail("expected string: " + key)
+  }
+  value
+}
+
+///|
+struct Runner {
+  cli : String
+  workspace : String
+  calls : Array[Json]
+}
+
+///|
+async fn Runner::invoke(
+  self : Runner,
+  args : Array[String],
+  fails? : Bool = false,
+) -> String {
+  let (status, stdout, stderr) = @process.collect_output(self.cli, args)
+  let number = (self.calls.length() + 1).to_string()
+  save(self.workspace + "/logs/" + number + ".stdout", stdout)
+  save(self.workspace + "/logs/" + number + ".stderr", stderr)
+  self.calls.push({
+    "args": args.to_json(),
+    "exit": status.to_json(),
+    "expected_failure": fails.to_json(),
+  })
+  save(
+    self.workspace + "/logs/commands.json",
+    self.calls.to_json().stringify(indent=2),
+  )
+  assert_eq(
+    status != 0,
+    fails,
+    msg=args.join(" ") + "\n" + stdout.text() + stderr.text(),
+  )
+  stdout.text()
+}
+
+///|
+async fn main {
+  let args = @env.args()
+  guard args.length() == 4 else {
+    fail("Usage: verify_graph_splice.mbtx CLI SOURCE_ROOT NEW_WORKSPACE")
+  }
+  let cli = @fs.realpath(args[1])
+  let source = @fs.realpath(args[2])
+  let workspace = args[3]
+  assert_true(workspace.has_prefix("/"), msg="Use an absolute new workspace")
+  assert_false(
+    @fs.exists(workspace),
+    msg="Verification requires a new workspace",
+  )
+  @fs.mkdir(workspace)
+  @fs.mkdir(workspace + "/logs")
+  @fs.mkdir(workspace + "/requests")
+  let fixture = source + "/examples/plan-worksheet/"
+  let original_graph = @fs.read_file(fixture + "source-graph.json").text()
+  save(workspace + "/source.json", original_graph)
+  save(workspace + "/module.json", original_graph)
+  for name in ["root", "left", "right", "join"] {
+    save(
+      workspace + "/requests/" + name + ".json",
+      @fs.read_file(fixture + "requests/" + name + ".json"),
+    )
+  }
+  save(
+    workspace + "/capability-source-bundle.json",
+    @fs.read_file(fixture + "capability-source-bundle.json"),
+  )
+  let manifest : Json = {
+    "contract_id": "moonflow.graph-splice-manifest.v1",
+    "graph_id": "expanded-study",
+    "alias": "detail",
+    "replace_item_id": "left",
+    "recorded_at": "2026-07-31T00:00:00Z",
+    "source_graph_ref": "source.json",
+    "module_graph_ref": "module.json",
+  }
+  save(workspace + "/splice.json", manifest.stringify(indent=2))
+  let runner = Runner::{ cli, workspace, calls: [], }
+  let stamp = "2026-07-31T00:00:00Z" // Fixed synthetic catalog validity window.
+  let initial_files = @fs.readdir(workspace, include_hidden=true, sort=true)
+  let preview = @json.parse(
+    runner.invoke(["graph-splice", workspace, "splice.json", "--json"]),
+  )
+  let output = runner.invoke([
+    "graph-splice", workspace, "splice.json", "--graph",
+  ])
+  assert_eq(@json.parse(output), field(preview, "graph"))
+  assert_eq(
+    @fs.readdir(workspace, include_hidden=true, sort=true),
+    initial_files,
+  )
+  assert_false(@fs.exists(workspace + "/.moonsuite"))
+  assert_eq(field(preview, "dispatched"), false)
+  let repeat = @json.parse(
+    runner.invoke(["graph-splice", workspace, "splice.json", "--json"]),
+  )
+  assert_eq(preview, repeat)
+  save(workspace + "/expanded.json", output)
+  let started = @json.parse(
+    runner.invoke([
+      "plan", "start", workspace, "expanded.json", "expanded-edit", "existing-graph",
+      stamp,
+    ]),
+  )
+  let reopened = @json.parse(
+    runner.invoke(["plan", "inspect", workspace, "expanded-edit"]),
+  )
+  assert_eq(started, reopened)
+  save(
+    workspace + "/catalog.json",
+    runner.invoke([
+      "compile-capability-catalog",
+      workspace + "/capability-source-bundle.json",
+    ]),
+  )
+  let prepared = @json.parse(
+    runner.invoke([
+      "plan", "prepare", workspace, "expanded-edit", "catalog.json", stamp,
+    ]),
+  )
+  assert_eq(field(prepared, "dispatched"), false)
+  let graph_path = workspace + "/" + string(prepared, "graph_ref")
+  let graph = @json.parse(@fs.read_file(graph_path).text())
+  assert_eq(field(graph, "items"), field(field(preview, "graph"), "items"))
+  assert_false(@fs.exists(workspace + "/.moonsuite/products/moonflow/runs"))
+  let imported = @json.parse(
+    runner.invoke([
+      "import-conformant-graph",
+      workspace,
+      graph_path,
+      workspace + "/catalog.json",
+      stamp,
+    ]),
+  )
+  let reopened_run = @json.parse(
+    runner.invoke(["status", workspace, string(graph, "graph_id")]),
+  )
+  assert_eq(imported, reopened_run)
+  guard field(imported, "items") is Array(items) else { fail("imported items") }
+  assert_eq(items.length(), 7)
+  for item in items {
+    assert_eq(field(item, "attempt_count"), 0)
+    assert_eq(field(item, "approvals"), [])
+    assert_eq(field(item, "artifacts"), [])
+  }
+  assert_eq(field(imported, "runnable_item_ids"), ["root"])
+  // Selection mistakes fail at the native entrypoint; no fallback graph is emitted.
+  guard manifest is Object(fields) else { fail("manifest") }
+  fields["replace_item_id"] = "missing"
+  save(workspace + "/bad.json", manifest.stringify())
+  ignore(
+    runner.invoke(
+      ["graph-splice", workspace, "bad.json", "--graph"],
+      fails=true,
+    ),
+  )
+  fields["replace_item_id"] = "left"
+  fields["module_graph_ref"] = "../module.json"
+  save(workspace + "/bad.json", manifest.stringify())
+  ignore(
+    runner.invoke(["graph-splice", workspace, "bad.json", "--json"], fails=true),
+  )
+  // Containment is checked after resolving a symlink as well as lexically.
+  @fs.symlink(target=fixture + "source-graph.json", workspace + "/outside.json")
+  fields["module_graph_ref"] = "outside.json"
+  save(workspace + "/bad.json", manifest.stringify())
+  ignore(
+    runner.invoke(["graph-splice", workspace, "bad.json", "--json"], fails=true),
+  )
+  // Inputs are declarations until preparation, which must still check existence.
+  let missing_input = @json.parse(output)
+  guard missing_input is Object(missing_fields) &&
+    missing_fields["items"] is Array(missing_items) &&
+    missing_items[1] is Object(missing_item) else {
+    fail("graph")
+  }
+  missing_fields["graph_id"] = "missing-input-graph"
+  missing_item["input_artifacts"] = ["requests/absent.json"]
+  save(workspace + "/missing-input.json", missing_input.stringify())
+  ignore(
+    runner.invoke([
+      "plan", "start", workspace, "missing-input.json", "missing-edit", "existing-graph",
+      stamp,
+    ]),
+  )
+  ignore(
+    runner.invoke(
+      ["plan", "prepare", workspace, "missing-edit", "catalog.json", stamp],
+      fails=true,
+    ),
+  )
+  assert_eq(@fs.read_file(workspace + "/source.json").text(), original_graph)
+  assert_eq(@fs.read_file(workspace + "/module.json").text(), original_graph)
+  let result : Json = {
+    "passed": true,
+    "commands": runner.calls.length().to_json(),
+    "cli": cli.to_json(),
+    "cli_sha256": @crypto.bytes_to_hex_string(
+      @crypto.sha256(@fs.read_file(cli).binary()),
+    ).to_json(),
+    "workspace": workspace.to_json(),
+    "source_inputs_preserved": true,
+    "preview_no_workspace_state": true,
+    "native_prepare_import_reopen": true,
+    "attempts": 0,
+    "scope": "Synthetic declaration editing and import only; no adapter effect, review or live catalog qualification",
+  }
+  save(workspace + "/logs/result.json", result.stringify(indent=2))
+  println(result.stringify(indent=2))
+}

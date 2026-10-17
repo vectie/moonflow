@@ -1,0 +1,31 @@
+{
+  "contract_id": "moonflow.shared-table-template.v1",
+  "repeated_work_item_ids": [
+    "left",
+    "right",
+    "rowjoin"
+  ],
+  "item_bindings": [
+    {
+      "template_work_item_id": "left",
+      "input_artifacts": [
+        "requests/{{key}}-left.json"
+      ],
+      "acceptance_criteria": [
+        "Review {{label}} left result"
+      ]
+    },
+    {
+      "template_work_item_id": "right",
+      "input_artifacts": [
+        "requests/{{key}}-right.json"
+      ]
+    },
+    {
+      "template_work_item_id": "rowjoin",
+      "input_artifacts": [
+        "requests/{{key}}-rowjoin.json"
+      ]
+    }
+  ]
+}

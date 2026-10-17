@@ -1,0 +1,369 @@
+///|
+import {
+  "moonbitlang/async@0.19.4",
+  "moonbitlang/async@0.19.4/fs",
+  "moonbitlang/async@0.19.4/process",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/x@0.4.50/crypto",
+}
+
+///|
+async fn save(path : String, text : String) -> Unit {
+  @fs.write_file(path, text, create_mode=@fs.CreateOrTruncate)
+}
+
+///|
+fn field(value : Json, key : String) -> Json raise {
+  guard value is Object(fields) && fields.get(key) is Some(result) else {
+    fail("missing " + key)
+  }
+  result
+}
+
+///|
+async fn snapshot(
+  path : String,
+  prefix : String,
+  files : Map[String, String],
+) -> Unit {
+  for name in @fs.readdir(path, include_hidden=true, sort=true) {
+    let file = path + "/" + name
+    let relative = prefix + name
+    match @fs.kind(file, follow_symlink=false) {
+      @fs.Directory => snapshot(file, relative + "/", files)
+      @fs.Regular =>
+        files[relative] = @crypto.bytes_to_hex_string(
+          @crypto.sha256(@fs.read_file(file).binary()),
+        )
+      _ => fail("unexpected workspace path " + relative)
+    }
+  }
+}
+
+///|
+struct Runner {
+  cli : String
+  workspace : String
+  evidence : String
+  calls : Array[Json]
+}
+
+///|
+async fn Runner::invoke(
+  self : Runner,
+  args : Array[String],
+  fails? : Bool = false,
+  read_only? : Bool = false,
+) -> String {
+  let before = Map([])
+  snapshot(self.workspace, "", before)
+  let (status, out, err) = @process.collect_output(self.cli, args)
+  let number = (self.calls.length() + 1).to_string()
+  save(self.evidence + "/" + number + ".stdout", out.text())
+  save(self.evidence + "/" + number + ".stderr", err.text())
+  self.calls.push({
+    "args": args.to_json(),
+    "exit": status.to_json(),
+    "expected_failure": fails.to_json(),
+  })
+  save(
+    self.evidence + "/commands.json",
+    self.calls.to_json().stringify(indent=2),
+  )
+  assert_eq(status != 0, fails, msg=args.join(" ") + "\n" + err.text())
+  if read_only || fails {
+    let after = Map([])
+    snapshot(self.workspace, "", after)
+    assert_eq(before, after, msg="unexpected workspace mutation")
+  }
+  out.text()
+}
+
+///|
+async fn main {
+  let args = @env.args()
+  assert_eq(
+    args.length(),
+    4,
+    msg="verify_mermaid_plan.mbtx CLI SOURCE_ROOT NEW_EVIDENCE_DIRECTORY",
+  )
+  let cli = @fs.realpath(args[1])
+  let source = @fs.realpath(args[2])
+  let root = args[3]
+  assert_true(root.has_prefix("/"))
+  assert_false(@fs.exists(root), msg="use a new evidence directory")
+  @fs.mkdir(root)
+  let workspace = root + "/workspace"
+  @fs.mkdir(workspace)
+  @fs.mkdir(workspace + "/requests")
+  @fs.mkdir(root + "/logs")
+  let inputs = [
+    "source-graph.json", "bindings.json", "design.mmd", "capability-source-bundle.json",
+    "requests/compact.json", "requests/wide.json", "requests/review.json",
+  ]
+  let originals : Map[String, String] = Map([])
+  for file in inputs {
+    let text = @fs.read_file(source + "/examples/mermaid-plan/" + file).text()
+    originals[file] = text
+    save(workspace + "/" + file, text)
+  }
+  let runner = Runner::{ cli, workspace, evidence: root + "/logs", calls: [], }
+  let parameters = [
+    workspace, "source-graph.json", "bindings.json", "design.mmd", "study", "2026-07-31T00:00:00Z",
+  ]
+  let preview = @json.parse(
+    runner.invoke(["plan", "preview-mermaid"] + parameters, read_only=true),
+  )
+  assert_eq(field(preview, "saved"), false)
+  assert_eq(field(preview, "source_receipt_ref"), Json::null())
+  assert_false(@fs.exists(workspace + "/.moonsuite"))
+  let saved_text = runner.invoke(["plan", "from-mermaid"] + parameters)
+  assert_eq(
+    runner.invoke(["plan", "from-mermaid"] + parameters, read_only=true),
+    saved_text,
+  )
+  let saved = @json.parse(saved_text)
+  assert_eq(field(saved, "form"), field(preview, "form"))
+  guard field(saved, "source_receipt_ref") is String(receipt_ref) else {
+    fail("receipt ref")
+  }
+  let receipt_text = @fs.read_file(workspace + "/" + receipt_ref).text()
+  let receipt = @json.parse(receipt_text)
+  assert_eq(
+    field(receipt, "source_text"),
+    originals["source-graph.json"].to_json(),
+  )
+  assert_eq(
+    field(receipt, "bindings_text"),
+    originals["bindings.json"].to_json(),
+  )
+  assert_eq(field(receipt, "diagram_text"), originals["design.mmd"].to_json())
+  save(workspace + "/design.mmd", originals["design.mmd"] + "\n")
+  ignore(runner.invoke(["plan", "from-mermaid"] + parameters, fails=true))
+  save(workspace + "/design.mmd", originals["design.mmd"])
+  let catalog = runner.invoke(
+    ["compile-capability-catalog", workspace + "/capability-source-bundle.json"],
+    read_only=true,
+  )
+  save(workspace + "/catalog.json", catalog)
+  let inspected = @json.parse(
+    runner.invoke(["plan", "inspect", workspace, "study"], read_only=true),
+  )
+  assert_eq(inspected, field(preview, "form"))
+  let exported = @json.parse(
+    runner.invoke(["plan", "export", workspace, "study"], read_only=true),
+  )
+  guard field(exported, "edits") is Array(edits) else { fail("edits") }
+  assert_eq(edits.length(), 3)
+  guard edits[1] is Object(compare) else { fail("compare") }
+  assert_eq(compare["work_item_id"], "compare")
+  assert_eq(compare["depends_on"], ["compact", "wide"])
+  let prepared = @json.parse(
+    runner.invoke([
+      "plan", "prepare", workspace, "study", "catalog.json", "2026-07-31T00:00:00Z",
+    ]),
+  )
+  assert_false(@fs.exists(workspace + "/.moonsuite/products/moonflow/runs"))
+  compare["timeout_ms"] = 30000
+  let edit : Json = {
+    "expected_draft": @json.parse(
+      runner.invoke(["plan", "export", workspace, "study"], read_only=true),
+    ),
+    "item_edit": edits[1],
+  }
+  save(workspace + "/edit.json", edit.stringify(indent=2))
+  ignore(runner.invoke(["plan", "edit", workspace, "study", "edit.json"]))
+  let revised = @json.parse(
+    runner.invoke([
+      "plan", "prepare", workspace, "study", "catalog.json", "2026-07-31T00:00:00Z",
+    ]),
+  )
+  assert_true(field(prepared, "graph_ref") != field(revised, "graph_ref"))
+  assert_eq(@fs.read_file(workspace + "/" + receipt_ref).text(), receipt_text)
+  ignore(runner.invoke(["plan", "from-mermaid"] + parameters, fails=true))
+  for
+    (name, text) in [
+      ("cycle", originals["design.mmd"] + "\ncompare --> compact"),
+      ("unsupported", "flowchart LR\ncompact -->|condition| compare"),
+      ("unbound", originals["design.mmd"] + "\nextra"),
+    ] {
+    save(workspace + "/" + name + ".mmd", text)
+    ignore(
+      runner.invoke(
+        [
+          "plan",
+          "from-mermaid",
+          workspace,
+          "source-graph.json",
+          "bindings.json",
+          name + ".mmd",
+          name,
+          "2026-07-31T00:00:00Z",
+        ],
+        fails=true,
+      ),
+    )
+  }
+  save(
+    workspace + "/missing-bindings.json",
+    originals["bindings.json"].replace(
+      old="requests/wide.json",
+      new="requests/absent.json",
+    ),
+  )
+  ignore(
+    runner.invoke(
+      [
+        "plan", "from-mermaid", workspace, "source-graph.json", "missing-bindings.json",
+        "design.mmd", "missing", "2026-07-31T00:00:00Z",
+      ],
+      fails=true,
+    ),
+  )
+  ignore(
+    runner.invoke(
+      [
+        "plan", "preview-mermaid", workspace, "../outside.json", "bindings.json",
+        "design.mmd", "outside", "2026-07-31T00:00:00Z",
+      ],
+      fails=true,
+    ),
+  )
+  // Raw input regressions: test before any ordinary JSON decoder can erase
+  // fractional spellings or duplicate decoded keys.
+  let one = "{\"contract_id\":\"moonflow.mermaid-plan-bindings.v1\",\"nodes\":{\"one\":{\"template_work_item_id\":\"make-model\",\"input_artifacts\":[\"requests/compact.json\"],\"timeout_ms\":1}}}"
+  save(workspace + "/one.mmd", "flowchart LR\none")
+  for
+    (name, bindings) in [
+      (
+        "rounded",
+        one.replace(
+          old="\"timeout_ms\":1",
+          new="\"timeout_ms\":1.000000000000000001",
+        ),
+      ),
+      (
+        "duplicate-template",
+        one.replace(
+          old="\"template_work_item_id\":",
+          new="\"template_work_item_id\":\"missing-operation\",\"template_work_item_id\":",
+        ),
+      ),
+      (
+        "escaped-template",
+        one.replace(
+          old="\"template_work_item_id\":",
+          new="\"template_work_item_id\":\"missing-operation\",\"template_work_item_\\u0069d\":",
+        ),
+      ),
+      (
+        "duplicate-node",
+        one.replace(old="\"one\":", new="\"one\":{},\"\\u006fne\":"),
+      ),
+      (
+        "duplicate-timeout",
+        one.replace(
+          old="\"timeout_ms\":1",
+          new="\"timeout_ms\":1.1,\"timeout_ms\":1",
+        ),
+      ),
+    ] {
+    save(workspace + "/" + name + ".json", bindings)
+    for command in ["preview-mermaid", "from-mermaid"] {
+      ignore(
+        runner.invoke(
+          [
+            "plan",
+            command,
+            workspace,
+            "source-graph.json",
+            name + ".json",
+            "one.mmd",
+            name,
+            "2026-07-31T00:00:00Z",
+          ],
+          fails=true,
+        ),
+      )
+    }
+  }
+  save(workspace + "/one.json", one)
+  save(
+    workspace + "/rounded-source.json",
+    originals["source-graph.json"].replace(
+      old="60000",
+      new="60000.000000000001",
+    ),
+  )
+  for command in ["preview-mermaid", "from-mermaid"] {
+    ignore(
+      runner.invoke(
+        [
+          "plan", command, workspace, "rounded-source.json", "one.json", "one.mmd",
+          "rounded-source", "2026-07-31T00:00:00Z",
+        ],
+        fails=true,
+      ),
+    )
+  }
+  for
+    (spelling, expected) in [
+      ("1.0", 1),
+      ("1000e-3", 1),
+      ("1.25e2", 125),
+      ("8.64E+7", 86400000),
+    ] {
+    save(
+      workspace + "/integral.json",
+      one.replace(old="\"timeout_ms\":1", new="\"timeout_ms\":" + spelling),
+    )
+    let output = @json.parse(
+      runner.invoke(
+        [
+          "plan", "preview-mermaid", workspace, "source-graph.json", "integral.json",
+          "one.mmd", "integral", "2026-07-31T00:00:00Z",
+        ],
+        read_only=true,
+      ),
+    )
+    guard field(field(output, "form"), "items") is Array(items) else {
+      fail("items")
+    }
+    assert_eq(field(items[0], "timeout_ms"), expected.to_json())
+  }
+  save(
+    workspace + "/integral-source.json",
+    originals["source-graph.json"].replace(old="60000", new="6.000e4"),
+  )
+  ignore(
+    runner.invoke(
+      [
+        "plan", "preview-mermaid", workspace, "integral-source.json", "one.json",
+        "one.mmd", "integral-source", "2026-07-31T00:00:00Z",
+      ],
+      read_only=true,
+    ),
+  )
+  // Exact import sources survive both the happy journey and every refusal.
+  for file, text in originals {
+    assert_eq(@fs.read_file(workspace + "/" + file).text(), text)
+  }
+  assert_false(@fs.exists(workspace + "/.moonsuite/products/moonflow/runs"))
+  save(root + "/preview.json", preview.stringify(indent=2))
+  save(root + "/prepared.json", prepared.stringify(indent=2))
+  save(root + "/revised.json", revised.stringify(indent=2))
+  save(
+    root + "/result.json",
+    (
+      {
+        "status": "passed",
+        "calls": runner.calls.length(),
+        "source_files_unchanged": true,
+        "original_text_receipt_verified": true,
+        "dispatch": false,
+        "runs_created": false,
+      } : Json).stringify(indent=2),
+  )
+  println("Mermaid CLI journey passed: \{runner.calls.length()} commands")
+}

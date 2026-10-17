@@ -1,0 +1,19 @@
+{
+  "contract_id": "moonflow.mermaid-plan-bindings.v1",
+  "nodes": {
+    "compact": {
+      "template_work_item_id": "make-model",
+      "input_artifacts": ["requests/compact.json"]
+    },
+    "wide": {
+      "template_work_item_id": "make-model",
+      "input_artifacts": ["requests/wide.json"],
+      "timeout_ms": 90000
+    },
+    "compare": {
+      "template_work_item_id": "make-model",
+      "input_artifacts": ["requests/review.json"],
+      "acceptance_criteria": ["Review the combined layout after both model operations"]
+    }
+  }
+}

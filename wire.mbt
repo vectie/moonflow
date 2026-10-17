@@ -100,6 +100,7 @@ pub fn event_kind_from_id(id : String) -> EventKind raise {
     "attempt-submitted" => AttemptSubmitted
     "attempt-reconciled" => AttemptReconciled
     "checkpoint-reused" => CheckpointReused
+    "responsibility-changed" => ResponsibilityChanged
     _ => fail("unsupported MoonFlow event kind: \{id}")
   }
 }
@@ -215,6 +216,11 @@ pub fn projection_json(projection : RunProjection) -> Json {
     (
       {
         "work_item_id": item.work_item_id,
+        "responsibility": match
+          responsibility_v1(projection, item.work_item_id) {
+          Some(change) => change.to_json()
+          None => Json::null()
+        },
         "declaration_id": item.declaration_id,
         "product_id": item.product_id,
         "requested_authority": item.requested_authority,

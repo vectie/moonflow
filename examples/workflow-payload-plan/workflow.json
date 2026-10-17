@@ -1,0 +1,40 @@
+{
+  "contract_id": "moonflow.workflow-payload-plan.v1",
+  "records_pointer": "/jobs",
+  "record_id_pointer": "/key",
+  "steps": [
+    {
+      "template_work_item_id": "root",
+      "request_template": {"fixture_only": true, "request_id": "", "stage": "setup", "study": null},
+      "bindings": [
+        {"target_pointer": "/request_id", "value_pointer": "/work_item_id"},
+        {"target_pointer": "/study", "value_pointer": "/record/study"}
+      ]
+    },
+    {
+      "template_work_item_id": "left",
+      "request_template": {"fixture_only": true, "request_id": "", "stage": "candidate-a", "parameters": null},
+      "bindings": [
+        {"target_pointer": "/request_id", "value_pointer": "/work_item_id"},
+        {"target_pointer": "/parameters", "value_pointer": "/record/candidate_a"}
+      ]
+    },
+    {
+      "template_work_item_id": "right",
+      "request_template": {"fixture_only": true, "request_id": "", "stage": "candidate-b", "parameters": null},
+      "bindings": [
+        {"target_pointer": "/request_id", "value_pointer": "/work_item_id"},
+        {"target_pointer": "/parameters", "value_pointer": "/record/candidate_b"}
+      ]
+    },
+    {
+      "template_work_item_id": "join",
+      "request_template": {"fixture_only": true, "request_id": "", "stage": "comparison", "review": null},
+      "bindings": [
+        {"target_pointer": "/request_id", "value_pointer": "/work_item_id"},
+        {"target_pointer": "/review", "value_pointer": "/record/review"}
+      ],
+      "acceptance_criteria_pointer": "/record/review/criteria"
+    }
+  ]
+}

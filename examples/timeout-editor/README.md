@@ -1,0 +1,1 @@
+Use the complete ../plan-worksheet/source-graph.json and its existing synthetic capability fixture with docs/TIMEOUT_EDITOR.md. expected-edits.json describes the actual emitted-handler journey, not a replacement native plan form.

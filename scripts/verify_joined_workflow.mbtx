@@ -1,0 +1,243 @@
+///|
+import {
+  "moonbitlang/async@0.19.4",
+  "moonbitlang/async@0.19.4/fs",
+  "moonbitlang/async@0.19.4/io",
+  "moonbitlang/async@0.19.4/process",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/x@0.4.50/crypto",
+}
+
+///|
+fn field(value : Json, key : String) -> Json raise {
+  guard value is Object(fields) && fields.get(key) is Some(found) else {
+    fail("missing field: " + key)
+  }
+  found
+}
+
+///|
+fn text(value : Json, key : String) -> String raise {
+  guard field(value, key) is String(found) else {
+    fail("expected string: " + key)
+  }
+  found
+}
+
+///|
+async fn save(path : String, value : &@io.Data) -> Unit {
+  @fs.write_file(path, value, create_mode=@fs.CreateOrTruncate)
+}
+
+///|
+struct Runner {
+  cli : String
+  workspace : String
+  calls : Array[Json]
+}
+
+///|
+async fn Runner::run(
+  self : Runner,
+  args : Array[String],
+  fails? : Bool = false,
+) -> String {
+  let (status, out, err) = @process.collect_output(self.cli, args)
+  let index = self.calls.length() + 1
+  save(self.workspace + "/logs/\{index}.stdout", out)
+  save(self.workspace + "/logs/\{index}.stderr", err)
+  self.calls.push({
+    "args": args.to_json(),
+    "exit": status.to_json(),
+    "expected_failure": fails.to_json(),
+  })
+  save(
+    self.workspace + "/logs/commands.json",
+    self.calls.to_json().stringify(indent=2),
+  )
+  assert_eq(
+    status != 0,
+    fails,
+    msg=args.join(" ") + "\n" + out.text() + err.text(),
+  )
+  out.text()
+}
+
+///|
+async fn main {
+  let args = @env.args()
+  guard args.length() == 4 else {
+    fail("Usage: verify_joined_workflow.mbtx CLI SOURCE NEW_WORKSPACE")
+  }
+  let workspace = args[3]
+  assert_true(workspace.has_prefix("/"))
+  assert_false(@fs.exists(workspace))
+  @fs.mkdir(workspace)
+  @fs.mkdir(workspace + "/logs")
+  for
+    file in [
+      "source-graph.json", "workflow.json", "join.json", "jobs.json", "models.json",
+      "capability-source-bundle.json",
+    ] {
+    save(
+      workspace + "/" + file,
+      @fs.read_file(args[2] + "/examples/joined-workflow/" + file),
+    )
+  }
+  let runner = Runner::{ cli: args[1], workspace, calls: [], }
+  let stamp = "2026-07-31T00:00:00Z"
+  fn command(mode : String, jobs : String, models : String) -> Array[String] {
+    [
+      "plan", mode, workspace, "source-graph.json", "workflow.json", "join.json",
+      jobs, models, "study", stamp,
+    ]
+  }
+  let preview = @json.parse(
+    runner.run(command("preview-joined-workflow", "jobs.json", "models.json")),
+  )
+  assert_eq(field(preview, "record_ids"), ["chair", "stool"])
+  assert_eq(field(preview, "unused_lookup_rows"), [1])
+  assert_false(@fs.exists(workspace + "/.moonsuite"))
+  save(
+    workspace + "/missing.json",
+    "{\"jobs\":[{\"key\":\"one\",\"model\":\"absent\"}]}",
+  )
+  ignore(
+    runner.run(
+      command("from-joined-workflow", "missing.json", "models.json"),
+      fails=true,
+    ),
+  )
+  save(
+    workspace + "/duplicate.json",
+    "{\"models\":[{\"model\":\"seating\"},{\"model\":\"seating\"}]}",
+  )
+  ignore(
+    runner.run(
+      command("from-joined-workflow", "jobs.json", "duplicate.json"),
+      fails=true,
+    ),
+  )
+  assert_false(@fs.exists(workspace + "/.moonsuite"))
+  let saved = @json.parse(
+    runner.run(command("from-joined-workflow", "jobs.json", "models.json")),
+  )
+  assert_eq(
+    saved,
+    @json.parse(
+      runner.run(command("from-joined-workflow", "jobs.json", "models.json")),
+    ),
+  )
+  assert_eq(
+    field(saved, "form"),
+    @json.parse(runner.run(["plan", "inspect", workspace, "study"])),
+  )
+  guard field(saved, "artifacts") is Array(artifacts) else { fail("artifacts") }
+  assert_eq(artifacts.length(), 8)
+  for artifact in artifacts {
+    let bytes = @fs.read_file(workspace + "/" + text(artifact, "artifact_ref"))
+    assert_eq(bytes.text(), text(artifact, "json_text"))
+    assert_eq(
+      "sha256:" + @crypto.bytes_to_hex_string(@crypto.sha256(bytes.binary())),
+      text(artifact, "sha256"),
+    )
+  }
+  guard @json.parse(text(artifacts[1], "json_text")) is Object(payload) else {
+    fail("payload")
+  }
+  assert_eq(payload["parameters"], {
+    "width": 42.5,
+    "finish": { "matte": true },
+  })
+  let exported_text = runner.run(["plan", "export", workspace, "study"])
+  let exported = @json.parse(exported_text)
+  guard field(exported, "edits") is Array(edits) &&
+    @json.parse(edits[3].stringify()) is Object(edit) else {
+    fail("edit")
+  }
+  edit["acceptance_criteria"] = [
+    "Compare both candidates and retain original objections",
+  ]
+  save(
+    workspace + "/edit.json",
+    ({ "expected_draft": exported, "item_edit": Json::object(edit) } : Json).stringify(),
+  )
+  let edited = runner.run(["plan", "edit", workspace, "study", "edit.json"])
+  assert_eq(
+    @json.parse(edited),
+    @json.parse(runner.run(["plan", "inspect", workspace, "study"])),
+  )
+  ignore(
+    runner.run(
+      command("from-joined-workflow", "jobs.json", "models.json"),
+      fails=true,
+    ),
+  )
+  assert_eq(
+    @json.parse(edited),
+    @json.parse(runner.run(["plan", "inspect", workspace, "study"])),
+  )
+  assert_false(@fs.exists(workspace + "/.moonsuite/products/moonflow/runs"))
+  save(
+    workspace + "/catalog.json",
+    runner.run([
+      "compile-capability-catalog",
+      workspace + "/capability-source-bundle.json",
+    ]),
+  )
+  ignore(
+    runner.run(
+      [
+        "plan", "prepare", workspace, "study", "catalog.json", "2026-08-02T00:00:00Z",
+      ],
+      fails=true,
+    ),
+  )
+  let prepared = @json.parse(
+    runner.run(["plan", "prepare", workspace, "study", "catalog.json", stamp]),
+  )
+  assert_eq(field(prepared, "dispatched"), false)
+  let graph_path = workspace + "/" + text(prepared, "graph_ref")
+  let graph = @json.parse(@fs.read_file(graph_path).text())
+  guard field(graph, "items") is Array(items) else { fail("graph items") }
+  assert_eq(items.length(), 8)
+  assert_eq(field(items[7], "depends_on"), ["stool.left", "stool.right"])
+  assert_eq(field(items[3], "acceptance_criteria"), [
+    "Compare both candidates and retain original objections",
+  ])
+  let imported = @json.parse(
+    runner.run([
+      "import-conformant-graph",
+      workspace,
+      graph_path,
+      workspace + "/catalog.json",
+      stamp,
+    ]),
+  )
+  assert_eq(
+    imported,
+    @json.parse(runner.run(["status", workspace, text(graph, "graph_id")])),
+  )
+  assert_eq(field(imported, "runnable_item_ids"), ["chair.root", "stool.root"])
+  guard field(imported, "items") is Array(run_items) else { fail("run items") }
+  for item in run_items {
+    assert_eq(field(item, "attempt_count"), 0)
+    assert_eq(field(item, "approvals"), [])
+  }
+  for
+    file in [
+      "source-graph.json", "workflow.json", "join.json", "jobs.json", "models.json",
+      "capability-source-bundle.json",
+    ] {
+    assert_eq(
+      @fs.read_file(workspace + "/" + file).binary(),
+      @fs.read_file(args[2] + "/examples/joined-workflow/" + file).binary(),
+    )
+  }
+  println(
+    "joined-workflow native CLI journey passed: " +
+    runner.calls.length().to_string() +
+    " commands",
+  )
+}

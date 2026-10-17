@@ -1,0 +1,6 @@
+{
+  "models": [
+    {"model": "tables", "candidate_a": {"width": 90}, "candidate_b": {"width": 100}},
+    {"model": "seating", "candidate_a": {"width": 42.5, "finish": {"matte": true}}, "candidate_b": {"width": 45, "finish": null}}
+  ]
+}

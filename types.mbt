@@ -54,6 +54,7 @@ pub(all) enum EventKind {
   AttemptSubmitted
   AttemptReconciled
   CheckpointReused
+  ResponsibilityChanged
 } derive(Debug, Eq, Compare, Hash, ToJson)
 
 ///|
@@ -75,6 +76,7 @@ pub fn EventKind::id(self : EventKind) -> String {
     AttemptSubmitted => "attempt-submitted"
     AttemptReconciled => "attempt-reconciled"
     CheckpointReused => "checkpoint-reused"
+    ResponsibilityChanged => "responsibility-changed"
   }
 }
 
@@ -166,6 +168,7 @@ pub(all) struct RunProjection {
 ///|
 pub(all) suberror FlowError {
   EmptyEventId
+  InvalidResponsibility(String)
   EmptyRunId
   InvalidSequence(expected~ : Int, actual~ : Int)
   ConflictingDuplicateEvent(String)

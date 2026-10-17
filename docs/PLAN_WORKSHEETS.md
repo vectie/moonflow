@@ -89,3 +89,8 @@ For repeated input-path edits, [shared input rebindings](INPUT_REBINDINGS.md)
 can inventory every declared consumer of each exact path and export a fresh
 worksheet after a source-bound simultaneous replacement preview. It leaves the
 same native validation, preparation and revision workflow in place.
+
+When two operators edit copies of the same export, use the
+[three-way worksheet merge](WORKSHEET_MERGE.md) to combine independent field
+changes, explicitly resolve conflicts and check the combined dependency graph
+before native preview and preparation.

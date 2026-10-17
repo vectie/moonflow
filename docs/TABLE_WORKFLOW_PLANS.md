@@ -69,7 +69,9 @@ CSV reject the entire expansion before a draft is saved.
 
 This is explicit row expansion, not a Cartesian-product generator, a scheduler
 or a domain request generator. Shared setup steps and cross-row joins are not
-inferred; create them with the existing plan form tools when needed. It does
+inferred by this complete-workflow importer. Use the explicit
+[selected-step shared table client](SHARED_TABLE_PLANS.md) to retain shared setup
+and fan all repeated rows into a shared final step. This importer does
 not bind future output paths or assert that input payloads match a product's
 schema. Source steps and every referenced file are supplied by the operator.
 No adapter, network service or provider is invoked by these commands.

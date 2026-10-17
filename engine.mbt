@@ -204,6 +204,7 @@ fn RunProjection::apply_new_event(
         )
       }
       match event.kind {
+        ResponsibilityChanged => validate_responsibility_event_v1(self, event)
         ItemReady => {
           require_transition(item, event, [Proposed, Waiting, Blocked])
           match self.unaccepted_dependency(item) {

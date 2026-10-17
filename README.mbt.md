@@ -6,14 +6,35 @@
 
 MoonFlow is Moon Suite's generic durable orchestration capability and engine.
 
+To continue an earlier offline editing session, [resume a saved plan](docs/RESUME_PLAN_EDITOR.md).
+Restore its complete declared edits, keep editing, and pass the new download
+through the existing native planner without rewriting the original source.
+
+For jobs that share model or catalog data, [joined workflow plans](docs/JOINED_WORKFLOW_PLANS.md)
+match two explicit JSON exports, preview the paired data and generate every
+step's typed request before saving an ordinary editable plan.
+
+To explore hypothetical overlap under shared resource limits, use
+[capacity scenarios](docs/GRAPH_CAPACITY.md). Compare explicit pool capacities
+and per-item estimates, then export allocation offsets and resource waits as CSV
+without changing the graph or running adapters.
+
 For explicit draft editing and immutable child-graph preparation, see
 [`docs/DECLARED_PLAN_AUTHORING.md`](docs/DECLARED_PLAN_AUTHORING.md).
+To expand one step into a reusable multi-step workflow, [graph splicing](docs/GRAPH_SPLICE.md)
+previews the complete replacement and reconnects surrounding dependencies before
+ordinary plan preparation and explicit import.
 For spreadsheet workloads, [CSV batch plans](docs/CSV_BATCH_PLANS.md) expand one
 exact declared operation into a previewable, editable batch with explicit input
 files and dependencies. A [complete sample](examples/csv-plan/README.md) is included.
 For repeated multi-step workflows, [table workflow plans](docs/TABLE_WORKFLOW_PLANS.md)
 substitute row values into artifact paths and review criteria while preserving
 each row's complete dependency graph. Try the [paired study sample](examples/table-plan/README.md).
+To generate the actual JSON requests for every repeated step, use
+[workflow payload plans](docs/WORKFLOW_PAYLOAD_PLANS.md): typed record bindings
+materialize each step's request and retain the complete same-record dependency graph.
+For shared setup and a final all-row join, [selected-step table plans](docs/SHARED_TABLE_PLANS.md)
+repeat only named steps and retain the rest once through the native v2 plan form.
 To prepare only selected deliverables, [subgraph plans](docs/SUBGRAPH_PLANS.md)
 retain their complete prerequisite closure and omit unrelated branches. Try the
 [chair-only sample](examples/subgraph-plan/README.md).
@@ -149,6 +170,9 @@ diagnosing the engine. It is not a separate agent process or agent runtime.
 
 ```text
 moonflow import-graph <workspace> <graph.json>
+moonflow graph-splice <workspace> <manifest-ref> <--json|--graph>
+moonflow plan preview-workflow-payloads <workspace> <source-graph-ref> <workflow-ref> <records-ref> <draft-id> <recorded-at>
+moonflow plan from-workflow-payloads <workspace> <source-graph-ref> <workflow-ref> <records-ref> <draft-id> <recorded-at>
 moonflow plan preview-csv <workspace> <source-graph-ref> <template-item-id> <csv-ref> <draft-id> <recorded-at>
 moonflow plan from-csv <workspace> <source-graph-ref> <template-item-id> <csv-ref> <draft-id> <recorded-at>
 moonflow plan preview-table <workspace> <source-graph-ref> <template-ref> <csv-ref> <draft-id> <recorded-at>
@@ -347,3 +371,7 @@ python3 -B scripts/input_rebindings.py rebind worksheet.csv rebindings.json rebo
 
 See [shared input rebindings](docs/INPUT_REBINDINGS.md) for the exact mapping and
 native preview/save commands. No payloads are read, files moved, or plans run.
+
+## Input artifact editing
+
+See [the local workflow guide](docs/input-artifact-editor.md) for the new offline editor and existing native consumer.

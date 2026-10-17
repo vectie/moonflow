@@ -1,9 +1,9 @@
 # Owner next-action projection v1
 
 Implements the bounded MOONFLOW-R02 owner-status slice on the event/replay
-foundation of MOONFLOW-B10. It changes presentation only: transitions,
-authorities, attempts, reconciliation, reviews and revision migration are
-unchanged.
+foundation of MOONFLOW-B10. Responsibility events add explicit coordination
+records; execution transitions, authorities, attempts, reconciliation, reviews
+and revision migration remain unchanged. See `RESPONSIBILITY.md` for assignment.
 
 ## Use
 
@@ -35,9 +35,11 @@ uses the same labels, reason ordering and evidence as JSON.
   execution plan. Registration order is preserved within each group
 - Reasons preserve recorded blocker/error first, then unmet dependencies in
   declared order. No multiple blockers are collapsed into a single label
-- `next_actor_id` remains null. The v3 runtime has no next-person assignment;
-  product IDs and prior reviewers must not become owners. `next_role` describes
-  the state-required role when known, not a verified assignment
+- `next_actor_id` is the most recent explicit responsible operator for this
+  nonterminal work item, or null after clear or when unassigned. Product IDs,
+  authorities and prior reviewers never become owners implicitly. `next_role`
+  still describes the state-required role, not a person's qualification.
+  Terminal history retains assignments but advertises no next actor
 - Evidence includes exact retained artifact references, current attempt/result
   and output digest, and any internal review receipt/reviewer. Retained artifact
   lists can include prior attempt or review evidence; they are not asserted to
