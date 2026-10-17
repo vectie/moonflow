@@ -1,0 +1,8 @@
+{
+  "contract_id": "moonflow.workflow-record-join.v1",
+  "primary_records_pointer": "/jobs",
+  "lookup_records_pointer": "/models",
+  "primary_key_pointer": "/model",
+  "lookup_key_pointer": "/model",
+  "unmatched": "error"
+}

@@ -1,0 +1,6 @@
+{
+  "jobs": [
+    {"key": "chair", "model": "seating", "study": {"label": "Café chair", "digital_only": true}, "criteria": ["Compare both chair candidates against the explicit study"]},
+    {"key": "stool", "model": "seating", "study": {"label": "Small stool", "digital_only": true}, "criteria": ["Compare both stool candidates against the explicit study"]}
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "contract_id": "moonmold.spatial-operation-request.v1",
+  "request_id": "shared-final",
+  "idempotency_key": "shared-final",
+  "project_id": "synthetic-shared-study",
+  "model_id": "final",
+  "expected_parent_digest": "mm1-empty-scene",
+  "authority": "WorkspaceMutation",
+  "intent": "Synthetic shared workflow final",
+  "constraints": [
+    "Synthetic digital reference only; no physical authority"
+  ],
+  "backend_preference": "mock-reference",
+  "operation": {
+    "method": "scene.create-model",
+    "params": {
+      "name": "compact model study",
+      "units": "mm",
+      "coordinateFrame": "z-up-right-handed"
+    }
+  }
+}

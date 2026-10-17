@@ -1,0 +1,238 @@
+///|
+import {
+  "moonbitlang/async@0.19.4",
+  "moonbitlang/async@0.19.4/fs",
+  "moonbitlang/async@0.19.4/io",
+  "moonbitlang/async@0.19.4/process",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/x@0.4.50/crypto",
+}
+
+///|
+async fn save(path : String, data : &@io.Data) -> Unit {
+  @fs.write_file(path, data, create_mode=@fs.CreateOrTruncate)
+}
+
+///|
+fn field(value : Json, key : String) -> Json raise {
+  guard value is Object(fields) && fields.get(key) is Some(result) else {
+    fail("missing field: " + key)
+  }
+  result
+}
+
+///|
+async fn snapshot(workspace : String) -> Json {
+  let files : Map[String, Json] = {}
+  for name in @fs.readdir(workspace, include_hidden=true, sort=true) {
+    assert_eq(
+      @fs.kind(workspace + "/" + name, follow_symlink=false),
+      @fs.Regular,
+    )
+    files[name] = @crypto.bytes_to_hex_string(
+      @crypto.sha256(@fs.read_file(workspace + "/" + name).binary()),
+    ).to_json()
+  }
+  files.to_json()
+}
+
+///|
+struct Runner {
+  cli : String
+  workspace : String
+  logs : String
+  calls : Array[Json]
+}
+
+///|
+async fn Runner::invoke(
+  self : Runner,
+  args : Array[String],
+  fails? : Bool = false,
+) -> String {
+  let before = snapshot(self.workspace)
+  let (status, stdout, stderr) = @process.collect_output(self.cli, args)
+  let index = (self.calls.length() + 1).to_string()
+  save(self.logs + "/" + index + ".stdout", stdout)
+  save(self.logs + "/" + index + ".stderr", stderr)
+  self.calls.push({
+    "args": args.to_json(),
+    "exit": status.to_json(),
+    "expected_failure": fails.to_json(),
+  })
+  save(self.logs + "/commands.json", self.calls.to_json().stringify(indent=2))
+  assert_eq(
+    status != 0,
+    fails,
+    msg=args.join(" ") + "\n" + stdout.text() + stderr.text(),
+  )
+  assert_eq(snapshot(self.workspace), before, msg="CLI changed workspace")
+  stdout.text()
+}
+
+///|
+async fn main {
+  let args = @env.args()
+  assert_eq(
+    args.length(),
+    4,
+    msg="Usage: verify_graph_capacity.mbtx CLI SOURCE_ROOT NEW_EVIDENCE_DIRECTORY",
+  )
+  let cli = @fs.realpath(args[1])
+  let source = @fs.realpath(args[2])
+  let root = args[3]
+  assert_true(root.has_prefix("/"))
+  assert_false(@fs.exists(root), msg="Use a new evidence directory")
+  @fs.mkdir(root)
+  let workspace = root + "/workspace"
+  @fs.mkdir(workspace)
+  @fs.mkdir(root + "/logs")
+  for file in ["source-graph.json", "capacity-one.json", "capacity-two.json"] {
+    save(
+      workspace + "/" + file,
+      @fs.read_file(source + "/examples/graph-capacity/" + file),
+    )
+  }
+  let runner = Runner::{ cli, workspace, logs: root + "/logs", calls: [], }
+  let original = snapshot(workspace)
+  let first_text = runner.invoke([
+    "graph-capacity", workspace, "source-graph.json", "capacity-one.json", "--json",
+  ])
+  let first = @json.parse(first_text)
+  assert_eq(field(first, "contract_id"), "moonflow.graph-capacity.v1")
+  assert_eq(field(first, "scenario_duration_seconds"), 65)
+  assert_eq(field(first, "unlimited_capacity_lower_bound_seconds"), 45)
+  assert_eq(field(first, "additional_seconds"), 20)
+  assert_eq(
+    first_text,
+    runner.invoke([
+      "graph-capacity", workspace, "source-graph.json", "capacity-one.json", "--json",
+    ]),
+  )
+  let second_text = runner.invoke([
+    "graph-capacity", workspace, "source-graph.json", "capacity-two.json", "--json",
+  ])
+  let second = @json.parse(second_text)
+  assert_eq(field(second, "scenario_duration_seconds"), 45)
+  assert_eq(field(second, "additional_seconds"), 0)
+  assert_eq(
+    field(first, "source_graph_digest"),
+    field(second, "source_graph_digest"),
+  )
+  assert_true(
+    field(first, "scenario_digest") != field(second, "scenario_digest"),
+  )
+  guard field(first, "items") is Array(items) else { fail("items") }
+  assert_eq(items.map(item => field(item, "start_seconds")), [0, 10, 40, 60])
+  assert_eq(items.map(item => field(item, "resource_wait_seconds")), [
+    0, 0, 30, 0,
+  ])
+  let csv = runner.invoke([
+    "graph-capacity", workspace, "source-graph.json", "capacity-one.json", "--csv",
+  ])
+  assert_true(csv.contains("\"right\",\"20\",\"10\",\"40\",\"60\",\"30\""))
+  assert_true(
+    csv.contains(
+      "scenario_duration_seconds,unlimited_capacity_lower_bound_seconds",
+    ),
+  )
+  assert_eq(snapshot(workspace), original)
+  save(root + "/capacity-one-result.json", first_text)
+  save(root + "/capacity-two-result.json", second_text)
+  save(root + "/capacity-one-result.csv", csv)
+
+  let scenario_text = @fs.read_file(workspace + "/capacity-one.json").text()
+  for
+    (name, changed, message) in [
+      ("infeasible", "\"design\": 1", "infeasible demand"),
+      ("unknown", "\"design\": 1", "unknown resource"),
+    ] {
+    let value = @json.parse(scenario_text)
+    guard value is Object(fields) &&
+      fields["items"] is Object(specs) &&
+      specs["left"] is Object(left) else {
+      fail("scenario")
+    }
+    left["demands"] = if name == "infeasible" {
+      { "design": 2 }
+    } else {
+      { "unknown": 1 }
+    }
+    assert_true(scenario_text.contains(changed))
+    save(workspace + "/bad.json", value.stringify(indent=2))
+    let error = runner.invoke(
+      ["graph-capacity", workspace, "source-graph.json", "bad.json", "--json"],
+      fails=true,
+    )
+    assert_true(error.contains(message), msg=error)
+  }
+  let graph = @json.parse(
+    @fs.read_file(workspace + "/source-graph.json").text(),
+  )
+  guard graph is Object(graph_fields) &&
+    graph_fields["items"] is Array(graph_items) &&
+    graph_items[0] is Object(root_item) else {
+    fail("source")
+  }
+  root_item["depends_on"] = ["join"].to_json()
+  save(workspace + "/bad-graph.json", graph.stringify(indent=2))
+  assert_true(
+    runner
+    .invoke(
+      [
+        "graph-capacity", workspace, "bad-graph.json", "capacity-one.json", "--json",
+      ],
+      fails=true,
+    )
+    .contains("cycle"),
+  )
+  save(workspace + "/bad.json", "{broken-json")
+  ignore(
+    runner.invoke(
+      ["graph-capacity", workspace, "source-graph.json", "bad.json", "--json"],
+      fails=true,
+    ),
+  )
+  ignore(
+    runner.invoke(
+      [
+        "graph-capacity", workspace, "../capacity-one-result.json", "capacity-one.json",
+        "--json",
+      ],
+      fails=true,
+    ),
+  )
+  ignore(
+    runner.invoke(
+      [
+        "graph-capacity", workspace, "source-graph.json", "capacity-one.json", "--text",
+      ],
+      fails=true,
+    ),
+  )
+  assert_eq(
+    first_text,
+    runner.invoke([
+      "graph-capacity", workspace, "source-graph.json", "capacity-one.json", "--json",
+    ]),
+  )
+  let result : Json = {
+    "passed": true,
+    "commands": runner.calls.length().to_json(),
+    "cli": cli.to_json(),
+    "cli_sha256": @crypto.bytes_to_hex_string(
+      @crypto.sha256(@fs.read_file(cli).binary()),
+    ).to_json(),
+    "one_slot_seconds": 65,
+    "two_slot_seconds": 45,
+    "unlimited_lower_bound_seconds": 45,
+    "workspace_file_names_and_bytes_unchanged_by_every_command": true,
+    "repeat_output_exact": true,
+    "infeasible_unknown_cycle_malformed_path_and_format_refused": true,
+    "payload_files_absent_and_not_required": true,
+    "scope": "Offline synthetic capacity scenarios only; no adapters or execution/acceptance/release qualification",
+  }
+  save(root + "/result.json", result.stringify(indent=2))
+  println(result.stringify(indent=2))
+}

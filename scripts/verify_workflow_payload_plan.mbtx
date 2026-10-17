@@ -1,0 +1,331 @@
+///|
+import {
+  "moonbitlang/async@0.19.4",
+  "moonbitlang/async@0.19.4/fs",
+  "moonbitlang/async@0.19.4/io",
+  "moonbitlang/async@0.19.4/process",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/x@0.4.50/crypto",
+}
+
+///|
+async fn save(path : String, data : &@io.Data) -> Unit {
+  @fs.write_file(path, data, create_mode=@fs.CreateOrTruncate)
+}
+
+///|
+fn field(value : Json, key : String) -> Json raise {
+  guard value is Object(fields) && fields.get(key) is Some(result) else {
+    fail("missing field: " + key)
+  }
+  result
+}
+
+///|
+fn string(value : Json, key : String) -> String raise {
+  guard field(value, key) is String(text) else {
+    fail("expected string: " + key)
+  }
+  text
+}
+
+///|
+struct Runner {
+  cli : String
+  workspace : String
+  calls : Array[Json]
+}
+
+///|
+async fn Runner::invoke(
+  self : Runner,
+  args : Array[String],
+  fails? : Bool = false,
+) -> String {
+  let (status, stdout, stderr) = @process.collect_output(self.cli, args)
+  let number = (self.calls.length() + 1).to_string()
+  save(self.workspace + "/logs/" + number + ".stdout", stdout)
+  save(self.workspace + "/logs/" + number + ".stderr", stderr)
+  self.calls.push({
+    "args": args.to_json(),
+    "exit": status.to_json(),
+    "expected_failure": fails.to_json(),
+  })
+  save(
+    self.workspace + "/logs/commands.json",
+    self.calls.to_json().stringify(indent=2),
+  )
+  assert_eq(
+    status != 0,
+    fails,
+    msg=args.join(" ") + "\n" + stdout.text() + stderr.text(),
+  )
+  stdout.text()
+}
+
+///|
+async fn main {
+  let args = @env.args()
+  guard args.length() == 4 else {
+    fail(
+      "Usage: verify_workflow_payload_plan.mbtx CLI SOURCE_ROOT NEW_WORKSPACE",
+    )
+  }
+  let cli = @fs.realpath(args[1])
+  let source = @fs.realpath(args[2])
+  let workspace = args[3]
+  assert_true(workspace.has_prefix("/"), msg="Use an absolute workspace")
+  assert_false(
+    @fs.exists(workspace),
+    msg="Verification requires a new workspace",
+  )
+  @fs.mkdir(workspace)
+  @fs.mkdir(workspace + "/logs")
+  let sample = source + "/examples/workflow-payload-plan/"
+  for
+    name in [
+      "source-graph.json", "workflow.json", "records.json", "capability-source-bundle.json",
+    ] {
+    save(workspace + "/" + name, @fs.read_file(sample + name))
+  }
+  let original_source = @fs.read_file(workspace + "/source-graph.json").text()
+  let original_workflow = @fs.read_file(workspace + "/workflow.json").text()
+  let original_records = @fs.read_file(workspace + "/records.json").text()
+  let runner = Runner::{ cli, workspace, calls: [], }
+  let stamp = "2026-07-31T00:00:00Z" // Synthetic catalog validity window only.
+  let preview_args = [
+    "plan", "preview-workflow-payloads", workspace, "source-graph.json", "workflow.json",
+    "records.json", "study", stamp,
+  ]
+  let save_args = [
+    "plan", "from-workflow-payloads", workspace, "source-graph.json", "workflow.json",
+    "records.json", "study", stamp,
+  ]
+  let preview = @json.parse(runner.invoke(preview_args))
+  assert_eq(preview, @json.parse(runner.invoke(preview_args)))
+  assert_eq(field(preview, "saved"), false)
+  assert_eq(field(preview, "record_ids"), ["chair", "table"])
+  assert_false(@fs.exists(workspace + "/.moonsuite"))
+  // A late missing selector fails before any generated input or draft exists.
+  guard @json.parse(original_records) is Object(bad_records) &&
+    bad_records["jobs"] is Array(jobs) &&
+    jobs[1] is Object(last) else {
+    fail("sample records")
+  }
+  last.remove("review")
+  save(workspace + "/bad-records.json", Json::object(bad_records).stringify())
+  ignore(
+    runner.invoke(
+      [
+        "plan", "from-workflow-payloads", workspace, "source-graph.json", "workflow.json",
+        "bad-records.json", "bad", stamp,
+      ],
+      fails=true,
+    ),
+  )
+  assert_false(@fs.exists(workspace + "/.moonsuite"))
+  // Validate ancillary files before publishing any of the generated inputs.
+  guard @json.parse(original_workflow) is Object(bad_workflow) &&
+    bad_workflow["steps"] is Array(steps) &&
+    steps[3] is Object(join) else {
+    fail("sample workflow")
+  }
+  join["additional_input_artifacts_pointer"] = "/record/files"
+  guard @json.parse(original_records) is Object(file_records) &&
+    file_records["jobs"] is Array(file_jobs) else {
+    fail("sample records")
+  }
+  for job in file_jobs {
+    guard job is Object(values) else { fail("sample record") }
+    values["files"] = ["references/missing.json"]
+  }
+  save(
+    workspace + "/extra-workflow.json",
+    Json::object(bad_workflow).stringify(),
+  )
+  save(
+    workspace + "/extra-records.json",
+    Json::object(file_records).stringify(),
+  )
+  ignore(
+    runner.invoke(
+      [
+        "plan", "from-workflow-payloads", workspace, "source-graph.json", "extra-workflow.json",
+        "extra-records.json", "missing", stamp,
+      ],
+      fails=true,
+    ),
+  )
+  assert_false(@fs.exists(workspace + "/.moonsuite"))
+  // Inherited lexical and resolved-path containment still apply to intake.
+  ignore(
+    runner.invoke(
+      [
+        "plan", "preview-workflow-payloads", workspace, "source-graph.json", "workflow.json",
+        "../records.json", "outside", stamp,
+      ],
+      fails=true,
+    ),
+  )
+  @fs.symlink(
+    target=sample + "records.json",
+    workspace + "/outside-records.json",
+  )
+  ignore(
+    runner.invoke(
+      [
+        "plan", "preview-workflow-payloads", workspace, "source-graph.json", "workflow.json",
+        "outside-records.json", "outside", stamp,
+      ],
+      fails=true,
+    ),
+  )
+  assert_false(@fs.exists(workspace + "/.moonsuite"))
+  let saved = @json.parse(runner.invoke(save_args))
+  assert_eq(field(saved, "saved"), true)
+  assert_eq(field(saved, "form"), field(preview, "form"))
+  assert_eq(field(saved, "artifacts"), field(preview, "artifacts"))
+  assert_eq(saved, @json.parse(runner.invoke(save_args)))
+  assert_eq(
+    field(saved, "form"),
+    @json.parse(runner.invoke(["plan", "inspect", workspace, "study"])),
+  )
+  guard field(saved, "artifacts") is Array(artifacts) else { fail("artifacts") }
+  assert_eq(artifacts.length(), 8)
+  for artifact in artifacts {
+    let bytes = @fs.read_file(
+      workspace + "/" + string(artifact, "artifact_ref"),
+    ).binary()
+    assert_eq(@utf8.decode(bytes), string(artifact, "json_text"))
+    assert_eq(
+      "sha256:" + @crypto.bytes_to_hex_string(@crypto.sha256(bytes)),
+      string(artifact, "sha256"),
+    )
+  }
+  let exported_text = runner.invoke(["plan", "export", workspace, "study"])
+  let exported = @json.parse(exported_text)
+  let input_dir = workspace + "/.moonsuite/products/moonflow/plan-inputs"
+  let objects_before = @fs.readdir(input_dir, include_hidden=true, sort=true)
+  guard @json.parse(original_records) is Object(changed_records) &&
+    changed_records["jobs"] is Array(changed_jobs) &&
+    changed_jobs[0] is Object(changed) else {
+    fail("records")
+  }
+  changed["study"] = { "label": "Changed study" }
+  save(workspace + "/records.json", Json::object(changed_records).stringify())
+  ignore(runner.invoke(save_args, fails=true))
+  assert_eq(
+    @fs.readdir(input_dir, include_hidden=true, sort=true),
+    objects_before,
+  )
+  assert_eq(
+    runner.invoke(["plan", "export", workspace, "study"]),
+    exported_text,
+  )
+  save(workspace + "/records.json", original_records)
+  // A changed addressed object is refused, never silently repaired/overwritten.
+  let first_object = workspace + "/" + string(artifacts[0], "artifact_ref")
+  save(first_object, "tampered fixture\n")
+  ignore(runner.invoke(save_args, fails=true))
+  assert_eq(@fs.read_file(first_object).text(), "tampered fixture\n")
+  save(first_object, string(artifacts[0], "json_text"))
+  // Normal editor still supports a deliberate post-import criteria adjustment.
+  guard field(exported, "edits") is Array(edits) &&
+    @json.parse(edits[3].stringify()) is Object(edit) else {
+    fail("draft edits")
+  }
+  edit["acceptance_criteria"] = [
+    "Compare the chair candidates and retain both exact outputs",
+  ]
+  save(
+    workspace + "/edit.json",
+    ({ "expected_draft": exported, "item_edit": Json::object(edit) } : Json).stringify(),
+  )
+  let edited = @json.parse(
+    runner.invoke(["plan", "edit", workspace, "study", "edit.json"]),
+  )
+  assert_eq(
+    edited,
+    @json.parse(runner.invoke(["plan", "inspect", workspace, "study"])),
+  )
+  assert_false(@fs.exists(workspace + "/.moonsuite/products/moonflow/runs"))
+  save(
+    workspace + "/catalog.json",
+    runner.invoke([
+      "compile-capability-catalog",
+      workspace + "/capability-source-bundle.json",
+    ]),
+  )
+  ignore(
+    runner.invoke(
+      [
+        "plan", "prepare", workspace, "study", "catalog.json", "2026-08-02T00:00:00Z",
+      ],
+      fails=true,
+    ),
+  )
+  let prepared = @json.parse(
+    runner.invoke(["plan", "prepare", workspace, "study", "catalog.json", stamp]),
+  )
+  assert_eq(field(prepared, "dispatched"), false)
+  let graph_path = workspace + "/" + string(prepared, "graph_ref")
+  let graph = @json.parse(@fs.read_file(graph_path).text())
+  guard field(graph, "items") is Array(graph_items) else {
+    fail("prepared graph")
+  }
+  assert_eq(graph_items.length(), 8)
+  assert_eq(field(graph_items[3], "depends_on"), ["chair.left", "chair.right"])
+  assert_eq(field(graph_items[7], "depends_on"), ["table.left", "table.right"])
+  assert_eq(field(graph_items[3], "acceptance_criteria"), [
+    "Compare the chair candidates and retain both exact outputs",
+  ])
+  let imported = @json.parse(
+    runner.invoke([
+      "import-conformant-graph",
+      workspace,
+      graph_path,
+      workspace + "/catalog.json",
+      stamp,
+    ]),
+  )
+  assert_eq(
+    imported,
+    @json.parse(runner.invoke(["status", workspace, string(graph, "graph_id")])),
+  )
+  assert_eq(field(imported, "runnable_item_ids"), ["chair.root", "table.root"])
+  guard field(imported, "items") is Array(items) else { fail("imported items") }
+  for item in items {
+    assert_eq(field(item, "attempt_count"), 0)
+    assert_eq(field(item, "approvals"), [])
+    assert_eq(field(item, "artifacts"), [])
+  }
+  assert_eq(
+    @fs.read_file(workspace + "/source-graph.json").text(),
+    original_source,
+  )
+  assert_eq(
+    @fs.read_file(workspace + "/workflow.json").text(),
+    original_workflow,
+  )
+  assert_eq(@fs.read_file(workspace + "/records.json").text(), original_records)
+  let result : Json = {
+    "passed": true,
+    "commands": runner.calls.length().to_json(),
+    "cli": cli.to_json(),
+    "cli_sha256": @crypto.bytes_to_hex_string(
+      @crypto.sha256(@fs.read_file(cli).binary()),
+    ).to_json(),
+    "workspace": workspace.to_json(),
+    "materialized_requests": 8,
+    "imported_workflows": 2,
+    "attempts": 0,
+    "source_inputs_preserved": true,
+    "preview_and_invalid_batch_create_no_state": true,
+    "native_save_reopen_edit_prepare_import": true,
+    "scope": "Synthetic local authoring and import; no adapter effects, review acceptance or live catalog qualification",
+  }
+  save(workspace + "/logs/result.json", result.stringify(indent=2))
+  println(result.stringify(indent=2))
+}

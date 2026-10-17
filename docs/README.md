@@ -1,5 +1,9 @@
 # MoonFlow documentation
 
+- [Resume a saved plan in the offline editor](RESUME_PLAN_EDITOR.md) — restore applied edits, continue authoring and pass the new download through the existing native planner.
+
+- [Import a Mermaid dependency diagram](MERMAID_PLANS.md) — bind diagram nodes to original operations and prepare an editable plan with retained source text.
+
 - [Return offline review findings](REVIEW_RETURNS.md) — fill exact criterion findings and prepare a source-bound native review receipt after reloading the current result.
 
 - [Browse a graph offline](GRAPH_EXPLORER.md) — search a graph-map export and trace selected prerequisites or consumers in one self-contained HTML page.
@@ -53,3 +57,9 @@
 - [Recorded timeline explorer](HISTORY_EXPLORER.md)
 
 - [Rebind shared worksheet inputs](INPUT_REBINDINGS.md) — inventory exact shared references and preview/export simultaneous input-path edits through the native worksheet format.
+# Keyed job and reference data
+
+Use [joined workflow plans](JOINED_WORKFLOW_PLANS.md) to prepare complete request
+sets from explicitly matched local datasets, then reopen and edit a normal draft.
+
+- [Source-backed timeout editor](TIMEOUT_EDITOR.md): preview, apply, undo and export a native plan form.

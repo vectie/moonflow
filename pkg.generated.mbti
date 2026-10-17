@@ -56,6 +56,8 @@ pub fn conformant_events_from_work_graph_v1(Json, CapabilityCatalogV1) -> Array[
 
 pub fn declared_change_impact_v1(Json, Array[String]) -> ChangeImpactV1 raise
 
+pub fn declared_graph_capacity_v1(Json, Json) -> GraphCapacityV1 raise
+
 pub fn declared_graph_comparison_text_v1(DeclaredGraphComparisonV1) -> String
 
 pub fn declared_graph_dot_v1(Json) -> String raise
@@ -76,7 +78,13 @@ pub fn declared_plan_from_directory_v1(Json, Json, Array[String], String, String
 
 pub fn declared_plan_from_form_v1(Json, String, String) -> DeclaredPlanDraftV1 raise
 
+pub fn declared_plan_from_joined_workflow_v1(Json, Json, Json, String, String, String, String) -> JoinedWorkflowPlanImportV1 raise
+
 pub fn declared_plan_from_matrix_v1(Json, Json, Json, String, String) -> MatrixPlanImportV1 raise
+
+pub fn declared_plan_from_mermaid_text_v1(String, String, String, String, String) -> MermaidPlanImportV1 raise
+
+pub fn declared_plan_from_mermaid_v1(Json, Json, String, String, String) -> MermaidPlanImportV1 raise
 
 pub fn declared_plan_from_payloads_v1(Json, Json, Json, String, String, String) -> PayloadPlanImportV1 raise
 
@@ -87,6 +95,10 @@ pub fn declared_plan_from_records_v1(Json, Json, String, String, String) -> Reco
 pub fn declared_plan_from_subgraph_v1(Json, Array[String], String, String) -> SubgraphPlanSelectionV1 raise
 
 pub fn declared_plan_from_table_v1(Json, Json, String, String, String) -> TablePlanExpansionV1 raise
+
+pub fn declared_plan_from_waves_v1(Json, Int, String, String) -> WavePlanV1 raise
+
+pub fn declared_plan_from_workflow_payloads_v1(Json, Json, String, String, String) -> WorkflowPayloadPlanImportV1 raise
 
 pub fn declared_plan_from_worksheet_v1(Json, String, String, String) -> PlanWorksheetImportV1 raise
 
@@ -132,6 +144,8 @@ pub fn decode_pack_capability_manifest_v1(Json) -> PackCapabilityManifestV1 rais
 
 pub fn decode_plan_item_edit_v1(Json) -> PlanItemEditV1 raise
 
+pub fn decode_responsibility_change_v1(Json) -> ResponsibilityChangeV1 raise
+
 pub fn decode_runtime_event(Json) -> RuntimeEvent raise
 
 pub fn decode_unattended_manifest(Json) -> UnattendedManifest raise
@@ -159,6 +173,8 @@ pub fn events_from_work_graph(Json) -> Array[RuntimeEvent] raise
 pub fn evidence_bundle_manifest(EvidenceBundleSpec, Array[EvidenceBundleEntry], String, String) -> EvidenceBundleManifest raise
 
 pub fn graph_capability_report_contract_v1() -> String
+
+pub fn graph_capacity_csv_v1(GraphCapacityV1) -> String
 
 pub fn graph_timing_csv_v1(GraphTimingV1) -> String
 
@@ -198,6 +214,10 @@ pub fn replay(String, Array[RuntimeEvent]) -> RunProjection raise FlowError
 
 pub fn resolve_capability_v1(CapabilityActivationProjectionV1, scope_id~ : String, participant_id~ : String) -> CapabilityResolutionV1 raise
 
+pub fn responsibility_event_v1(RunProjection, ResponsibilityChangeV1) -> RuntimeEvent raise FlowError
+
+pub fn responsibility_v1(RunProjection, String) -> ResponsibilityChangeV1?
+
 pub fn result_data_csv_v1(ResultDataTableV1) -> String
 
 pub fn result_data_sources_v1(Array[RunProjection], Json) -> Array[String] raise
@@ -230,6 +250,8 @@ pub fn single_step_request_for_item(RunProjection, RuntimeItem, String, String) 
 
 pub fn single_step_validate_mold_result(AdapterRequest, AdapterResult, Json, String, Array[String]) -> Unit raise
 
+pub fn splice_declared_graph_v1(Json) -> Json raise
+
 pub fn start_declared_plan_v1(Json, String, String, String) -> DeclaredPlanDraftV1 raise
 
 pub fn validate_adapter_capability(Json) -> AdapterCapability raise AdapterContractError
@@ -258,6 +280,7 @@ pub(all) suberror AdapterContractError {
 
 pub(all) suberror FlowError {
   EmptyEventId
+  InvalidResponsibility(String)
   EmptyRunId
   InvalidSequence(expected~ : Int, actual~ : Int)
   ConflictingDuplicateEvent(String)
@@ -709,6 +732,7 @@ pub(all) enum EventKind {
   AttemptSubmitted
   AttemptReconciled
   CheckpointReused
+  ResponsibilityChanged
 } derive(Compare, Eq, Hash, ToJson, @debug.Debug)
 pub fn EventKind::id(Self) -> String
 
@@ -767,6 +791,41 @@ pub(all) struct GraphCapabilityReportV1 {
   catalog_issues : Array[CapabilityConformanceIssueV1]
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 
+pub(all) struct GraphCapacityDemandV1 {
+  resource_id : String
+  units : Int
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct GraphCapacityItemV1 {
+  work_item_id : String
+  duration_seconds : Int
+  dependency_ready_seconds : Int
+  start_seconds : Int
+  finish_seconds : Int
+  resource_wait_seconds : Int
+  demands : Array[GraphCapacityDemandV1]
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct GraphCapacityResourceV1 {
+  resource_id : String
+  capacity : Int
+  peak_units : Int
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct GraphCapacityV1 {
+  contract_id : String
+  graph_id : String
+  source_graph_digest : String
+  scenario_digest : String
+  policy : String
+  unlimited_capacity_lower_bound_seconds : Int
+  scenario_duration_seconds : Int
+  additional_seconds : Int
+  start_order : Array[String]
+  resources : Array[GraphCapacityResourceV1]
+  items : Array[GraphCapacityItemV1]
+} derive(Eq, ToJson, @debug.Debug)
+
 pub(all) struct GraphFieldChangeV1 {
   field : String
   before_present : Bool
@@ -810,11 +869,46 @@ pub(all) struct GraphTimingV1 {
   critical_edges : Array[GraphTimingEdgeV1]
 } derive(Eq, ToJson, @debug.Debug)
 
+pub(all) struct JoinedWorkflowPlanImportV1 {
+  contract_id : String
+  primary_digest : String
+  lookup_digest : String
+  join_digest : String
+  joined_records : Array[Json]
+  unmatched_primary_rows : Array[Int]
+  unused_lookup_rows : Array[Int]
+  workflow : WorkflowPayloadPlanImportV1
+} derive(Eq, ToJson, @debug.Debug)
+
 pub(all) struct MatrixPlanImportV1 {
   contract_id : String
   matrix_digest : String
   combinations : Array[Json]
   payloads : PayloadPlanImportV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct MermaidPlanEdgeV1 {
+  prerequisite : String
+  dependent : String
+  line_number : Int
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct MermaidPlanImportV1 {
+  contract_id : String
+  diagram : String
+  diagram_digest : String
+  bindings_digest : String
+  direction : String
+  nodes : Array[MermaidPlanNodeV1]
+  edges : Array[MermaidPlanEdgeV1]
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct MermaidPlanNodeV1 {
+  node_id : String
+  label : String
+  line_number : Int
+  template_work_item_id : String
 } derive(Eq, ToJson, @debug.Debug)
 
 pub(all) struct OwnerActionV1 {
@@ -977,6 +1071,22 @@ pub(all) struct RecordsPlanMappingV1 {
   acceptance_criteria_pointer : String?
   timeout_ms_pointer : String?
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct ResponsibilityChangeV1 {
+  contract_id : String
+  event_id : String
+  run_id : String
+  book_id : String
+  declaration_revision : String
+  source_digest : String
+  work_item_id : String
+  action : String
+  actor_id : String
+  assigner_id : String
+  expected_sequence : Int
+  expected_event_id : String
+  recorded_at : String
+} derive(Eq, ToJson, @debug.Debug)
 
 pub(all) struct ResultDataColumnV1 {
   name : String
@@ -1299,6 +1409,24 @@ pub(all) struct UnattendedManifest {
 } derive(Eq, @debug.Debug)
 pub fn UnattendedManifest::find_driver(Self, String) -> UnattendedDriver?
 pub fn UnattendedManifest::quality_issues(Self) -> Array[String]
+
+pub(all) struct WavePlanV1 {
+  contract_id : String
+  max_parallel : Int
+  waves : Array[Array[String]]
+  added_edges : Array[DeclaredRouteEdgeV1]
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct WorkflowPayloadPlanImportV1 {
+  contract_id : String
+  records_digest : String
+  workflow_digest : String
+  record_ids : Array[String]
+  items_per_record : Int
+  artifacts : Array[PayloadPlanArtifactV1]
+  draft : DeclaredPlanDraftV1
+} derive(Eq, ToJson, @debug.Debug)
 
 // Type aliases
 

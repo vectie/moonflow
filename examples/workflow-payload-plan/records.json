@@ -1,0 +1,18 @@
+{
+  "jobs": [
+    {
+      "key": "chair",
+      "study": {"label": "Café chair", "digital_only": true},
+      "candidate_a": {"width": 42.5, "finish": {"matte": true}},
+      "candidate_b": {"width": 45, "finish": null},
+      "review": {"criteria": ["Compare both chair candidates against the explicit study"]}
+    },
+    {
+      "key": "table",
+      "study": {"label": "Small table", "digital_only": true},
+      "candidate_a": {"width": 90, "finish": ["oak", "clear"]},
+      "candidate_b": {"width": 100, "finish": false},
+      "review": {"criteria": ["Compare both table candidates against the explicit study"]}
+    }
+  ]
+}

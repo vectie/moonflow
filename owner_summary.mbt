@@ -147,9 +147,15 @@ fn owner_action_v1(
       item.status.id()
     },
     action,
-    // Runtime events do not carry a next-person assignment. A product,
-    // approval authority or previous reviewer must not become an assignee.
-    next_actor_id: None,
+    // Coordination only: never inferred from authority or a prior reviewer.
+    next_actor_id: if item.status.is_terminal() {
+      None
+    } else {
+      match responsibility_v1(projection, item.work_item_id) {
+        Some(change) if change.action == "assign" => Some(change.actor_id)
+        _ => None
+      }
+    },
     next_role: role,
     reasons,
     depends_on: dependencies,
@@ -216,7 +222,10 @@ pub fn owner_summary_v1(projection : RunProjection) -> OwnerSummaryV1 {
         "No further internal work action is recorded for this revision"
       None => "Inspect the run evidence; no next action is recorded"
     },
-    next_actor_id: None,
+    next_actor_id: match actions.get(0) {
+      Some(action) => action.next_actor_id
+      None => None
+    },
     next_role: match actions.get(0) {
       Some(action) => action.next_role
       None => None

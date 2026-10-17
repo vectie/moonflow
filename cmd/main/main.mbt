@@ -1206,10 +1206,16 @@ fn usage() -> Unit {
     "  moonflow plan from-worksheet <workspace> <source-graph-ref> <csv-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan preview-csv <workspace> <source-graph-ref> <template-item-id> <csv-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan from-csv <workspace> <source-graph-ref> <template-item-id> <csv-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-mermaid <workspace> <source-graph-ref> <bindings-ref> <diagram-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-mermaid <workspace> <source-graph-ref> <bindings-ref> <diagram-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan preview-queue <workspace> <source-graph-ref> <mapping-ref> <queue-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan from-queue <workspace> <source-graph-ref> <mapping-ref> <queue-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan preview-matrix <workspace> <source-graph-ref> <matrix-ref> <request-template-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan from-matrix <workspace> <source-graph-ref> <matrix-ref> <request-template-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-joined-workflow <workspace> <source-graph-ref> <workflow-ref> <join-ref> <primary-ref> <lookup-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-joined-workflow <workspace> <source-graph-ref> <workflow-ref> <join-ref> <primary-ref> <lookup-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan preview-workflow-payloads <workspace> <source-graph-ref> <workflow-ref> <records-ref> <draft-id> <recorded-at>\n" +
+    "  moonflow plan from-workflow-payloads <workspace> <source-graph-ref> <workflow-ref> <records-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan preview-payloads <workspace> <source-graph-ref> <mapping-ref> <request-template-ref> <records-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan from-payloads <workspace> <source-graph-ref> <mapping-ref> <request-template-ref> <records-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan preview-records <workspace> <source-graph-ref> <mapping-ref> <records-ref> <draft-id> <recorded-at>\n" +
@@ -1217,6 +1223,8 @@ fn usage() -> Unit {
     "  moonflow plan preview-table <workspace> <source-graph-ref> <template-ref> <csv-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan from-table <workspace> <source-graph-ref> <template-ref> <csv-ref> <draft-id> <recorded-at>\n" +
     "  moonflow plan impact <workspace> <source-graph-ref> <changed-item-id>...\n" +
+    "  moonflow plan preview-waves <workspace> <source-graph-ref> <draft-id> <recorded-at> <max-parallel>\n" +
+    "  moonflow plan from-waves <workspace> <source-graph-ref> <draft-id> <recorded-at> <max-parallel>\n" +
     "  moonflow plan preview-subgraph <workspace> <source-graph-ref> <draft-id> <recorded-at> <target-item-id>...\n" +
     "  moonflow plan from-subgraph <workspace> <source-graph-ref> <draft-id> <recorded-at> <target-item-id>...\n" +
     "  moonflow plan export <workspace> <draft-id>\n" +
@@ -1229,13 +1237,17 @@ fn usage() -> Unit {
     "  moonflow compare-runs <workspace> <before-run-id> <after-run-id> <--json|--text>\n" +
     "  moonflow run-history <workspace> <run-id> <--json|--text> [work-item-id]\n" +
     "  moonflow graph-timing <workspace> <source-graph-ref> <estimates-ref> <--json|--csv>\n" +
+    "  moonflow graph-capacity <workspace> <source-graph-ref> <scenario-ref> <--json|--csv>\n" +
     "  moonflow compare-graphs <workspace> <before-graph-ref> <after-graph-ref> <--json|--text>\n" +
     "  moonflow graph-route <workspace> <source-graph-ref> <from-item-id> <to-item-id> <--json|--text>\n" +
     "  moonflow graph-map <workspace> <source-graph-ref> <--json|--dot>\n" +
     "  moonflow graph-compose <workspace> <manifest-ref> <--json|--graph>\n" +
+    "  moonflow graph-splice <workspace> <manifest-ref> <--json|--graph>\n" +
     "  moonflow result-data <workspace> <mapping-ref> <--csv|--json> <run-id>...\n" +
     "  moonflow results-table <workspace> <--csv|--json> <run-id>...\n" +
     "  moonflow owner-summary <workspace> <run-id> [--text]\n" +
+    "  moonflow responsibility <workspace> <run-id> <change.json>\n" +
+    "    Coordination only; stop other runtime writers before assigning.\n" +
     "  moonflow control <workspace> <run-id> <pause|resume|cancel|narrow-authority> <recorded-at> [reason-or-authority]\n" +
     "  moonflow transition <workspace> <run-id> <work-item-id> <action> <recorded-at> [detail]\n" +
     "  moonflow advance <workspace> <run-id> <recorded-at>\n" +
@@ -1387,6 +1399,34 @@ async fn main {
       plan_csv_command(
         workspace, source_ref, template_id, csv_ref, draft_id, recorded_at, true,
       )
+    [
+      "plan",
+      "preview-mermaid",
+      workspace,
+      source_ref,
+      bindings_ref,
+      diagram_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_mermaid_command(
+        workspace, source_ref, bindings_ref, diagram_ref, draft_id, recorded_at,
+        false,
+      )
+    [
+      "plan",
+      "from-mermaid",
+      workspace,
+      source_ref,
+      bindings_ref,
+      diagram_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_mermaid_command(
+        workspace, source_ref, bindings_ref, diagram_ref, draft_id, recorded_at,
+        true,
+      )
     ["plan", "export", workspace, draft_id] =>
       plan_export_command(workspace, draft_id)
     [
@@ -1440,6 +1480,66 @@ async fn main {
     ] =>
       plan_matrix_command(
         workspace, source_ref, matrix_ref, template_ref, draft_id, recorded_at, true,
+      )
+    [
+      "plan",
+      "preview-joined-workflow",
+      workspace,
+      source_ref,
+      workflow_ref,
+      join_ref,
+      primary_ref,
+      lookup_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_joined_workflow_command(
+        workspace, source_ref, workflow_ref, join_ref, primary_ref, lookup_ref, draft_id,
+        recorded_at, false,
+      )
+    [
+      "plan",
+      "from-joined-workflow",
+      workspace,
+      source_ref,
+      workflow_ref,
+      join_ref,
+      primary_ref,
+      lookup_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_joined_workflow_command(
+        workspace, source_ref, workflow_ref, join_ref, primary_ref, lookup_ref, draft_id,
+        recorded_at, true,
+      )
+    [
+      "plan",
+      "preview-workflow-payloads",
+      workspace,
+      source_ref,
+      workflow_ref,
+      records_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_workflow_payloads_command(
+        workspace, source_ref, workflow_ref, records_ref, draft_id, recorded_at,
+        false,
+      )
+    [
+      "plan",
+      "from-workflow-payloads",
+      workspace,
+      source_ref,
+      workflow_ref,
+      records_ref,
+      draft_id,
+      recorded_at,
+    ] =>
+      plan_workflow_payloads_command(
+        workspace, source_ref, workflow_ref, records_ref, draft_id, recorded_at,
+        true,
       )
     [
       "plan",
@@ -1523,6 +1623,30 @@ async fn main {
       plan_table_command(
         workspace, source_ref, template_ref, csv_ref, draft_id, recorded_at, true,
       )
+    [
+      "plan",
+      "preview-waves",
+      workspace,
+      source_ref,
+      draft_id,
+      recorded_at,
+      max_parallel,
+    ] =>
+      plan_waves_command(
+        workspace, source_ref, draft_id, recorded_at, max_parallel, false,
+      )
+    [
+      "plan",
+      "from-waves",
+      workspace,
+      source_ref,
+      draft_id,
+      recorded_at,
+      max_parallel,
+    ] =>
+      plan_waves_command(
+        workspace, source_ref, draft_id, recorded_at, max_parallel, true,
+      )
     ["plan", "edit", workspace, draft_id, edit_ref] =>
       plan_edit_command(workspace, draft_id, edit_ref)
     [
@@ -1588,8 +1712,12 @@ async fn main {
       import_graph(workspace, graph_path)
     ["graph-compose", workspace, manifest_ref, format] =>
       compose_graph_command(workspace, manifest_ref, format)
+    ["graph-splice", workspace, manifest_ref, format] =>
+      splice_graph_command(workspace, manifest_ref, format)
     ["graph-timing", workspace, source_ref, estimates_ref, format] =>
       show_graph_timing(workspace, source_ref, estimates_ref, format)
+    ["graph-capacity", workspace, source_ref, scenario_ref, format] =>
+      show_graph_capacity(workspace, source_ref, scenario_ref, format)
     ["compare-graphs", workspace, before_ref, after_ref, format] =>
       show_graph_comparison(workspace, before_ref, after_ref, format)
     ["graph-route", workspace, source_ref, from_id, to_id, format] =>
@@ -1607,6 +1735,8 @@ async fn main {
     ["run-history", workspace, run_id, format, item_id] =>
       show_run_history(workspace, run_id, format, Some(item_id))
     ["status", workspace, run_id] => show_status(workspace, run_id)
+    ["responsibility", workspace, run_id, change_path] =>
+      change_responsibility(workspace, run_id, change_path)
     ["owner-summary", workspace, run_id] =>
       show_owner_summary(workspace, run_id, false)
     ["owner-summary", workspace, run_id, "--text"] =>

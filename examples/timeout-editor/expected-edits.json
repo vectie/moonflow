@@ -1,0 +1,15 @@
+{
+  "fixture_source": "../plan-worksheet/source-graph.json",
+  "timeout_ms": {
+    "root": 1,
+    "left": 45000,
+    "right": 86400000
+  },
+  "preserved": [
+    "depends_on",
+    "input_artifacts",
+    "acceptance_criteria",
+    "operation",
+    "authority"
+  ]
+}

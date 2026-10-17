@@ -1,0 +1,11 @@
+{
+  "contract_id": "moonflow.capacity-scenario.v1",
+  "graph_id": "worksheet-design-r1",
+  "capacities": {"design": 1, "review": 1},
+  "items": {
+    "root": {"duration_seconds": 10, "demands": {}},
+    "left": {"duration_seconds": 30, "demands": {"design": 1}},
+    "right": {"duration_seconds": 20, "demands": {"design": 1}},
+    "join": {"duration_seconds": 5, "demands": {"review": 1}}
+  }
+}

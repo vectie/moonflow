@@ -1,0 +1,312 @@
+///|
+import {
+  "moonbitlang/async@0.19.4",
+  "moonbitlang/async@0.19.4/fs",
+  "moonbitlang/async@0.19.4/io",
+  "moonbitlang/async@0.19.4/process",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+}
+
+///|
+fn field(value : Json, key : String) -> Json raise {
+  guard value is Object(fields) && fields.get(key) is Some(found) else {
+    if key == "next_actor_id" {
+      return Json::null()
+    }
+    fail("missing " + key)
+  }
+  found
+}
+
+///|
+fn replace(value : Json, key : String, replacement : Json) -> Json raise {
+  guard value is Object(fields) else { fail("object required") }
+  let copy = fields.copy()
+  copy[key] = replacement
+  Json::object(copy)
+}
+
+///|
+async fn save(path : String, value : &@io.Data) -> Unit {
+  @fs.write_file(path, value, create_mode=@fs.CreateOrTruncate)
+}
+
+///|
+struct Runner {
+  cli : String
+  workspace : String
+  calls : Array[Json]
+}
+
+///|
+async fn Runner::run(
+  self : Runner,
+  args : Array[String],
+  fails? : Bool = false,
+) -> Json {
+  let (status, out, err) = @process.collect_output(self.cli, args)
+  let index = self.calls.length() + 1
+  save(self.workspace + "/logs/\{index}.stdout", out)
+  save(self.workspace + "/logs/\{index}.stderr", err)
+  self.calls.push({
+    "args": args.to_json(),
+    "exit": status.to_json(),
+    "expected_failure": fails.to_json(),
+  })
+  save(
+    self.workspace + "/logs/commands.json",
+    self.calls.to_json().stringify(indent=2),
+  )
+  assert_eq(
+    status != 0,
+    fails,
+    msg=args.join(" ") + "\n" + out.text() + err.text(),
+  )
+  if fails {
+    Json::null()
+  } else {
+    @json.parse(out.text())
+  }
+}
+
+///|
+fn mutation(summary : Json, id : String, actor : String) -> Json raise {
+  {
+    "contract_id": "moonflow.responsibility-change.v1",
+    "event_id": id,
+    "run_id": field(summary, "run_id"),
+    "book_id": field(summary, "book_id"),
+    "declaration_revision": field(summary, "declaration_revision"),
+    "source_digest": field(summary, "source_digest"),
+    "work_item_id": "research",
+    "action": if actor == "" {
+      "clear"
+    } else {
+      "assign"
+    },
+    "actor_id": actor,
+    "assigner_id": "alice",
+    "expected_sequence": field(summary, "last_sequence"),
+    "expected_event_id": field(summary, "last_event_id"),
+    "recorded_at": "2026-10-15T00:00:00Z",
+  }
+}
+
+///|
+async fn main {
+  let args = @env.args()
+  guard args.length() == 3 else {
+    fail("Usage: verify_responsibility.mbtx CLI NEW_WORKSPACE")
+  }
+  let workspace = args[2]
+  assert_true(workspace.has_prefix("/"))
+  assert_false(@fs.exists(workspace))
+  @fs.mkdir(workspace)
+  @fs.mkdir(workspace + "/logs")
+  let runner = Runner::{ cli: args[1], workspace, calls: [], }
+  let graph : Json = {
+    "contract_id": "moonsuite.work-model.v1",
+    "graph_id": "assignment-run",
+    "book_id": "book",
+    "declaration_revision": "r1",
+    "source_digest": "sha256:r1",
+    "recorded_at": "2026-10-15T00:00:00Z",
+    "items": [
+      {
+        "work_item_id": "research",
+        "declaration_id": "research",
+        "product_id": "moonwiki",
+        "requested_authority": "observe",
+        "acceptance_criteria": ["evidence reviewed"],
+        "operation": "query-evidence",
+        "input_contracts": ["input.v1"],
+        "output_contracts": ["output.v1"],
+        "required_claim": "research-evidence",
+        "input_artifacts": ["input.json"],
+        "timeout_ms": 1000,
+        "depends_on": [],
+      },
+    ],
+  }
+  save(workspace + "/graph.json", graph.stringify(indent=2))
+  let initial = runner.run([
+    "import-graph",
+    workspace,
+    workspace + "/graph.json",
+  ])
+  let initial_items = field(initial, "items")
+  let first_summary = runner.run(["owner-summary", workspace, "assignment-run"])
+  assert_eq(field(first_summary, "next_actor_id"), Json::null())
+  let first = mutation(first_summary, "assign-one", "bob")
+  save(workspace + "/first.json", first.stringify(indent=2))
+  let assigned = runner.run([
+    "responsibility",
+    workspace,
+    "assignment-run",
+    workspace + "/first.json",
+  ])
+  assert_eq(field(field(assigned, "owner_summary"), "next_actor_id"), "bob")
+  guard field(field(assigned, "owner_summary"), "actions") is Array(actions) &&
+    field(assigned, "items") is Array(assigned_items) else {
+    fail("assigned actions and items required")
+  }
+  assert_eq(field(actions[0], "next_actor_id"), "bob")
+  assert_eq(
+    field(field(assigned_items[0], "responsibility"), "assigner_id"),
+    "alice",
+  )
+  assert_eq(
+    field(field(assigned_items[0], "responsibility"), "action"),
+    "assign",
+  )
+  let reopened = runner.run(["owner-summary", workspace, "assignment-run"])
+  assert_eq(field(reopened, "next_actor_id"), "bob")
+  assert_eq(field(reopened, "last_sequence"), 3)
+  let run_dir = workspace + "/.moonsuite/products/moonflow/runs/assignment-run/"
+  let before_retry = @fs.read_file(run_dir + "events.json").binary()
+  ignore(
+    runner.run([
+      "responsibility",
+      workspace,
+      "assignment-run",
+      workspace + "/first.json",
+    ]),
+  )
+  assert_eq(@fs.read_file(run_dir + "events.json").binary(), before_retry)
+  let bad : Array[Json] = [
+    replace(first, "actor_id", "conflicting-bob"),
+    replace(first, "event_id", "stale-new-id"),
+    replace(
+      mutation(reopened, "wrong-head", "eve"),
+      "expected_event_id",
+      "fake",
+    ),
+    replace(mutation(reopened, "wrong-run", "eve"), "run_id", "other"),
+    replace(mutation(reopened, "wrong-item", "eve"), "work_item_id", "missing"),
+    replace(
+      mutation(reopened, "wrong-revision", "eve"),
+      "declaration_revision",
+      "r2",
+    ),
+    replace(mutation(reopened, "unnamed", "eve"), "assigner_id", " "),
+  ]
+  for index, request in bad {
+    let path = workspace + "/bad-\{index}.json"
+    save(path, request.stringify())
+    ignore(
+      runner.run(
+        ["responsibility", workspace, "assignment-run", path],
+        fails=true,
+      ),
+    )
+    assert_eq(@fs.read_file(run_dir + "events.json").binary(), before_retry)
+  }
+  save(
+    workspace + "/second.json",
+    mutation(reopened, "assign-two", "carol").stringify(),
+  )
+  ignore(
+    runner.run([
+      "responsibility",
+      workspace,
+      "assignment-run",
+      workspace + "/second.json",
+    ]),
+  )
+  let reassigned = runner.run(["owner-summary", workspace, "assignment-run"])
+  assert_eq(field(reassigned, "next_actor_id"), "carol")
+  // Old exact retry must not overwrite newer responsibility.
+  ignore(
+    runner.run([
+      "responsibility",
+      workspace,
+      "assignment-run",
+      workspace + "/first.json",
+    ]),
+  )
+  assert_eq(
+    field(
+      runner.run(["owner-summary", workspace, "assignment-run"]),
+      "next_actor_id",
+    ),
+    "carol",
+  )
+  save(
+    workspace + "/clear.json",
+    mutation(reassigned, "clear-three", "").stringify(),
+  )
+  ignore(
+    runner.run([
+      "responsibility",
+      workspace,
+      "assignment-run",
+      workspace + "/clear.json",
+    ]),
+  )
+  let cleared = runner.run(["owner-summary", workspace, "assignment-run"])
+  assert_eq(field(cleared, "next_actor_id"), Json::null())
+  assert_eq(field(cleared, "last_sequence"), 5)
+  // A stale projection cannot override events. Repeating the accepted mutation repairs it.
+  save(run_dir + "projection.json", "{}")
+  ignore(
+    runner.run([
+      "responsibility",
+      workspace,
+      "assignment-run",
+      workspace + "/clear.json",
+    ]),
+  )
+  let repaired = @json.parse(@fs.read_file(run_dir + "projection.json").text())
+  assert_eq(
+    field(field(repaired, "owner_summary"), "next_actor_id"),
+    Json::null(),
+  )
+  assert_eq(field(field(repaired, "owner_summary"), "last_sequence"), 5)
+  let final_status = runner.run(["status", workspace, "assignment-run"])
+  guard field(final_status, "items") is Array(items) &&
+    initial_items is Array(original) else {
+    fail("item arrays")
+  }
+  assert_eq(replace(items[0], "responsibility", Json::null()), original[0])
+  assert_eq(field(field(items[0], "responsibility"), "action"), "clear")
+  assert_eq(field(field(items[0], "responsibility"), "assigner_id"), "alice")
+  assert_eq(field(final_status, "outcome"), field(initial, "outcome"))
+  assert_eq(
+    field(final_status, "runnable_item_ids"),
+    field(initial, "runnable_item_ids"),
+  )
+  let child = replace(
+    replace(
+      replace(graph, "graph_id", "child-run"),
+      "declaration_revision",
+      "r2",
+    ),
+    "source_digest",
+    "sha256:r2",
+  )
+  save(workspace + "/child.json", child.stringify())
+  ignore(runner.run(["import-graph", workspace, workspace + "/child.json"]))
+  assert_eq(
+    field(
+      runner.run(["owner-summary", workspace, "child-run"]),
+      "next_actor_id",
+    ),
+    Json::null(),
+  )
+  save(
+    workspace + "/RESULT.json",
+    (
+      {
+        "status": "passed",
+        "commands": runner.calls.length(),
+        "assign_reopen_reassign_clear": true,
+        "exact_retry_no_write": true,
+        "conflict_stale_head_wrong_identity_rejected": true,
+        "revision_isolation": true,
+        "projection_repair": true,
+        "execution_state_unchanged": true,
+        "limits": "Exclusive runtime writer; no mixed-command concurrency, authentication, authority, review, provider or full release qualification",
+      } : Json).stringify(indent=2),
+  )
+}

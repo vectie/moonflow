@@ -155,7 +155,7 @@ pub fn declared_plan_from_payloads_v1(
       _ => fail("\{name} must be a JSON Pointer string or null")
     }
   }
-  let input = @json.parse(records_json, max_nesting_depth=64)
+  let input = mermaid_parse_json(records_json)
   guard records_plan_select(input, records_pointer, "records") is Array(records) &&
     !records.is_empty() &&
     records.length() <= 256 else {
