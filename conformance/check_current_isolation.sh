@@ -4,6 +4,11 @@ set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
 
+if ! command -v rg >/dev/null 2>&1; then
+  echo "MoonFlow isolation checks require ripgrep (rg)" >&2
+  exit 127
+fi
+
 domain_pattern='(^|[^A-Za-z0-9])(moonfish|mooncast|moonmold|finance|financial|stock|equity_research|a_share|ashare|aigc|campaign|storyboard|animatic|video_generation|video_production)([^A-Za-z0-9]|$)'
 
 if rg -n -i "$domain_pattern" . \
@@ -15,6 +20,12 @@ if rg -n -i "$domain_pattern" . \
   --glob '!_build/**'; then
   echo "MoonFlow production code contains pack-owned domain vocabulary" >&2
   exit 1
+else
+  status=$?
+  if [ "$status" -ne 1 ]; then
+    echo "MoonFlow production vocabulary scan failed" >&2
+    exit "$status"
+  fi
 fi
 
 if rg -n '"vectie/(moonfish|mooncast|moonmold)([/@"]|$)' . \
@@ -24,6 +35,12 @@ if rg -n '"vectie/(moonfish|mooncast|moonmold)([/@"]|$)' . \
   --glob '!_build/**'; then
   echo "MoonFlow depends directly on a domain pack" >&2
   exit 1
+else
+  status=$?
+  if [ "$status" -ne 1 ]; then
+    echo "MoonFlow dependency isolation scan failed" >&2
+    exit "$status"
+  fi
 fi
 
 echo "Current MoonFlow domain-isolation checks passed"

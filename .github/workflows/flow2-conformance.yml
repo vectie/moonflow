@@ -23,5 +23,11 @@ jobs:
       - name: Resolve pinned module dependencies
         run: moon update
 
+      - name: Install required boundary scanner tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ripgrep
+          rg --version
+
       - name: Run FLOW-2 compatibility and FLOW-3 boundary gates
         run: ./conformance/run.sh

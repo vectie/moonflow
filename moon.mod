@@ -27,6 +27,6 @@ description = "Generic durable orchestration engine for Moon Suite"
 
 import {
   "moonbitlang/async@0.19.4",
-  "moonbitlang/x@0.4.40",
+  "moonbitlang/x@0.4.50",
   "vectie/moonlib@0.1.22",
 }
