@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import shutil
 import tempfile
 import unittest
 from unittest import mock
@@ -14,6 +15,7 @@ import graph_explorer as explorer
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'examples/graph-route/graph.json'
 REPORT = ROOT / 'examples/graph-explorer/graph-map.json'
+TRUE = Path(shutil.which('true') or '/bin/true')
 
 
 class SourceBindingTests(unittest.TestCase):
@@ -27,7 +29,7 @@ class SourceBindingTests(unittest.TestCase):
             return subprocess.CompletedProcess(argv, 1 if fail else 0,
                 REPORT.read_bytes() if report is None else json.dumps(report).encode(), b'')
         with mock.patch.object(explorer.subprocess, 'run', side_effect=run):
-            result = explorer.author_source(path, Path('/bin/true'))
+            result = explorer.author_source(path, TRUE)
         return result, calls
 
     def test_full_source_verbatim_and_exact_native_argv(self):
@@ -41,7 +43,7 @@ class SourceBindingTests(unittest.TestCase):
             self.assertEqual(authoring['source_text'].encode(), raw)
             self.assertEqual(original, raw)
             self.assertEqual(path.read_bytes(), raw)
-            self.assertEqual(calls[1], [str(Path('/bin/true').resolve()), 'graph-map', str(path.parent), path.name, '--json'])
+            self.assertEqual(calls[1], [str(TRUE.resolve()), 'graph-map', str(path.parent.resolve()), path.name, '--json'])
             self.assertTrue(any('verify_shared_table_native.py' in arg for arg in calls[0]))
             self.assertIn('-I', calls[0])
             self.assertEqual(authoring['source_bytes_sha256'], 'sha256:' + hashlib.sha256(raw).hexdigest())
@@ -93,7 +95,7 @@ class SourceBindingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp)/'page.html'
             command = ['python3', '-B', str(ROOT/'scripts/graph_explorer.py'), str(SOURCE), str(output)]
-            for flags in (['--author'], ['--cli', '/bin/true'], ['--author', '--cli', '/bin/true']):
+            for flags in (['--author'], ['--cli', str(TRUE)], ['--author', '--cli', str(TRUE)]):
                 result = subprocess.run(command+flags, capture_output=True, text=True)
                 self.assertEqual(result.returncode, 2, result.stdout)
                 self.assertFalse(output.exists())
