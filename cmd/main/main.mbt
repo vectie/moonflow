@@ -971,8 +971,10 @@ async fn validate_capability(capability_path : String) -> Unit {
 
 ///|
 async fn compile_capability_catalog(bundle_path : String) -> Unit {
-  let catalog = @moonflow.compile_capability_catalog_v1(read_json(bundle_path))
-  println(catalog.to_json().stringify(indent=2))
+  let catalog = @moonflow.compile_capability_catalog_json_v1(
+    read_json(bundle_path),
+  )
+  println(catalog.stringify(indent=2))
 }
 
 ///|

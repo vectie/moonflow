@@ -367,5 +367,5 @@ pub fn CapabilityActivationProjectionV1::settle(
   } else {
     self.rollout_mode
   }
-  { ..self, status, rollout_mode, settlement: Some(settlement) }
+  { ..self, status, rollout_mode, settlement: Some(settlement), }
 }

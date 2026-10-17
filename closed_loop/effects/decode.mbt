@@ -6,7 +6,7 @@ priv struct EffectsReader {
 
 ///|
 fn EffectsReader::new(data : Bytes) -> EffectsReader {
-  { data, offset: 0 }
+  { data, offset: 0, }
 }
 
 ///|

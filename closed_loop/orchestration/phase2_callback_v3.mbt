@@ -244,7 +244,7 @@ fn prepare_recovery_callback_candidate_v3(
   ]) catch {
     _ => raise MalformedInput(field="recovery_callback_guarded_request_v3")
   }
-  { record, event, guarded, proposed_disposition }
+  { record, event, guarded, proposed_disposition, }
 }
 
 ///|

@@ -7,7 +7,7 @@ priv struct V2EventReader {
 
 ///|
 fn V2EventReader::new(bytes : Bytes) -> V2EventReader {
-  { bytes, offset: 0 }
+  { bytes, offset: 0, }
 }
 
 ///|

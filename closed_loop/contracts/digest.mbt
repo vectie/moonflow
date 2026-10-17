@@ -27,7 +27,7 @@ pub fn ContentDigest::parse(
     .all(char => char.is_ascii_digit() || ('a' <= char && char <= 'f')) {
     raise InvalidDigestSyntax(field="digest")
   }
-  { algorithm, hex }
+  { algorithm, hex, }
 }
 
 ///|
@@ -150,5 +150,5 @@ pub fn sha256_hex(input : Bytes) -> String {
 
 ///|
 pub fn sha256_digest(input : Bytes) -> ContentDigest {
-  { algorithm: "sha256", hex: sha256_hex(input) }
+  { algorithm: "sha256", hex: sha256_hex(input), }
 }

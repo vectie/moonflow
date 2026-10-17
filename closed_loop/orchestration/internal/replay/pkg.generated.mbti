@@ -49,4 +49,3 @@ pub fn LifecycleContest::winner_prefix_replay_digest(Self) -> @contracts.Content
 // Type aliases
 
 // Traits
-

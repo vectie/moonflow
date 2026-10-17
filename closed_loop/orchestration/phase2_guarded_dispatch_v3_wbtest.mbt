@@ -610,7 +610,7 @@ test "Phase2 V2 dispatch is retired before provider entry" {
   )
   try
     dispatch_guarded_effect_v2(
-      Phase1bDispatchPort::{ observation, calls },
+      Phase1bDispatchPort::{ observation, calls, },
       fixture.current,
       authorization,
     )

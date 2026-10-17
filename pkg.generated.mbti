@@ -42,6 +42,8 @@ pub fn compare_declared_graphs_v1(Json, Json) -> DeclaredGraphComparisonV1 raise
 
 pub fn compare_run_events_v1(String, Array[RuntimeEvent], String, Array[RuntimeEvent]) -> RunComparisonV1 raise
 
+pub fn compile_capability_catalog_json_v1(Json) -> Json raise
+
 pub fn compile_capability_catalog_v1(Json) -> CapabilityCatalogV1 raise
 
 pub fn compile_work_graph_capabilities_at_v1(Json, CapabilityCatalogV1, String) -> GraphCapabilityReportV1 raise
@@ -139,6 +141,8 @@ pub fn decode_directory_plan_selection_v1(Json) -> DirectoryPlanSelectionV1 rais
 pub fn decode_event_array(Json) -> Array[RuntimeEvent] raise
 
 pub fn decode_evidence_bundle_spec(Json) -> EvidenceBundleSpec raise
+
+pub fn decode_input_capture_policies_v1(Json) -> Array[Json] raise
 
 pub fn decode_pack_capability_manifest_v1(Json) -> PackCapabilityManifestV1 raise
 
@@ -242,13 +246,9 @@ pub fn runtime_protocol_id() -> String
 
 pub fn select_adapter(Array[AdapterCapability], DirectorRequirement) -> DirectorDecision
 
-pub fn single_step_mold_item_supported(RuntimeItem) -> Bool
-
-pub fn single_step_mold_receipt_ref(AdapterRequest) -> String
-
 pub fn single_step_request_for_item(RunProjection, RuntimeItem, String, String) -> AdapterRequest raise
 
-pub fn single_step_validate_mold_result(AdapterRequest, AdapterResult, Json, String, Array[String]) -> Unit raise
+pub fn single_step_validate_result(AdapterRequest, AdapterResult, String, String, Array[String]) -> Unit raise
 
 pub fn splice_declared_graph_v1(Json) -> Json raise
 

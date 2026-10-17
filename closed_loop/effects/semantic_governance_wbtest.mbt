@@ -435,7 +435,7 @@ test "FLOW-7 semantic V2 rejects a self-consistent chain bound to a foreign poli
   } noraise {
     _ => fail("accepted substituted governed subject in semantic summary")
   }
-  let substituted_expiry = { ..summary, authority_expires_at: Some(999L) }
+  let substituted_expiry = { ..summary, authority_expires_at: Some(999L), }
   try require_governance_prefix(substituted_expiry, events) catch {
     GovernanceViolation(field="strict_governance_summary_binding") => ()
     _ => fail("unexpected semantic V2 expiry-substitution rejection")
@@ -466,7 +466,7 @@ test "FLOW-7 semantic V2 rejects a self-consistent chain bound to a foreign poli
   )
   let decoded_binding = decode_governance_summary(binding.canonical_bytes())
   let forged_subject = wb_ref("subject", "sg-byte-substituted-subject")
-  let forged_summary = { ..decoded_binding, governed_subject: forged_subject }
+  let forged_summary = { ..decoded_binding, governed_subject: forged_subject, }
   let forged_bytes = sg_encode_summary(forged_summary)
   let redecoded_forgery = decode_governance_summary(forged_bytes)
   assert_true(redecoded_forgery.governed_subject == forged_subject)

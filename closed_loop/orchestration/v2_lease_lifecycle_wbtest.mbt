@@ -35,7 +35,7 @@ fn flow7_lifecycle_fixture(prefix : String) -> Flow7LifecycleFixture raise {
     flow7_v2_ref("causation", prefix + "-claim", b"flow7-lifecycle-claim-cause"),
   )
   let claimed = LeaseClaimedV2::new(prefix + "-claimed", registration, claim)
-  { schedule, registration, claim, claimed }
+  { schedule, registration, claim, claimed, }
 }
 
 ///|

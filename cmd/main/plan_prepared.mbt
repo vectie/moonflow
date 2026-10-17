@@ -127,7 +127,13 @@ async fn plan_prepare_form_result(
   let original = @moonflow.declared_plan_from_form_v1(form, id, recorded_at)
   // Validate syntax, dependency topology and owner capability before capture.
   ignore(@moonflow.prepare_declared_plan_v1(original, catalog, recorded_at))
-  let (captured_form, captures, input_digests) = plan_capture_form(root, form)
+  let catalog_value = @json.parse(@utf8.decode(catalog_bytes))
+  let policies = @moonflow.decode_input_capture_policies_v1(catalog_value)
+  let (captured_form, captures, input_digests) = plan_capture_form(
+    root,
+    form,
+    policies~,
+  )
   let capture_digest = "sha256:" +
     sha256_hex(@utf8.encode(captures.to_json().stringify()))
   let draft = @moonflow.declared_plan_from_form_v1(

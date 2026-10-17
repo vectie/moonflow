@@ -1078,7 +1078,7 @@ fn prepare_effect_work_terminal_v22(
   ) catch {
     _ => raise ReplayBindingViolation(field="work_batch_boundary_shape")
   }
-  { outcome, commit_request }
+  { outcome, commit_request, }
 }
 
 ///|
@@ -1328,7 +1328,7 @@ fn prepare_cancellation_v2(
   ) catch {
     _ => raise ReplayBindingViolation(field="work_batch_boundary_shape")
   }
-  { request, terminal_outcome, commit_request }
+  { request, terminal_outcome, commit_request, }
 }
 
 ///|

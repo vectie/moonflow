@@ -107,7 +107,7 @@ fn load_native_state(
       if batch_file_name(batch) != name {
         raise CorruptCommittedData(name~)
       }
-      batch_entries.push({ name, batch })
+      batch_entries.push({ name, batch, })
     } else if name.has_prefix("checkpoint-") && name.has_suffix(".mfc") {
       let bytes = native_read_named(session, name)
       try decode_checkpoint(bytes) catch {
@@ -127,7 +127,7 @@ fn load_native_state(
       if !guarded_registry_name_matches(name, binding) {
         raise GuardedRegistryCorrupt(name~)
       }
-      registry_declarations.push({ name, binding })
+      registry_declarations.push({ name, binding, })
     } else if is_guarded_binding_marker_name(name) {
       let binding = decode_guarded_workflow_binding(
         native_read_named(session, name),
@@ -137,7 +137,7 @@ fn load_native_state(
       if guarded_binding_marker_name(binding) != name {
         raise GuardedRegistryCorrupt(name~)
       }
-      registry_markers.push({ name, binding })
+      registry_markers.push({ name, binding, })
     } else {
       raise CorruptCommittedData(name~)
     }
@@ -174,7 +174,7 @@ fn load_native_state(
       raise GuardedRegistryCorrupt(name=marker.name)
     }
   }
-  { batches, checkpoints, registry_declarations, registry_markers }
+  { batches, checkpoints, registry_declarations, registry_markers, }
 }
 
 ///|

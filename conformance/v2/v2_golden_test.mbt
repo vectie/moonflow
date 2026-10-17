@@ -67,7 +67,7 @@ async test "FLOW-2 golden v2 exact duplicate is a no-op and changed content conf
   projection.apply(events[9])
   assert_eq(projection.last_sequence, last_sequence)
   assert_eq(projection.applied_events.length(), event_count)
-  let conflicting = { ..events[9], detail: "changed duplicate content" }
+  let conflicting = { ..events[9], detail: "changed duplicate content", }
   try projection.apply(conflicting) catch {
     error =>
       assert_true("\{error.to_repr()}".contains("ConflictingDuplicateEvent"))
@@ -107,7 +107,7 @@ async test "FLOW-2 golden adapter reconciliation is exact idempotent and stops i
   assert_true(
     @moonflow.adapter_reconciliation_event(reconciled, result) == events[5],
   )
-  let changed = { ..result, output_digest: "sha256:changed-output" }
+  let changed = { ..result, output_digest: "sha256:changed-output", }
   try @moonflow.adapter_reconciliation_event(reconciled, changed) catch {
     error =>
       assert_true("\{error.to_repr()}".contains("AdapterReceiptConflict"))
@@ -132,7 +132,7 @@ async test "FLOW-2 golden acceptance receipt remains exact-bound and cannot be s
   assert_true(
     @moonflow.acceptance_review_event(projection, review) == events[6],
   )
-  let changed_digest = { ..review, output_digest: "sha256:changed-output" }
+  let changed_digest = { ..review, output_digest: "sha256:changed-output", }
   try @moonflow.acceptance_review_event(projection, changed_digest) catch {
     error => assert_true("\{error.to_repr()}".contains("output_digest"))
   } noraise {
@@ -141,7 +141,7 @@ async test "FLOW-2 golden acceptance receipt remains exact-bound and cannot be s
   let changed_evidence = {
     ..review,
     criteria: [
-      { ..review.criteria[0], evidence_refs: ["artifacts/not-attached.json"] },
+      { ..review.criteria[0], evidence_refs: ["artifacts/not-attached.json"], },
     ],
   }
   try @moonflow.acceptance_review_event(projection, changed_evidence) catch {
@@ -149,7 +149,7 @@ async test "FLOW-2 golden acceptance receipt remains exact-bound and cannot be s
   } noraise {
     _ => fail("expected review evidence binding failure")
   }
-  let skipped = { ..events[6], detail: "", artifact_id: "", authority_id: "" }
+  let skipped = { ..events[6], detail: "", artifact_id: "", authority_id: "", }
   try projection.apply(skipped) catch {
     error =>
       assert_true("\{error.to_repr()}".contains("MissingAcceptanceReviewField"))

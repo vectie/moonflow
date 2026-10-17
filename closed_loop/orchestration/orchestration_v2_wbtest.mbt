@@ -556,7 +556,7 @@ fn flow7_v2_admission(
   ).unwrap()
   let proof = commit.proof()
   let admission = AdmissionV2::decode("flow7-v2-proof", proof.canonical_bytes())
-  { proof, admission }
+  { proof, admission, }
 }
 
 ///|

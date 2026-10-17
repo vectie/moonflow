@@ -567,7 +567,7 @@ fn decode_batch(bytes : Bytes) -> StoredBatch raise StorageError {
   let result_bytes = reader.read_bytes()
   reader.require_end()
   let result = decode_result_signing(result_bytes, request, supplied)
-  let batch = { request, result, guards: ReadOnlyArray::from_array(guards) }
+  let batch = { request, result, guards: ReadOnlyArray::from_array(guards), }
   if encode_batch(batch) != bytes {
     raise ValidationFailure(field="noncanonical_batch")
   }

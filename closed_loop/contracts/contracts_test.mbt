@@ -690,9 +690,9 @@ fn[P : @contracts.WorkExchangePort] work_roundtrip(
 test "FLOW-3 pure neutral port conformance maps bytes without state changes" {
   let value = test_envelope("envelope-port", b"opaque", [], [])
   let version = @contracts.Version::parse("1.0.0")
-  let codec : NeutralEnvelopeCodec = { marker: () }
-  let receipt_port : NeutralReceiptPort = { marker: () }
-  let work_port : NeutralWorkPort = { marker: () }
+  let codec : NeutralEnvelopeCodec = { marker: (), }
+  let receipt_port : NeutralReceiptPort = { marker: (), }
+  let work_port : NeutralWorkPort = { marker: (), }
   assert_true(codec_roundtrip(codec, value, version) == value)
   assert_true(receipt_roundtrip(receipt_port, value, version) == value)
   let (request, result) = work_roundtrip(work_port, value, version)

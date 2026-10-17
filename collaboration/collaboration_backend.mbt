@@ -402,7 +402,7 @@ pub fn set_membership_status_v1(
       let memberships = projection.memberships
         .map(item => {
           if item.principal == principal {
-            MembershipV1::{ ..item, status, updated_at: recorded_at }
+            MembershipV1::{ ..item, status, updated_at: recorded_at, }
           } else {
             item
           }

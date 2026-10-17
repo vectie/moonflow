@@ -34,7 +34,7 @@ async fn run_unattended_process(
       ) catch {
         _ => -1
       }
-      { status, stdout: stdout.0.wait(), stderr: stderr.0.wait() }
+      { status, stdout: stdout.0.wait(), stderr: stderr.0.wait(), }
     })
   })
   match completed {

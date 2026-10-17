@@ -249,7 +249,7 @@ pub fn PackHeadBindingV1::new(
   if revision < 0L || (revision == 0L) != (head_digest is None) {
     raise MalformedInput(field="pack_head_binding_v1")
   }
-  { role, workflow, revision, head_digest, replay_digest }
+  { role, workflow, revision, head_digest, replay_digest, }
 }
 
 ///|
@@ -646,7 +646,7 @@ pub fn decode_operator_projection_materialization_json_v1(
   if @contracts.sha256_digest(bytes) != digest {
     raise DigestMismatch(field="operator_materialization_content_v1")
   }
-  { relative_path: operator_projection_relative_path_v1, bytes, digest }
+  { relative_path: operator_projection_relative_path_v1, bytes, digest, }
 }
 
 ///|

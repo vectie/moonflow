@@ -379,7 +379,7 @@ fn catalog_add_issue(
   detail : String,
   suggestions? : Array[String] = [],
 ) -> Unit {
-  issues.push({ code, subject, detail, suggestions })
+  issues.push({ code, subject, detail, suggestions, })
 }
 
 ///|

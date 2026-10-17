@@ -267,7 +267,7 @@ pub struct AuthorizationEventStoreV2 {
 
 ///|
 pub fn AuthorizationEventStoreV2::new() -> AuthorizationEventStoreV2 {
-  { events_: [], frames_: [] }
+  { events_: [], frames_: [], }
 }
 
 ///|

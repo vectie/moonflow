@@ -301,7 +301,7 @@ fn proof_v2_fixture(clock : Int64) -> ProofV2Fixture {
   let _ = store.append(e0).unwrap()
   let _ = store.append(e1).unwrap()
   let _ = store.append(e2).unwrap()
-  { store, authorization: auth, attempt, intent }
+  { store, authorization: auth, attempt, intent, }
 }
 
 ///|

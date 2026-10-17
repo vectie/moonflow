@@ -5,7 +5,7 @@ priv struct CanonWriter {
 
 ///|
 fn CanonWriter::new() -> CanonWriter {
-  { buffer: Buffer() }
+  { buffer: Buffer(), }
 }
 
 ///|
@@ -68,7 +68,7 @@ priv struct CanonReader {
 
 ///|
 fn CanonReader::new(data : Bytes) -> CanonReader {
-  { data, offset: 0 }
+  { data, offset: 0, }
 }
 
 ///|

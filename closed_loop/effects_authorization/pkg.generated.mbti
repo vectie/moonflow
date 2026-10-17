@@ -393,4 +393,3 @@ pub fn ReplayPosition::sequence(Self) -> Int64
 // Type aliases
 
 // Traits
-

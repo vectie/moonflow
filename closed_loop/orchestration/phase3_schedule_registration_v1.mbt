@@ -269,7 +269,7 @@ pub fn prepare_scheduled_action_registration_v1(
   ]) catch {
     _ => raise MalformedInput(field="schedule_registration_guarded_request_v1")
   }
-  { registration, request }
+  { registration, request, }
 }
 
 ///|

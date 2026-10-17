@@ -82,7 +82,7 @@ fn parse_fixed_http_target(url : String) -> FixedHttpTarget raise {
     }
   }
   guard !host.is_blank() else { fail("HTTP URL host is required") }
-  { secure, host, authority, port, path }
+  { secure, host, authority, port, path, }
 }
 
 ///|
@@ -244,7 +244,7 @@ async fn[R : @io.Reader] read_fixed_http_response(
     (Some(_), Some(_)) =>
       fail("HTTP response contains conflicting body framing")
   }
-  { code, body }
+  { code, body, }
 }
 
 ///|

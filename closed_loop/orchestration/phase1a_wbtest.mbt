@@ -341,7 +341,7 @@ fn phase1a_wb_initial_with_retry_policy(
     e2,
     e3.payload().payload(),
   )
-  { authorization, registration, e1, e2, e3, r2, r3 }
+  { authorization, registration, e1, e2, e3, r2, r3, }
 }
 
 ///|

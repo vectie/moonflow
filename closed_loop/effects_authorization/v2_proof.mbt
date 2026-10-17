@@ -540,5 +540,5 @@ pub fn derive_eligible_authorization_proof_commit_v2(
     Ok(value) => value
     Err(e) => return Err(e)
   }
-  Ok({ proof, event })
+  Ok({ proof, event, })
 }

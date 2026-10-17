@@ -5,7 +5,7 @@ priv struct RetryWriter {
 
 ///|
 fn RetryWriter::new() -> RetryWriter {
-  { buffer: @buffer.Buffer() }
+  { buffer: @buffer.Buffer(), }
 }
 
 ///|
@@ -59,7 +59,7 @@ priv struct RetryReader {
 
 ///|
 fn RetryReader::new(data : Bytes) -> RetryReader {
-  { data, offset: 0 }
+  { data, offset: 0, }
 }
 
 ///|

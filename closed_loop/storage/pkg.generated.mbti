@@ -524,4 +524,3 @@ pub(open) trait StoragePort {
   fn events(Self, @contracts.RecordRef) -> ReadOnlyArray[WorkflowEvent] raise StorageError
   fn intents(Self, @contracts.RecordRef) -> ReadOnlyArray[OutboxIntent] raise StorageError
 }
-

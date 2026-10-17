@@ -324,7 +324,7 @@ fn flow7_root_bound_strict_fixture(
       field="fixture_root_schedule_event",
     )
   }
-  { fixture, empty_effects, schedule, registration, schedule_event }
+  { fixture, empty_effects, schedule, registration, schedule_event, }
 }
 
 ///|
@@ -787,7 +787,7 @@ fn flow7_retry_ready_fixture(
     .effects()
     .committed_retry_eligibility_receipt(fixture.intent.intent_ref())
     .unwrap()
-  { fixture, empty_effects, aggregate, receipt, observation, effect_receipt }
+  { fixture, empty_effects, aggregate, receipt, observation, effect_receipt, }
 }
 
 ///|

@@ -161,13 +161,12 @@ async fn plan_capture_one(
 }
 
 ///|
-// Mold spatial requests use workspace-relative evidence references. Rebind
-// that explicit list while retaining the original request bytes separately.
-// Other contracts retain original bindings: their captured top-level bytes
-// are inspectable, but no claim is made about unknown nested dependencies.
+// A versioned owner declaration selects explicit root reference-array rebinding.
+// Opaque contracts retain original bindings and disclose the limited scope.
 async fn plan_capture_form(
   root : String,
   form : Json,
+  policies? : Array[Json] = [],
 ) -> (Json, Array[PlanInputCapture], Map[String, String]) {
   let detached = @json.parse(form.stringify())
   let fields = plan_fields(detached, "plan form")
@@ -203,17 +202,28 @@ async fn plan_capture_form(
         source_item = Some(item)
       }
     }
-    let spatial = match source_item {
-      Some(
-        {
-          "product_id": String("moonmold"),
-          "input_contracts": Array(
-            [String("moonmold/spatial-operation-request@1.0.0")]
-          ),
-          ..
+    let mut policy : Json? = None
+    if source_item is Some(item) {
+      for candidate in policies {
+        if plan_string(candidate, "product_id") ==
+          plan_string(item, "product_id") &&
+          plan_string(candidate, "operation_ref") ==
+          plan_string(item, "operation") &&
+          plan_value(item, "input_contracts") ==
+          [plan_string(candidate, "input_schema_ref")].to_json() {
+          guard policy is None else {
+            fail("input capture policy is ambiguous")
+          }
+          policy = Some(candidate)
         }
-      ) => true
-      _ => false
+      }
+      guard policies.is_empty() || policy is Some(_) else {
+        fail("input capture policy does not bind the selected owner operation")
+      }
+    }
+    let rebind = match policy {
+      Some(value) => plan_string(value, "mode") == "reference-array-rebind"
+      None => false
     }
     let original_digest = declared_input_digest(root, refs)
     input_digests[id] = original_digest
@@ -228,24 +238,26 @@ async fn plan_capture_form(
         } else {
           "declared-evidence"
         },
-        if spatial {
+        if rebind {
           "captured-reference"
         } else {
           "original-reference-revalidated"
         },
       )
       captures.push(capture)
-      if spatial && index == 0 {
+      if rebind && index == 0 {
         let payload = plan_read_json(root, capture.captured_ref)
+        let descriptor = policy.unwrap()
         guard plan_string(payload, "contract_id") ==
-          "moonmold.spatial-operation-request.v1" else {
+          plan_string(descriptor, "payload_contract_id") else {
           fail(
-            "\{id}.input_artifacts: primary payload does not match the declared Mold spatial contract",
+            "\{id}.input_artifacts: primary payload differs from its owner-declared capture contract",
           )
         }
-        let payload_fields = plan_fields(payload, "Mold spatial request")
+        let payload_fields = plan_fields(payload, "owner-declared request")
+        let reference_field = plan_string(descriptor, "reference_array_field")
         let dependencies : Array[String] = match
-          payload_fields.get("reference_artifacts") {
+          payload_fields.get(reference_field) {
           Some(value) => @json.from_json(value)
           None => []
         }
@@ -258,12 +270,12 @@ async fn plan_capture_form(
           let rebound : Array[String] = []
           for dependency in dependencies {
             let child = plan_capture_one(
-              root, id, dependency, "spatial-reference-evidence", "captured-reference",
+              root, id, dependency, "pack-reference-evidence", "captured-reference",
             )
             captures.push(child)
             rebound.push(child.captured_ref)
           }
-          payload_fields["reference_artifacts"] = rebound.to_json()
+          payload_fields[reference_field] = rebound.to_json()
           let bytes = @utf8.encode(payload.stringify(indent=2) + "\n")
           let rebound_ref = plan_capture_bytes(root, bytes)
           captures.push({
@@ -278,7 +290,7 @@ async fn plan_capture_form(
           next_refs.push(rebound_ref)
         }
       } else {
-        next_refs.push(if spatial { capture.captured_ref } else { reference })
+        next_refs.push(if rebind { capture.captured_ref } else { reference })
       }
     }
     edit_fields["input_artifacts"] = next_refs.to_json()

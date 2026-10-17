@@ -19,7 +19,7 @@ pub fn UtcInstantV3::new(
   writer.string("3.0.0")
   writer.int64(epoch_millis)
   let canonical = writer.finish()
-  { epoch_millis, canonical, digest: @contracts.sha256_digest(canonical) }
+  { epoch_millis, canonical, digest: @contracts.sha256_digest(canonical), }
 }
 
 ///|

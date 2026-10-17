@@ -607,7 +607,7 @@ pub fn prepare_time_observation_commit_v3(
     _ =>
       raise ReplayBindingViolation(field="time_observation_v3_commit_request")
   }
-  { observation, request }
+  { observation, request, }
 }
 
 ///|

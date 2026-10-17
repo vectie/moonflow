@@ -365,7 +365,7 @@ pub fn GovernanceProjection::apply_event(
       }
       require_event_subject(event, value.attachment_ref)
       require_event_evidence(event, value.evidence)
-      next = { ..next, attachment: Some(value) }
+      next = { ..next, attachment: Some(value), }
     }
     "AuthorityRequested" => {
       guard self.attachment is Some(attachment) else {
@@ -392,7 +392,7 @@ pub fn GovernanceProjection::apply_event(
       }
       require_event_subject(event, value.request_ref)
       require_event_evidence(event, value.evidence)
-      next = { ..next, authority_request: Some(value) }
+      next = { ..next, authority_request: Some(value), }
     }
     "AuthorityGranted" | "AuthorityDenied" => {
       guard self.authority_request is Some(request) else {
@@ -420,7 +420,7 @@ pub fn GovernanceProjection::apply_event(
       }
       require_event_subject(event, value.decision_ref)
       require_event_evidence(event, [])
-      next = { ..next, authority_decision: Some(value) }
+      next = { ..next, authority_decision: Some(value), }
     }
     "AuthorityExpired" => {
       guard self.authority_request is Some(request) else {
@@ -444,7 +444,7 @@ pub fn GovernanceProjection::apply_event(
       }
       require_event_subject(event, value.expiration_ref)
       require_event_evidence(event, [])
-      next = { ..next, authority_expiration: Some(value) }
+      next = { ..next, authority_expiration: Some(value), }
     }
     "ReviewRequested" => {
       guard self.authority_request is Some(authority_request) &&
@@ -476,7 +476,7 @@ pub fn GovernanceProjection::apply_event(
       }
       require_event_subject(event, value.request_ref)
       require_event_evidence(event, value.evidence)
-      next = { ..next, review_request: Some(value) }
+      next = { ..next, review_request: Some(value), }
     }
     "ReviewDecisionRecorded" => {
       guard self.review_request is Some(request) else {
@@ -503,7 +503,7 @@ pub fn GovernanceProjection::apply_event(
       }
       require_event_subject(event, value.decision_ref)
       require_event_evidence(event, ordered)
-      next = { ..next, review_decision: Some(value) }
+      next = { ..next, review_decision: Some(value), }
     }
     "ReviewReceiptBound" => {
       let value = decode_review_receipt(event.payload().payload(), self)
@@ -516,7 +516,7 @@ pub fn GovernanceProjection::apply_event(
       }
       require_event_subject(event, value.receipt_ref)
       require_event_evidence(event, [])
-      next = { ..next, receipt: Some(value) }
+      next = { ..next, receipt: Some(value), }
     }
     _ => raise InvalidEventKind(kind)
   }

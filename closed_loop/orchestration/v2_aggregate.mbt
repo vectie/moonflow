@@ -1031,5 +1031,5 @@ fn prepare_atomic_retry_v2(
     [attempt_event, schedule_event],
     [],
   )
-  { plan, attempt, registration, request }
+  { plan, attempt, registration, request, }
 }

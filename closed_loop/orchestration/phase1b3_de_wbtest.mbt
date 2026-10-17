@@ -507,7 +507,7 @@ fn phase1b3_de_cancellation_candidate(
   )
   let prepared = prepare_cancellation_v2(governed, request)
   assert_true(prepared.terminal_outcome() is None)
-  { prefix_replay, governance_replay, request: prepared.commit_request() }
+  { prefix_replay, governance_replay, request: prepared.commit_request(), }
 }
 
 ///|

@@ -23,24 +23,35 @@ command line, authority envelope, or config body.
 
 ```json
 {
-  "contract_id": "moonflow.single-step-config.v1",
+  "contract_id": "moonflow.single-step-config.v2",
   "capability_ref": "trusted/capability-catalog.json",
   "envelope_ref": ".moonsuite/products/moongate/autonomy/EXISTING-APPROVED/envelope.json",
   "usage_ref": "trusted/usage.json",
   "gate_executable": "/canonical/native/moongate",
   "gate_sha256": "sha256:EXACT_BINARY_SHA256",
-  "mold_executable": "/canonical/native/moonmold-adapter",
-  "mold_sha256": "sha256:EXACT_BINARY_SHA256"
+  "adapter_executable": "/canonical/native/moonmold-adapter",
+  "adapter_sha256": "sha256:EXACT_BINARY_SHA256"
 }
 ```
 
 The config is host-owned and must not be placed in browser-editable drafts or
-exports. The path accepts only the exact `moonmold-pack-local-v1` adapter and
-`moonmold/spatial.operation.execute@0.2.0`, with `workspace-mutation`,
-`digital-artifact`, a fresh conformant catalog, and hash-bound native health
-evidence. The native input selects `mock-reference`; no Node or Blender route is
-used. Program paths are absolute/canonical and checked against their configured
+exports. The generic route retains a `workspace-mutation` / `digital-artifact`
+ceiling, a fresh conformant catalog and hash-bound native health evidence. The
+pinned pack verifier accepts only its exact operation and schemas. Mold's
+verifier requires `moonmold-pack-local-v1`,
+`moonmold/spatial.operation.execute@0.2.0` and `mock-reference`; no Node or Blender
+route is used. Program paths are absolute/canonical and checked against their configured
 SHA256 before execution. Child processes receive no ambient environment.
+
+Version 1 configurations require an explicit migration. The pack-owned
+`moonmold-adapter migrate-single-step-config <legacy-config.json>` prints a
+version 2 configuration while preserving every authority reference, program
+path and program hash. It writes no configuration or grant. Review and retain
+the translated host configuration. Existing terminal action records remain
+readable. A legacy pending action can only use `reconcile-one`: the pinned owner
+verifier must explicitly recognize and bind its exact original request and
+attempt. Flow retains the exact old action bytes before recording the new proof,
+rechecks Gate authority, and never invokes or retries that legacy attempt.
 
 The existing approved Gate envelope must bind the actual canonical workspace and
 the imported run's source digest. Each effectful call goes through the fixed
@@ -93,10 +104,22 @@ attempt for reconciliation and cannot start a fresh attempt.
 The unchanged native Mold protocol returns JSON on stdout. Flow checks request,
 attempt, idempotency and product correlation. Its output digest is the SHA256 of
 the exact native operation receipt bytes, not the unattended manifest's aggregate
-output digest convention. Flow checks that receipt's operation, outcome,
-identity, artifact list, claim ceiling, physical-authority flag, review flag and
-reference-backend qualification; it separately retains the hashes of every
-reported artifact.
+output digest convention. Flow calls the pinned adapter's fixed read-only
+`verify-single-step` command before Gate authorization and again before durable
+result import. Each proof binds the SHA256 of the exact verification exchange,
+selected capability, request, attempt and input digest. The pack owns receipt
+operation/outcome/schema and qualification checks. Flow independently checks
+generic correlation, exact receipt/artifact hashes, canonical nonsymlinked
+paths and equality with the preauthorized write policy. It retains the hashes
+of every reported artifact.
+
+The catalog compiler also retains versioned owner-declared input capture
+policies. Preparation requires explicit policies for every catalog operation;
+recompile older source bundles instead of silently treating nested inputs as
+opaque. The pack declares its exact payload contract and explicit root
+reference-array field. Flow captures and rebinds that bounded array, retains
+original and rebound bytes, and revalidates them before applying the plan.
+Opaque policies keep their original bindings and disclose that limited scope.
 
 A verified success appends exactly the existing reconciliation event and stops
 at `Review`. There is no reviewer, observer, acceptance receipt or dependent

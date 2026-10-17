@@ -2028,7 +2028,7 @@ test "FLOW-7 Phase1B.2 pending cancellation preserves in-flight facts and blocks
     evidence,
   )
   let calls = Ref(0)
-  let port = Phase1bDispatchPort::{ observation, calls }
+  let port = Phase1bDispatchPort::{ observation, calls, }
   let guarded_observation = phase1b_legacy_guarded_observation_fixture_v2(
     fixture.current,
     dispatch_authorization,
@@ -2753,7 +2753,7 @@ test "FLOW-7 Phase1B.3 success terminal is source-derived replayable and idempot
     evidence,
   )
   let calls = Ref(0)
-  let port = Phase1bDispatchPort::{ observation, calls }
+  let port = Phase1bDispatchPort::{ observation, calls, }
   let open = fixture.current.open_work_authority()
   let dispatch_authorization = fixture.current.guarded_dispatch_authorization(
     open,
@@ -2930,7 +2930,7 @@ test "FLOW-7 Phase1B.3 not-applied exhausts only without cancellation at exact b
     evidence,
   )
   let calls = Ref(0)
-  let port = Phase1bDispatchPort::{ observation, calls }
+  let port = Phase1bDispatchPort::{ observation, calls, }
   let open = fixture.current.open_work_authority()
   let dispatch_authorization = fixture.current.guarded_dispatch_authorization(
     open,

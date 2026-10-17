@@ -5,7 +5,7 @@ priv struct GovernanceWriter {
 
 ///|
 fn GovernanceWriter::new() -> GovernanceWriter {
-  { buffer: Buffer() }
+  { buffer: Buffer(), }
 }
 
 ///|
@@ -98,7 +98,7 @@ priv struct GovernanceReader {
 
 ///|
 fn GovernanceReader::new(data : Bytes) -> GovernanceReader {
-  { data, offset: 0 }
+  { data, offset: 0, }
 }
 
 ///|

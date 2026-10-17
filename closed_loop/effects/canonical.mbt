@@ -17,7 +17,7 @@ priv struct EffectsWriter {
 
 ///|
 fn EffectsWriter::new() -> EffectsWriter {
-  { buffer: Buffer() }
+  { buffer: Buffer(), }
 }
 
 ///|

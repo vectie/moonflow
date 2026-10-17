@@ -136,7 +136,7 @@ pub fn select_adapter(
   for capability in capabilities {
     let reasons = candidate_reasons(capability, requirement)
     let accepted = reasons.is_empty()
-    reviews.push({ adapter_id: capability.adapter_id, accepted, reasons })
+    reviews.push({ adapter_id: capability.adapter_id, accepted, reasons, })
     if accepted && selected_adapter_id.is_empty() {
       selected_adapter_id = capability.adapter_id
     }

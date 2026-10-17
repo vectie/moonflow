@@ -310,7 +310,7 @@ fn phase1c_b_atomic_retry(suffix : String) -> Phase1cBAtomicRetry raise {
     "phase1c-b-retry-registration-" + suffix,
     "phase1c-b-retry-command-" + suffix,
   )
-  { outcome, policy, guarded_request, retry_commit, candidate }
+  { outcome, policy, guarded_request, retry_commit, candidate, }
 }
 
 ///|

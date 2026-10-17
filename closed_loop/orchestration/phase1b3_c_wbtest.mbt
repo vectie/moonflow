@@ -249,7 +249,7 @@ fn phase1b3_c_known_failure_fixture(
     is Some(retry_receipt) else {
     fail("known failure retry receipt missing: " + suffix)
   }
-  { fixture, governance_replay, current, source, retry_receipt }
+  { fixture, governance_replay, current, source, retry_receipt, }
 }
 
 ///|
@@ -417,7 +417,7 @@ fn phase1b3_c_reconciled_fixture(
     is Some(retry_receipt) else {
     fail("reconciled retry receipt missing: " + suffix)
   }
-  { fixture, governance_replay, current, source, retry_receipt }
+  { fixture, governance_replay, current, source, retry_receipt, }
 }
 
 ///|

@@ -146,7 +146,7 @@ fn prepare_final_learning_commit_v1(
     final_learning_guard_from_replay_v1(source_replay),
     final_learning_guard_from_replay_v1(governance_replay),
   ])
-  { entry, event, request, guarded_request }
+  { entry, event, request, guarded_request, }
 }
 
 ///|

@@ -216,4 +216,3 @@ pub(open) trait WorkExchangePort {
   fn encode_result(Self, WireEnvelope, Version) -> Bytes raise ContractError
   fn decode_result(Self, Bytes, Version) -> WireEnvelope raise ContractError
 }
-

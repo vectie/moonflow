@@ -23,7 +23,7 @@ priv struct OrchestrationWriter {
 
 ///|
 fn OrchestrationWriter::new() -> OrchestrationWriter {
-  { buffer: Buffer() }
+  { buffer: Buffer(), }
 }
 
 ///|
@@ -110,7 +110,7 @@ priv struct OrchestrationReader {
 fn OrchestrationReader::new(
   data : Bytes,
 ) -> OrchestrationReader raise OrchestrationError {
-  { data, offset: 0 }
+  { data, offset: 0, }
 }
 
 ///|

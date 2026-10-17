@@ -6,7 +6,7 @@ priv struct AuthorizationWriter {
 
 ///|
 fn AuthorizationWriter::new() -> AuthorizationWriter {
-  { buffer: Buffer() }
+  { buffer: Buffer(), }
 }
 
 ///|
@@ -438,7 +438,7 @@ priv struct AuthorizationReader {
 
 ///|
 fn AuthorizationReader::new(data : Bytes) -> AuthorizationReader {
-  { data, offset: 0 }
+  { data, offset: 0, }
 }
 
 ///|

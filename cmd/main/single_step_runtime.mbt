@@ -6,8 +6,8 @@ struct SingleStepConfig {
   usage_ref : String
   gate_executable : String
   gate_sha256 : String
-  mold_executable : String
-  mold_sha256 : String
+  adapter_executable : String
+  adapter_sha256 : String
 } derive(FromJson)
 
 ///|
@@ -113,101 +113,13 @@ async fn single_step_persist(
 }
 
 ///|
-async fn single_step_expected_artifacts(
-  root : String,
-  request : @moonflow.AdapterRequest,
-) -> Array[String] {
-  guard request.input_artifacts.get(0) is Some(reference) else {
-    fail("Mold input is required")
-  }
-  let input = plan_read_json(root, reference)
-  guard plan_string(input, "contract_id") ==
-    "moonmold.spatial-operation-request.v1" &&
-    plan_string(input, "authority") == "WorkspaceMutation" &&
-    plan_string(input, "backend_preference") == "mock-reference" else {
-    fail("single-step only supports the native digital reference Mold input")
-  }
-  let operation = plan_value(input, "operation")
-  if plan_string(operation, "method") == "representation.export" {
-    let path = plan_string(plan_value(operation, "params"), "outputPath")
-    guard @moonflow.artifact_ref_is_workspace_relative(path) &&
-      !path.split("/").any(x => x == "." || x == "") else {
-      fail("Mold export must use a canonical workspace-relative artifact")
-    }
-    // Reject existing symlinks all the way to the destination without writing it.
-    let mut cursor = root
-    for part in path.split("/") {
-      cursor += "/" + part.to_owned()
-      if @fs.exists(cursor) && @fs.realpath(cursor) != cursor {
-        fail("Mold output path is symlinked")
-      }
-    }
-    [path]
-  } else {
-    []
-  }
-}
-
-///|
-async fn single_step_capability(
-  root : String,
-  config : SingleStepConfig,
-  item : @moonflow.RuntimeItem,
-  at : String,
-) -> Unit {
-  let catalog_value = plan_read_json(root, config.capability_ref)
-  let catalog = @moonflow.decode_capability_catalog_v1(catalog_value)
-  guard catalog.conformant else {
-    fail("single-step capability catalog is not conformant")
-  }
-  let matches = catalog.operations.filter(operation => {
-    operation.operation_ref == item.operation
-  })
-  guard matches is [operation] &&
-    operation.adapter_id == "moonmold-pack-local-v1" &&
-    operation.pack_version == "0.2.0" &&
-    operation.review_required &&
-    operation.claim_ceiling == "digital-artifact" &&
-    operation.authority == "workspace-mutation" else {
-    fail(
-      "single-step requires the exact native Mold capability and Review boundary",
-    )
-  }
-  let selected = @moonflow.select_adapter(
-    @moonflow.decode_adapter_capabilities_at_v1(catalog_value, at),
-    @moonflow.director_requirement_for_item(item),
-  )
-  guard selected.accepted &&
-    selected.selected_adapter_id == "moonmold-pack-local-v1" else {
-    fail("single-step Mold capability is unavailable, unhealthy or stale")
-  }
-  let health_bytes = plan_read_bytes(root, operation.health_evidence_ref)
-  guard "sha256:" + sha256_hex(health_bytes) == operation.health_evidence_digest else {
-    fail("single-step health evidence digest differs")
-  }
-  let health = @json.parse(@utf8.decode(health_bytes))
-  guard plan_string(health, "contract_id") ==
-    "moonmold.adapter-health-evidence.v1" &&
-    plan_string(health, "adapter_id") == operation.adapter_id &&
-    plan_string(health, "pack_version") == operation.pack_version &&
-    plan_string(health, "checked_at") == operation.health_checked_at &&
-    plan_string(health, "valid_until") == operation.health_valid_until &&
-    plan_value(plan_value(health, "semantic_runtime"), "production_qualified") ==
-    false.to_json() else {
-    fail(
-      "single-step health evidence does not bind the exact native reference capability",
-    )
-  }
-}
-
-///|
 async fn single_step_gate(
   root : String,
   config : SingleStepConfig,
   projection : @moonflow.RunProjection,
   request : @moonflow.AdapterRequest,
   action_ref : String,
-  expected : Array[String],
+  artifact_paths : Array[String],
   at : String,
   reconcile : Bool,
 ) -> @pipeline.AutonomyBudgetUsage {
@@ -238,15 +150,13 @@ async fn single_step_gate(
     contract_id: "moongate.autonomy-event-request.v1",
     event_id,
     run_id: request.run_id,
-    product_id: "moonmold",
+    product_id: request.product_id,
     operation: request.operation,
-    requested_authority: WorkspaceMutation,
-    claim: DigitalArtifact,
-    artifact_paths: [
-      ".moonsuite/products/moonmold/adapter-attempts/" + request.attempt_id,
-      ".moonsuite/products/moonmold/runtime/semantic-journal.json",
-      ..expected,
-    ],
+    requested_authority: @pipeline.authority_class_from_id(
+      request.requested_authority,
+    ),
+    claim: @pipeline.claim_class_from_id(request.required_claim),
+    artifact_paths,
     external_destination: "",
     budget_request: budget,
     recorded_at: at,
@@ -291,6 +201,9 @@ async fn single_step_gate(
         "stderr": output.stderr,
       } : Json).stringify(indent=2),
   )
+  guard output.status == 0 else {
+    fail("MoonGate refused the selected single-step action")
+  }
   let decision = @json.parse(output.stdout) catch {
     _ => fail("MoonGate returned no valid decision")
   }

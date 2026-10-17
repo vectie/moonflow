@@ -284,7 +284,7 @@ pub fn RetryTimingV2::compute(
   writer.int64(due_at)
   let canonical = writer.finish()
   let digest = @contracts.sha256_digest(canonical)
-  { retry_ordinal, nominal_delay, jitter, delay, due_at, canonical, digest }
+  { retry_ordinal, nominal_delay, jitter, delay, due_at, canonical, digest, }
 }
 
 ///|

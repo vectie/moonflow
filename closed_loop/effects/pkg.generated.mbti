@@ -640,4 +640,3 @@ pub fn StrictRecoveryTargetV3::provider_operation(Self) -> @contracts.WireEnvelo
 // Type aliases
 
 // Traits
-

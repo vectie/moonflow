@@ -1,13 +1,13 @@
 ///|
 async fn prepared_test_workspace() -> String {
-  let root = @fs.tmpdir(prefix="moonflow-prepared-")
+  let root = @fs.realpath(@fs.tmpdir(prefix="moonflow-prepared-"))
   ignore(plan_directory(root, "requests"))
   let graph = read_json("fixtures/capability-work-graph.valid.v1.json")
   write_json(root + "/source.json", graph)
-  let catalog = @moonflow.compile_capability_catalog_v1(
+  let catalog = @moonflow.compile_capability_catalog_json_v1(
     read_json("fixtures/capability-source-bundle.v1.json"),
   )
-  write_json(root + "/catalog.json", catalog.to_json())
+  write_json(root + "/catalog.json", catalog)
   write_json(root + "/requests/model.json", {
     "contract_id": "moonmold.spatial-operation-request.v1",
     "request_id": "r12-spatial",
@@ -69,7 +69,7 @@ async test "v2 duplicated spatial operation captures nested evidence and imports
   assert_true(
     captures.any(capture => {
       capture.work_item_id == "copy" &&
-      capture.role == "spatial-reference-evidence" &&
+      capture.role == "pack-reference-evidence" &&
       capture.binding_mode == "captured-reference"
     }),
   )

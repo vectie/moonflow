@@ -94,7 +94,7 @@ test "acceptance review fails closed on changed criterion text" {
   let base = accepted_review()
   let receipt = {
     ..base,
-    criteria: [{ ..base.criteria[0], criterion: "weaker criterion" }],
+    criteria: [{ ..base.criteria[0], criterion: "weaker criterion", }],
   }
   try @moonflow.acceptance_review_event(review_projection(), receipt) catch {
     InvalidAcceptanceReview(issues) =>

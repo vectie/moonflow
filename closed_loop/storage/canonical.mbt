@@ -5,7 +5,7 @@ priv struct StorageWriter {
 
 ///|
 fn StorageWriter::new() -> StorageWriter {
-  { buffer: Buffer() }
+  { buffer: Buffer(), }
 }
 
 ///|
@@ -73,7 +73,7 @@ priv struct StorageReader {
 
 ///|
 fn StorageReader::new(data : Bytes) -> StorageReader {
-  { data, offset: 0 }
+  { data, offset: 0, }
 }
 
 ///|

@@ -21,12 +21,9 @@ fn single_step_reply(
     "message": plan_string(action, "message"),
     "reconcile_required": status == "reconcile-required",
     "projection": @moonflow.projection_json(projection),
-    "qualification": {
-      "evidence_class": "fixture-reference-only",
-      "production_qualified": false,
-      "physical_authority": false,
-      "blender_evidence": false,
-    },
+    "qualification": plan_fields(action, "single-step action")
+    .get("qualification")
+    .unwrap_or(Json::null()),
   }
 }
 
@@ -65,9 +62,8 @@ async fn single_step_command_inner(
     plan_read_json(root, run_ref + "/events.json"),
   )
   let mut projection = @moonflow.replay(run_id, events)
-  guard projection.find_item(item_id) is Some(item) &&
-    @moonflow.single_step_mold_item_supported(item) else {
-    fail("Selected item is not the exact digital Mold operation")
+  guard projection.find_item(item_id) is Some(item) else {
+    fail("Selected item is unavailable")
   }
   let action_ref = run_ref + "/single-step"
   let directory = plan_directory(root, action_ref)
@@ -132,29 +128,101 @@ async fn single_step_command_inner(
   guard control.0 == "running" &&
     (
       control.1 == "" ||
-      @pipeline.authority_class_from_id(control.1).allows(WorkspaceMutation)
+      @pipeline.authority_class_from_id(control.1).allows(
+        @pipeline.authority_class_from_id(request.requested_authority),
+      )
     ) else {
     fail("The run control blocks this single-step action")
   }
   let config : SingleStepConfig = @json.from_json(
     plan_read_json(root, config_ref),
   )
-  guard config.contract_id == "moonflow.single-step-config.v1" else {
-    fail("single-step config contract differs")
+  guard config.contract_id == "moonflow.single-step-config.v2" else {
+    fail(
+      "single-step requires v2 config with the pinned owner adapter verifier",
+    )
   }
-  single_step_capability(root, config, item, at)
-  single_step_executable(config.mold_executable, config.mold_sha256)
-  let expected = single_step_expected_artifacts(root, request)
+  let operation = single_step_owner_capability(root, config, item, at)
+  single_step_executable(config.adapter_executable, config.adapter_sha256)
+  let prepare_exchange = single_step_verification_payload(
+    root,
+    operation,
+    request,
+    "prepare",
+    reconcile~,
+  )
+  let legacy = match existing {
+    Some(previous) =>
+      !plan_fields(previous, "existing action").contains("owner_verification") &&
+      !plan_fields(previous, "existing action").contains("adapter_sha256")
+    None => false
+  }
+  if legacy {
+    guard reconcile else {
+      fail("legacy attempts may only reconcile their original action")
+    }
+    plan_fields(prepare_exchange, "verification")["legacy_action"] = existing.unwrap()
+  }
+  let proof = single_step_verify(
+    root,
+    config,
+    operation,
+    request,
+    prepare_exchange,
+    action_ref,
+    item_id + ".prepare.verification.json",
+  )
+  let expected : Array[String] = @json.from_json(
+    plan_value(proof, "expected_artifacts"),
+  )
+  let artifact_paths : Array[String] = @json.from_json(
+    plan_value(proof, "artifact_paths"),
+  )
+  if existing is Some(previous) {
+    if legacy {
+      guard plan_value(proof, "legacy_reconciliation") == true.to_json() else {
+        fail("owner verifier refused legacy reconciliation")
+      }
+    } else {
+      guard plan_string(previous, "adapter_sha256") == config.adapter_sha256 else {
+        fail("stored attempt belongs to another verifier identity")
+      }
+      let previous_proof = plan_value(previous, "owner_verification")
+      for
+        field in [
+          "receipt_ref", "expected_artifacts", "artifact_paths", "adapter_id", "pack_version",
+          "qualification",
+        ] {
+        guard plan_value(previous_proof, field) == plan_value(proof, field) else {
+          fail("stored attempt owner verification changed")
+        }
+      }
+    }
+  }
   guard declared_input_digest(root, request.input_artifacts) ==
     request.input_digest else {
     fail("Stored single-step input bytes changed")
   }
   let envelope_bytes = plan_read_bytes(root, config.envelope_ref)
   let reserved = single_step_gate(
-    root, config, projection, request, action_ref, expected, at, reconcile,
+    root, config, projection, request, action_ref, artifact_paths, at, reconcile,
   )
   guard plan_read_bytes(root, config.envelope_ref) == envelope_bytes else {
     fail("Single-step authority changed during Gate evaluation")
+  }
+  if legacy {
+    let original_bytes = plan_read_bytes(root, action_ref + "/" + action_name)
+    guard @json.parse(@utf8.decode(original_bytes)) == existing.unwrap() else {
+      fail("legacy action changed during verification")
+    }
+    ignore(
+      plan_freeze_bytes(
+        root,
+        action_ref,
+        item_id + ".legacy.action.json",
+        original_bytes,
+      ),
+    )
   }
   let action_fields : Map[String, Json] = {
     "contract_id": "moonflow.single-step-action.v1".to_json(),
@@ -163,6 +231,9 @@ async fn single_step_command_inner(
     "request_id": request_id.to_json(),
     "source_digest": projection.source_digest.to_json(),
     "adapter_request": request.to_json(),
+    "adapter_sha256": config.adapter_sha256.to_json(),
+    "owner_verification": proof,
+    "qualification": plan_value(proof, "qualification"),
     "status": "reconcile-required".to_json(),
     "message": "The original attempt may have started. Reconcile before any further action.".to_json(),
     "recorded_at": at.to_json(),
@@ -212,7 +283,7 @@ async fn single_step_command_inner(
   )
   // A changed executable or input after Gate is still fail closed; the action
   // is already durable and can only be reconciled, never redispatched.
-  single_step_executable(config.mold_executable, config.mold_sha256)
+  single_step_executable(config.adapter_executable, config.adapter_sha256)
   guard plan_read_bytes(root, config.envelope_ref) == envelope_bytes else {
     fail("Single-step authority changed after Gate evaluation")
   }
@@ -222,7 +293,7 @@ async fn single_step_command_inner(
   }
   try {
     let output = single_step_process(
-      config.mold_executable,
+      config.adapter_executable,
       [
         if reconcile {
           "reconcile-report"
@@ -247,21 +318,21 @@ async fn single_step_command_inner(
     )
     guard output.status == 0 else {
       fail(
-        "Native Mold did not return successfully; reconcile the original attempt",
+        "Native adapter did not return successfully; reconcile the original attempt",
       )
     }
     let wire = @json.parse(output.stdout)
     let result_json = if reconcile {
       guard plan_string(wire, "contract_id") ==
         "moonflow.adapter-reconciliation.v1" &&
-        plan_string(wire, "adapter_id") == "moonmold-pack-local-v1" &&
+        plan_string(wire, "adapter_id") == operation.adapter_id &&
         plan_string(wire, "request_id") == request.request_id &&
         plan_string(wire, "attempt_id") == request.attempt_id else {
-        fail("Mold reconciliation report correlation differs")
+        fail("Adapter reconciliation report correlation differs")
       }
       if plan_string(wire, "decision") == "not-applied" {
         action_fields["status"] = "not-applied".to_json()
-        action_fields["message"] = "Mold found no applied effect. This route will not retry or create another attempt.".to_json()
+        action_fields["message"] = "The adapter found no applied effect. This route will not retry or create another attempt.".to_json()
         @flow_host.atomic_replace_named_json_v1(
           directory,
           action_name,
@@ -276,22 +347,60 @@ async fn single_step_command_inner(
       }
       guard plan_string(wire, "decision") == "recovered-succeeded" &&
         plan_value(wire, "retry_allowed") == false.to_json() else {
-        fail("Mold did not recover a successful terminal result")
+        fail("Adapter did not recover a successful terminal result")
       }
       plan_value(wire, "result")
     } else {
       wire
     }
     let result = @moonflow.decode_adapter_result(result_json)
-    let receipt_ref = @moonflow.single_step_mold_receipt_ref(request)
+    let receipt_ref = plan_string(proof, "receipt_ref")
     let receipt_bytes = plan_read_bytes(root, receipt_ref)
-    @moonflow.single_step_validate_mold_result(
+    @moonflow.single_step_validate_result(
       request,
       result,
-      @json.parse(@utf8.decode(receipt_bytes)),
+      receipt_ref,
       "sha256:" + sha256_hex(receipt_bytes),
       expected,
     )
+    let result_exchange = single_step_verification_payload(
+      root,
+      operation,
+      request,
+      "result",
+      reconcile~,
+    )
+    let exchange_fields = plan_fields(result_exchange, "result verification")
+    if legacy {
+      exchange_fields["legacy_action"] = existing.unwrap()
+    }
+    exchange_fields["result"] = result_json
+    exchange_fields["receipt_ref"] = receipt_ref.to_json()
+    exchange_fields["receipt_digest"] = ("sha256:" + sha256_hex(receipt_bytes)).to_json()
+    let result_proof = single_step_verify(
+      root,
+      config,
+      operation,
+      request,
+      result_exchange,
+      action_ref,
+      item_id + ".result.verification.json",
+    )
+    for
+      field in [
+        "receipt_ref", "expected_artifacts", "artifact_paths", "adapter_id", "pack_version",
+        "qualification",
+      ] {
+      guard plan_value(result_proof, field) == plan_value(proof, field) else {
+        fail(
+          "terminal owner proof differs from the authorized operation policy",
+        )
+      }
+    }
+    guard declared_input_digest(root, request.input_artifacts) ==
+      request.input_digest else {
+      fail("single-step input changed before durable result import")
+    }
     let evidence : Array[Json] = []
     for reference in result.output_artifacts {
       let bytes = plan_read_bytes(root, reference)

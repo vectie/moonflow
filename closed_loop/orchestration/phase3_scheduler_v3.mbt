@@ -1208,7 +1208,7 @@ pub fn prepare_scheduler_claim_v3(
   ]) catch {
     _ => raise ReplayBindingViolation(field="scheduler_claim_v3_guard")
   }
-  { claim, request }
+  { claim, request, }
 }
 
 ///|
@@ -1419,7 +1419,7 @@ pub fn prepare_scheduler_receipt_v3(
   ]) catch {
     _ => raise ReplayBindingViolation(field="scheduler_receipt_v3_guard")
   }
-  { receipt, request }
+  { receipt, request, }
 }
 
 ///|

@@ -12,6 +12,7 @@
   "items": [
     {
       "work_item_id": "work-research",
+      "responsibility": null,
       "declaration_id": "research",
       "product_id": "moonwiki",
       "requested_authority": "observe",
@@ -52,6 +53,7 @@
     },
     {
       "work_item_id": "work-validate",
+      "responsibility": null,
       "declaration_id": "validate",
       "product_id": "moonmoon",
       "requested_authority": "sandbox-execution",

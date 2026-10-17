@@ -16,7 +16,7 @@ fn make_terminal_receipt_binding_v1(
   if receipt_ref.digest() != digest {
     raise DigestMismatch(field="finalization_terminal_receipt_v1")
   }
-  { receipt_ref, canonical, digest }
+  { receipt_ref, canonical, digest, }
 }
 
 ///|

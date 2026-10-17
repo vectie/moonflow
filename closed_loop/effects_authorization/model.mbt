@@ -19,7 +19,7 @@ pub fn ReplayPosition::new(
   guard event_ref.digest() == event_digest else {
     return Err(ContentReferenceMismatch("event"))
   }
-  Ok({ event_ref, sequence, revision, event_digest })
+  Ok({ event_ref, sequence, revision, event_digest, })
 }
 
 ///|
@@ -68,7 +68,7 @@ pub fn ProducerDescriptor::new(
   guard record_ref.digest() == record_digest else {
     return Err(ContentReferenceMismatch("producer"))
   }
-  Ok({ contract_id, contract_version, record_ref, record_digest })
+  Ok({ contract_id, contract_version, record_ref, record_digest, })
 }
 
 ///|
@@ -210,7 +210,7 @@ pub fn EligibilityBinding::new(
   authoritative_head : ReplayPosition,
 ) -> Result[EligibilityBinding, AuthorizationError] {
   guard clock >= 0L else { return Err(Negative("clock")) }
-  Ok({ clock, authoritative_head })
+  Ok({ clock, authoritative_head, })
 }
 
 ///|
@@ -395,7 +395,7 @@ pub fn CapabilityBinding::new(
   guard capability_ref.digest() == capability_digest else {
     return Err(ContentReferenceMismatch("capability"))
   }
-  Ok({ capability_ref, capability_digest })
+  Ok({ capability_ref, capability_digest, })
 }
 
 ///|
@@ -427,7 +427,7 @@ pub fn FencingBinding::new(
 ) -> Result[FencingBinding, AuthorizationError] {
   guard lease_epoch >= 0L else { return Err(Negative("lease_epoch")) }
   guard fencing_token >= 0L else { return Err(Negative("fencing_token")) }
-  Ok({ fencing_ref, lease_epoch, fencing_token })
+  Ok({ fencing_ref, lease_epoch, fencing_token, })
 }
 
 ///|
@@ -461,7 +461,7 @@ pub fn EvidenceBinding::new(
   guard evidence_ref.digest() == evidence_digest else {
     return Err(ContentReferenceMismatch("evidence"))
   }
-  Ok({ evidence_ref, evidence_digest })
+  Ok({ evidence_ref, evidence_digest, })
 }
 
 ///|
@@ -727,7 +727,7 @@ pub fn AuthorizationLink::new(
   guard authorization_ref.digest() == authorization_digest else {
     return Err(ContentReferenceMismatch("authorization"))
   }
-  Ok({ authorization_ref, authorization_digest, committed_position })
+  Ok({ authorization_ref, authorization_digest, committed_position, })
 }
 
 ///|
@@ -883,7 +883,7 @@ pub fn AttemptLink::new(
   guard attempt_ref.digest() == attempt_digest else {
     return Err(ContentReferenceMismatch("attempt"))
   }
-  Ok({ attempt_ref, attempt_digest, committed_position })
+  Ok({ attempt_ref, attempt_digest, committed_position, })
 }
 
 ///|
@@ -1047,7 +1047,7 @@ pub fn AuthorizationProof::new(
   guard intent_ref.digest() == intent_digest else {
     return Err(ContentReferenceMismatch("intent"))
   }
-  Ok({ authorization, attempt, intent_ref, intent_digest })
+  Ok({ authorization, attempt, intent_ref, intent_digest, })
 }
 
 ///|
@@ -1097,7 +1097,7 @@ pub fn EligibleAuthorizedIntent::new(
   guard intent.attempt == proof.attempt else {
     return Err(ProofMismatch("attempt"))
   }
-  Ok({ intent, proof })
+  Ok({ intent, proof, })
 }
 
 ///|
@@ -1127,7 +1127,7 @@ pub fn AuthorizationManifest::new(
   attempt_ref : @contracts.RecordRef,
   intent_ref : @contracts.RecordRef,
 ) -> AuthorizationManifest {
-  { authorization_ref, attempt_ref, intent_ref }
+  { authorization_ref, attempt_ref, intent_ref, }
 }
 
 ///|
@@ -1172,7 +1172,7 @@ pub fn AuthorizedDispatchEnvelope::new(
   guard eligible.intent.attempt.attempt_ref == manifest.attempt_ref else {
     return Err(ProofMismatch("manifest.attempt"))
   }
-  Ok({ eligible, manifest })
+  Ok({ eligible, manifest, })
 }
 
 ///|

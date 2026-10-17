@@ -1510,7 +1510,7 @@ pub fn EffectsProjection::strict_legacy_transition_catalog_v3(
       match intent_ref {
         None => ()
         Some(intent_ref) =>
-          values.push({ event_ref: event.event_ref(), intent_ref })
+          values.push({ event_ref: event.event_ref(), intent_ref, })
       }
     }
   }

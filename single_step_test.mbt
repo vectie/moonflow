@@ -32,54 +32,6 @@ fn single_fixture_projection(run_id : String) -> @moonflow.RunProjection raise {
 }
 
 ///|
-fn single_fixture_receipt(request : @moonflow.AdapterRequest) -> Json {
-  {
-    "contract_id": "moonmold.spatial-operation-receipt.v1",
-    "operation_ref": "moonmold/spatial.operation.execute@0.2.0",
-    "request_id": request.request_id,
-    "attempt_id": request.attempt_id,
-    "idempotency_key": request.idempotency_key,
-    "outcome": "applied",
-    "claim_ceiling": "digital-artifact",
-    "physical_authority": false,
-    "review_required": true,
-    "artifacts": [],
-    "backend_qualification": {
-      "evidence_class": "fixture-reference-only",
-      "production_qualified": false,
-      "physical_authority": false,
-      "blender_evidence": false,
-    },
-  }
-}
-
-///|
-test "single-step exact operation and authority are closed to version aliases" {
-  let item = single_fixture_projection("single-run").items[0]
-  assert_true(@moonflow.single_step_mold_item_supported(item))
-  for
-    operation in [
-      "spatial.operation.execute", "moonmold/spatial.operation.execute@0.3.0", "moonmold/representation.validate@0.2.0",
-    ] {
-    assert_false(
-      @moonflow.single_step_mold_item_supported({ ..item, operation, }),
-    )
-  }
-  assert_false(
-    @moonflow.single_step_mold_item_supported({
-      ..item,
-      requested_authority: "physical-effect",
-    }),
-  )
-  assert_false(
-    @moonflow.single_step_mold_item_supported({
-      ..item,
-      required_claim: "physical-readiness",
-    }),
-  )
-}
-
-///|
 test "single-step workspace identities cannot collide across hyphenated run and item pairs" {
   let first = single_fixture_projection("a-b")
   let second = single_fixture_projection("a")
@@ -125,13 +77,13 @@ test "single-step attempt identity is run-scoped and only the selected item reac
   let result = @moonflow.director_success_result_for_item(
     projection.items[0],
     "sha256:receipt",
-    [@moonflow.single_step_mold_receipt_ref(request)],
+    [single_step_receipt_reference_fixture(request)],
     "2026-10-07T07:00:00Z",
   )
-  @moonflow.single_step_validate_mold_result(
+  @moonflow.single_step_validate_result(
     request,
     result,
-    single_fixture_receipt(request),
+    single_step_receipt_reference_fixture(request),
     "sha256:receipt",
     [],
   )
@@ -143,7 +95,7 @@ test "single-step attempt identity is run-scoped and only the selected item reac
 }
 
 ///|
-test "single-step rejects wrong result identity digest artifacts refusal and inflated claim" {
+test "single-step rejects wrong result identity digest and artifact identity" {
   let projection = single_fixture_projection("single-run")
   let request = @moonflow.single_step_request_for_item(
     projection,
@@ -155,7 +107,7 @@ test "single-step rejects wrong result identity digest artifacts refusal and inf
   let valid = @moonflow.director_success_result_for_item(
     projection.items[0],
     "sha256:receipt",
-    [@moonflow.single_step_mold_receipt_ref(request)],
+    [single_step_receipt_reference_fixture(request)],
     "2026-10-07T07:00:00Z",
   )
   for
@@ -168,10 +120,10 @@ test "single-step rejects wrong result identity digest artifacts refusal and inf
       { ..valid, output_artifacts: ["unapproved/output"], },
     ] {
     let denied = try {
-      @moonflow.single_step_validate_mold_result(
+      @moonflow.single_step_validate_result(
         request,
         result,
-        single_fixture_receipt(request),
+        single_step_receipt_reference_fixture(request),
         "sha256:receipt",
         [],
       )
@@ -181,29 +133,33 @@ test "single-step rejects wrong result identity digest artifacts refusal and inf
     }
     assert_true(denied)
   }
+}
+
+///|
+fn single_step_receipt_reference_fixture(
+  request : @moonflow.AdapterRequest,
+) -> String {
+  "receipts/" + request.attempt_id + ".json"
+}
+
+///|
+test "single-step generic ceiling rejects physical authority and unready items" {
+  let projection = single_fixture_projection("ceiling-run")
+  let item = projection.items[0]
   for
-    (field, value) in [
-      ("outcome", "rejected".to_json()),
-      ("claim_ceiling", "physical-readiness".to_json()),
-      ("physical_authority", true.to_json()),
-      ("review_required", false.to_json()),
+    denied in [
+      { ..item, requested_authority: "physical-effect", },
+      { ..item, required_claim: "physical-readiness", },
+      { ..item, status: @moonflow.Review, },
     ] {
-    guard single_fixture_receipt(request) is Object(fields) else {
-      fail("fixture")
-    }
-    fields[field] = value
-    let denied = try {
-      @moonflow.single_step_validate_mold_result(
-        request,
-        valid,
-        Json::object(fields),
-        "sha256:receipt",
-        [],
+    try
+      @moonflow.single_step_request_for_item(
+        projection, denied, "sha256:inputs", "2026-10-07T07:00:00Z",
       )
-      false
-    } catch {
-      _ => true
+    catch {
+      _ => ()
+    } noraise {
+      _ => fail("single-step ceiling must remain closed")
     }
-    assert_true(denied)
   }
 }

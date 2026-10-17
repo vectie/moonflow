@@ -77,7 +77,7 @@ pub fn prepare_guarded_retry_schedule_request_v2(
     "retry.request",
     request.request_ref(),
   )
-  { request, authorization }
+  { request, authorization, }
 }
 
 ///|
@@ -178,5 +178,5 @@ pub fn prepare_guarded_atomic_retry_v2(
     "retry.commit",
     prepared.registration().record_ref(),
   )
-  { prepared, authorization }
+  { prepared, authorization, }
 }

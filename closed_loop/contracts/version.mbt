@@ -47,7 +47,7 @@ fn parse_version_named(
   if text != input {
     raise MalformedVersion(field~)
   }
-  { major, minor, patch, text }
+  { major, minor, patch, text, }
 }
 
 ///|
@@ -98,7 +98,7 @@ pub fn VersionProfile::new(
       normalized.push(version)
     }
   }
-  { versions: ReadOnlyArray::from_array(normalized) }
+  { versions: ReadOnlyArray::from_array(normalized), }
 }
 
 ///|

@@ -227,4 +227,3 @@ pub fn RetryScheduleRequestV2::workflow(Self) -> @contracts.RecordRef
 // Type aliases
 
 // Traits
-

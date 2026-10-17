@@ -4710,4 +4710,3 @@ pub(open) trait WorkerObservationPort {
   fn sample_due_capability(Self, DueProof) -> WorkerCapabilityEvidence raise
   fn sample_claimed_capability(Self, ClaimedProof) -> WorkerCapabilityEvidence raise
 }
-

@@ -550,7 +550,7 @@ pub fn GuardedMemoryStore::new_for_profile(
       field="selected_guard_profile",
     )
   }
-  { store, receipt, selected_profile_id: profile_id }
+  { store, receipt, selected_profile_id: profile_id, }
 }
 
 ///|

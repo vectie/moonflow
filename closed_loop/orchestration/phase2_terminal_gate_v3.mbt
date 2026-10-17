@@ -231,7 +231,7 @@ fn CurrentGovernedRecoveryProjectionV3::prepare_claim_first_cancellation_v3(
   ) catch {
     _ => raise ReplayBindingViolation(field="work_batch_boundary_shape")
   }
-  { request, terminal_outcome: None, commit_request }
+  { request, terminal_outcome: None, commit_request, }
 }
 
 ///|

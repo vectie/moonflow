@@ -427,7 +427,7 @@ async fn operator_receiver_receipt_projection(
       recorded_at: "",
     }
   }
-  { status: decision, receipt_ref, receipt_digest, recorded_at }
+  { status: decision, receipt_ref, receipt_digest, recorded_at, }
 }
 
 ///|

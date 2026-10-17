@@ -10,7 +10,7 @@ pub fn CriterionFinding::new(
   criterion : @contracts.RecordRef,
   disposition : CriterionDisposition,
 ) -> CriterionFinding {
-  { criterion, disposition }
+  { criterion, disposition, }
 }
 
 ///|
@@ -41,7 +41,7 @@ fn read_finding(reader : GovernanceReader) -> CriterionFinding raise {
   let criterion = read_record(nested)
   nested.require_end()
   let disposition = criterion_disposition_from_tag(reader.read_string())
-  { criterion, disposition }
+  { criterion, disposition, }
 }
 
 ///|

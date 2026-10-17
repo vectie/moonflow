@@ -284,7 +284,7 @@ pub fn OpaqueExtension::new(
     namespace_id.has_suffix(".") {
     raise InvalidReferenceField(reference="extension", field="namespace")
   }
-  { namespace_id, name, value }
+  { namespace_id, name, value, }
 }
 
 ///|
